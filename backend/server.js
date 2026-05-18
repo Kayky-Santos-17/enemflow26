@@ -13,6 +13,9 @@ connectDB();
 // ── App Express ──────────────────────────────────────────────────────────────
 const app = express();
 
+// Confia nos cabeçalhos de proxy (essencial na Vercel para o express-rate-limit)
+app.set('trust proxy', 1);
+
 // Middlewares globais
 app.use(express.json({ limit: '20mb' }));
 app.use(express.urlencoded({ limit: '20mb', extended: false }));

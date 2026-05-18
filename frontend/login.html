@@ -63,6 +63,14 @@
         <div class="text-center mb-8">
           <h2 id="formTitle" class="text-2xl font-bold text-slate-900 dark:text-white mb-2">Bem-vindo de volta</h2>
           <p id="formSubtitle" class="text-sm text-slate-500 dark:text-slate-400">Insira suas credenciais para acessar sua jornada.</p>
+          
+          <!-- Caixa de Alerta Inline Premium (Requisito 2) -->
+          <div id="authAlert" class="hidden mt-4 p-3.5 rounded-2xl text-xs font-semibold border text-left flex items-start gap-2.5 animate-fade-in transition-all">
+            <svg class="w-4 h-4 shrink-0 text-red-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/>
+            </svg>
+            <span id="authAlertText" class="text-red-600 dark:text-red-400"></span>
+          </div>
         </div>
 
         <form id="authForm" class="space-y-5">
@@ -109,6 +117,9 @@
     let isLogin = true;
 
     function toggleMode() {
+      // Oculta alertas antigos ao trocar
+      document.getElementById('authAlert').classList.add('hidden');
+
       isLogin = !isLogin;
       document.getElementById('nomeGroup').classList.toggle('hidden');
       document.getElementById('nome').required = !isLogin;
@@ -127,6 +138,7 @@
 
     document.getElementById('authForm').addEventListener('submit', async (e) => {
       e.preventDefault();
+      document.getElementById('authAlert').classList.add('hidden');
       
       const email = document.getElementById('email').value;
       const senha = document.getElementById('senha').value;
@@ -146,11 +158,23 @@
         });
 
         App.setToken(data.token);
-        App.showToast('Autenticação bem sucedida! Redirecionando...');
+        
+        // Alerta de sucesso inline
+        const alertBox = document.getElementById('authAlert');
+        const alertText = document.getElementById('authAlertText');
+        alertText.innerText = 'Autenticação bem sucedida! Redirecionando...';
+        alertBox.className = "mt-4 p-3.5 rounded-2xl text-xs font-semibold border bg-emerald-500/10 border-emerald-500/30 text-emerald-500 dark:text-emerald-400 text-left flex items-start gap-2.5 animate-fade-in";
+        alertBox.classList.remove('hidden');
         
         setTimeout(() => window.location.href = 'dashboard.html', 1000);
       } catch (err) {
-        App.showToast(err.message, true);
+        const alertBox = document.getElementById('authAlert');
+        const alertText = document.getElementById('authAlertText');
+        alertText.innerText = err.message;
+        
+        alertBox.className = "mt-4 p-3.5 rounded-2xl text-xs font-semibold border bg-red-500/10 border-red-500/30 text-red-500 dark:text-red-400 text-left flex items-start gap-2.5 animate-fade-in";
+        alertBox.classList.remove('hidden');
+
         btn.disabled = false;
         btn.innerHTML = isLogin ? 'Acessar Plataforma' : 'Criar Conta';
       }

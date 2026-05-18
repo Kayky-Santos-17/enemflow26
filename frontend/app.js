@@ -87,19 +87,19 @@ const App = {
 
     const toast = document.createElement('div');
     toast.id = 'premium-toast';
-    toast.className = `fixed bottom-4 right-4 md:bottom-10 md:right-10 flex items-center gap-3 px-6 py-4 rounded-2xl shadow-2xl z-[9999] transform translate-y-20 opacity-0 transition-all duration-500 backdrop-blur-xl border ${
+    toast.className = `fixed bottom-4 right-4 md:bottom-10 md:right-10 flex items-center gap-3.5 px-6 py-4 rounded-2xl shadow-2xl z-[9999] transform translate-y-20 opacity-0 transition-all duration-500 backdrop-blur-xl border ${
       isError 
-        ? 'bg-red-500/10 border-red-500/20 text-red-500' 
-        : 'bg-indigo-500/10 border-indigo-500/20 text-indigo-400'
+        ? 'bg-red-950/60 border-red-500/30 text-red-400 shadow-[0_8px_32px_0_rgba(239,68,68,0.15)]' 
+        : 'bg-indigo-950/60 border-indigo-500/30 text-indigo-400 shadow-[0_8px_32px_0_rgba(99,102,241,0.15)]'
     }`;
     
     const icon = isError 
-      ? '<svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>'
-      : '<svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>';
+      ? '<svg class="w-5 h-5 shrink-0 text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>'
+      : '<svg class="w-5 h-5 shrink-0 text-indigo-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>';
     
     toast.innerHTML = `
       ${icon}
-      <p class="font-medium text-sm text-slate-200">${msg}</p>
+      <p class="font-bold text-sm text-slate-100 dark:text-slate-100">${msg}</p>
     `;
     
     document.body.appendChild(toast);

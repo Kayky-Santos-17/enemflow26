@@ -18,11 +18,11 @@ const aiLimiter = rateLimit({
   legacyHeaders: false,
 });
 
-// Rate limiter para login/registro (proteção contra brute force)
+// Rate limiter para login/registro (proteção contra brute force, mais relaxada para evitar falsos positivos)
 const authLimiter = rateLimit({
-  windowMs: 15 * 60 * 1000,
-  max: 20,
-  message: { error: 'Muitas tentativas de login. Tente novamente em 15 minutos.' },
+  windowMs: 5 * 60 * 1000, // 5 minutos
+  max: 100, // 100 tentativas por IP
+  message: { error: 'Muitas tentativas de login de forma sequencial. Aguarde 5 minutos.' },
   standardHeaders: true,
   legacyHeaders: false,
 });
