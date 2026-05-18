@@ -20,15 +20,19 @@ const connectDB = async () => {
   if (mongoose.connection.readyState >= 1) return;
 
   try {
-    // Usamos a string de conexão padrão (non-SRV) do MongoDB Atlas.
-    // Esta URI especifica os 3 nós exatos do replica set e o nome do cluster,
-    // o que ignora completamente a resolução SRV DNS (que falha na Vercel).
-    const nonSrvUri = 'mongodb://enem_flow:enemflow20266034@ac-rqbu7rt-shard-00-00.awsypn2.mongodb.net:27017,ac-rqbu7rt-shard-00-01.awsypn2.mongodb.net:27017,ac-rqbu7rt-shard-00-02.awsypn2.mongodb.net:27017/enemflow?ssl=true&replicaSet=atlas-143j8a-shard-0&authSource=admin&retryWrites=true&w=majority';
+    // 1. Tenta usar a variável de ambiente (Vercel Dashboard ou .env local)
+    let uri = process.env.MONGO_URI;
     
-    let uri = nonSrvUri;
+    if (uri) {
+      uri = uri.replace(/["']/g, "").trim();
+    } else {
+      // 2. Fallback caso a variável de ambiente não esteja configurada ou dê erro.
+      // Usamos a string de conexão padrão (non-SRV) com a senha correta (enemfl%40w20266034!%238%23)
+      uri = 'mongodb://enem_flow:enemfl%40w20266034!%238%23@ac-rqbu7rt-shard-00-00.awsypn2.mongodb.net:27017,ac-rqbu7rt-shard-00-01.awsypn2.mongodb.net:27017,ac-rqbu7rt-shard-00-02.awsypn2.mongodb.net:27017/enemflow?ssl=true&replicaSet=atlas-143j8a-shard-0&authSource=admin&retryWrites=true&w=majority';
+    }
     
     const conn = await mongoose.connect(uri, {
-      serverSelectionTimeoutMS: 5000, // Falha rapidamente (5s) em vez de travar por 30s se houver queda
+      serverSelectionTimeoutMS: 5000, // Timeout de 5s para evitar travar o Vercel Serverless
       connectTimeoutMS: 5000,
     });
     console.log(`✅ MongoDB conectado com sucesso via Réplica Set: ${conn.connection.host}`);
