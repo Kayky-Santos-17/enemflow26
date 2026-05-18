@@ -1,4 +1,8 @@
 const mongoose = require('mongoose');
+const dns = require('dns');
+
+// Força o Node.js a usar os DNS públicos do Google e Cloudflare
+dns.setServers(['8.8.8.8', '1.1.1.1']);
 
 /**
  * Conecta ao MongoDB usando a URI definida em .env
