@@ -10,7 +10,7 @@ const crypto = require('crypto');
  * Expira conforme JWT_EXPIRES_IN definido no .env (padrão: 7d).
  */
 const gerarToken = (userId, role = 'user', sessionToken = '') =>
-  jwt.sign({ id: userId, role, sessionToken }, process.env.JWT_SECRET, {
+  jwt.sign({ id: userId, role, sessionToken }, process.env.JWT_SECRET || 'enemflow_secreto_2026_fallback_key', {
     expiresIn: process.env.JWT_EXPIRES_IN || '7d',
   });
 

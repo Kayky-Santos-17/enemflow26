@@ -8,10 +8,13 @@ const connectDB = async () => {
   if (mongoose.connection.readyState >= 1) return;
 
   try {
-    if (!process.env.MONGO_URI) {
+    const fallbackUri = 'mongodb+srv://enem_flow:enemflow20266034@cluster0.awsypn2.mongodb.net/enemflow?retryWrites=true&w=majority';
+    const uri = process.env.MONGO_URI || fallbackUri;
+    
+    if (!uri) {
       throw new Error('Variável MONGO_URI ausente.');
     }
-    const conn = await mongoose.connect(process.env.MONGO_URI);
+    const conn = await mongoose.connect(uri);
     console.log(`✅ MongoDB conectado: ${conn.connection.host}`);
   } catch (error) {
     console.error(`❌ Erro no Banco: ${error.message}`);
