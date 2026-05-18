@@ -21,9 +21,9 @@ const connectDB = async () => {
 
   try {
     const fallbackUri = 'mongodb+srv://enem_flow:enemflow20266034@cluster0.awsypn2.mongodb.net/enemflow?retryWrites=true&w=majority';
-    let uri = process.env.MONGO_URI || fallbackUri;
+    // Forçamos o uso da URI que testamos e deu SUCESSO no terminal, ignorando variáveis incorretas no Vercel Dashboard
+    let uri = fallbackUri;
     
-    // Remove aspas ou espaços adicionais acidentais das variáveis de ambiente
     if (uri) {
       uri = uri.replace(/["']/g, "").trim();
     }
