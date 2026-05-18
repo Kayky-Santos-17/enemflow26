@@ -20,21 +20,20 @@ const connectDB = async () => {
   if (mongoose.connection.readyState >= 1) return;
 
   try {
-    const fallbackUri = 'mongodb+srv://enem_flow:enemflow20266034@cluster0.awsypn2.mongodb.net/enemflow?retryWrites=true&w=majority';
-    // Forçamos o uso da URI que testamos e deu SUCESSO no terminal, ignorando variáveis incorretas no Vercel Dashboard
-    let uri = fallbackUri;
+    // Usamos a string de conexão padrão (non-SRV) do MongoDB Atlas.
+    // Esta URI especifica os 3 nós exatos do replica set e o nome do cluster,
+    // o que ignora completamente a resolução SRV DNS (que falha na Vercel).
+    const nonSrvUri = 'mongodb://enem_flow:enemflow20266034@ac-rqbu7rt-shard-00-00.awsypn2.mongodb.net:27017,ac-rqbu7rt-shard-00-01.awsypn2.mongodb.net:27017,ac-rqbu7rt-shard-00-02.awsypn2.mongodb.net:27017/enemflow?ssl=true&replicaSet=atlas-143j8a-shard-0&authSource=admin&retryWrites=true&w=majority';
     
-    if (uri) {
-      uri = uri.replace(/["']/g, "").trim();
-    }
-
-    if (!uri) {
-      throw new Error('Variável MONGO_URI ausente.');
-    }
-    const conn = await mongoose.connect(uri);
-    console.log(`✅ MongoDB conectado: ${conn.connection.host}`);
+    let uri = nonSrvUri;
+    
+    const conn = await mongoose.connect(uri, {
+      serverSelectionTimeoutMS: 5000, // Falha rapidamente (5s) em vez de travar por 30s se houver queda
+      connectTimeoutMS: 5000,
+    });
+    console.log(`✅ MongoDB conectado com sucesso via Réplica Set: ${conn.connection.host}`);
   } catch (error) {
-    console.error(`❌ Erro no Banco: ${error.message}`);
+    console.error(`❌ Erro catastrófico de conexão no Banco: ${error.message}`);
   }
 };
 
