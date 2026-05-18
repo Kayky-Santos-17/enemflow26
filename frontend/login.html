@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html lang="pt-BR" class="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>EnemFlow AI - Autenticação</title>
+  <link rel="manifest" href="manifest.json">
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: { extend: { fontFamily: { sans: ['Inter', 'sans-serif'] } } }
+    }
+  </script>
+</head>
+<body class="min-h-screen flex items-center justify-center relative overflow-hidden bg-slate-50 dark:bg-[#09090b]">
+  
+  <!-- Blur Background Elements -->
+  <div class="absolute top-[-10%] left-[-10%] w-96 h-96 bg-indigo-500/20 rounded-full blur-3xl pointer-events-none"></div>
+  <div class="absolute bottom-[-10%] right-[-10%] w-96 h-96 bg-pink-500/20 rounded-full blur-3xl pointer-events-none"></div>
+
+  <div class="w-full max-w-6xl grid grid-cols-1 lg:grid-cols-2 gap-8 p-6 z-10">
+    
+    <!-- Hero Section (Desktop Only) -->
+    <div class="hidden lg:flex flex-col justify-center px-12 animate-fade-in" style="animation-delay: 0.1s;">
+      <div class="flex items-center gap-3 mb-8">
+        <svg class="w-10 h-10 text-indigo-500" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+          <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon>
+        </svg>
+        <span class="text-3xl font-bold tracking-tight text-slate-900 dark:text-white">EnemFlow <span class="text-gradient">AI</span></span>
+      </div>
+      <h1 class="text-5xl font-bold leading-tight mb-6 text-slate-900 dark:text-white">
+        O seu professor particular movido a Inteligência Artificial.
+      </h1>
+      <p class="text-lg text-slate-600 dark:text-slate-400 mb-8 max-w-md">
+        Domine o ENEM com resumos inteligentes, planos de estudo personalizados e uma trilha de aprendizado adaptativa.
+      </p>
+      
+      <div class="flex items-center gap-4">
+        <div class="flex -space-x-3">
+          <div class="w-10 h-10 rounded-full bg-slate-200 border-2 border-white dark:border-zinc-900"></div>
+          <div class="w-10 h-10 rounded-full bg-slate-300 border-2 border-white dark:border-zinc-900"></div>
+          <div class="w-10 h-10 rounded-full bg-slate-400 border-2 border-white dark:border-zinc-900 flex items-center justify-center text-xs font-bold text-white">+1k</div>
+        </div>
+        <p class="text-sm font-medium text-slate-500 dark:text-slate-400">Junte-se aos aprovados.</p>
+      </div>
+    </div>
+
+    <!-- Auth Card -->
+    <div class="flex items-center justify-center animate-fade-in" style="animation-delay: 0.2s;">
+      <div class="glass-card w-full max-w-md p-8 md:p-10 relative">
+        
+        <!-- Mobile Logo -->
+        <div class="flex lg:hidden items-center justify-center gap-2 mb-8">
+          <svg class="w-8 h-8 text-indigo-500" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+            <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon>
+          </svg>
+          <span class="text-2xl font-bold tracking-tight text-slate-900 dark:text-white">EnemFlow <span class="text-gradient">AI</span></span>
+        </div>
+
+        <div class="text-center mb-8">
+          <h2 id="formTitle" class="text-2xl font-bold text-slate-900 dark:text-white mb-2">Bem-vindo de volta</h2>
+          <p id="formSubtitle" class="text-sm text-slate-500 dark:text-slate-400">Insira suas credenciais para acessar sua jornada.</p>
+        </div>
+
+        <form id="authForm" class="space-y-5">
+          <div id="nomeGroup" class="hidden space-y-1">
+            <label class="text-sm font-medium text-slate-700 dark:text-slate-300">Nome Completo</label>
+            <input type="text" id="nome" class="w-full px-4 py-3 rounded-xl bg-white/50 dark:bg-black/20 border border-slate-200 dark:border-white/10 text-slate-900 dark:text-white focus:ring-2 focus:ring-indigo-500 focus:border-transparent outline-none transition-all placeholder:text-slate-400" placeholder="Ex: João Silva">
+          </div>
+
+          <div class="space-y-1">
+            <label class="text-sm font-medium text-slate-700 dark:text-slate-300">E-mail</label>
+            <input type="email" id="email" required class="w-full px-4 py-3 rounded-xl bg-white/50 dark:bg-black/20 border border-slate-200 dark:border-white/10 text-slate-900 dark:text-white focus:ring-2 focus:ring-indigo-500 focus:border-transparent outline-none transition-all placeholder:text-slate-400" placeholder="voce@email.com">
+          </div>
+
+          <div class="space-y-1">
+            <div class="flex items-center justify-between">
+              <label class="text-sm font-medium text-slate-700 dark:text-slate-300">Senha</label>
+              <a href="#" class="text-xs font-medium text-indigo-500 hover:text-indigo-400 transition-colors" id="forgotPassLink">Esqueceu a senha?</a>
+            </div>
+            <div class="relative">
+              <input type="password" id="senha" required class="w-full px-4 py-3 rounded-xl bg-white/50 dark:bg-black/20 border border-slate-200 dark:border-white/10 text-slate-900 dark:text-white focus:ring-2 focus:ring-indigo-500 focus:border-transparent outline-none transition-all placeholder:text-slate-400 pr-12" placeholder="••••••••">
+            </div>
+          </div>
+
+          <button type="submit" id="submitBtn" class="w-full py-3.5 px-4 bg-gradient-primary hover:opacity-90 text-white rounded-xl font-semibold shadow-lg shadow-indigo-500/30 transition-all flex justify-center items-center gap-2">
+            Acessar Plataforma
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"></path></svg>
+          </button>
+        </form>
+
+        <div class="mt-8 text-center border-t border-slate-200 dark:border-white/10 pt-6">
+          <p class="text-sm text-slate-500 dark:text-slate-400">
+            <span id="toggleText">Ainda não tem conta?</span>
+            <button type="button" onclick="toggleMode()" id="toggleBtn" class="ml-1 font-semibold text-indigo-500 hover:text-indigo-400 transition-colors">Criar conta grátis</button>
+          </p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="app.js"></script>
+  <script>
+    if(App.getToken()) window.location.href = 'dashboard.html';
+    
+    let isLogin = true;
+
+    function toggleMode() {
+      isLogin = !isLogin;
+      document.getElementById('nomeGroup').classList.toggle('hidden');
+      document.getElementById('nome').required = !isLogin;
+      
+      document.getElementById('formTitle').innerText = isLogin ? 'Bem-vindo de volta' : 'Comece sua jornada';
+      document.getElementById('formSubtitle').innerText = isLogin ? 'Insira suas credenciais para acessar sua jornada.' : 'O primeiro passo para dominar o ENEM.';
+      
+      document.getElementById('submitBtn').innerHTML = isLogin 
+        ? 'Acessar Plataforma <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"></path></svg>'
+        : 'Criar Conta <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z"></path></svg>';
+        
+      document.getElementById('toggleText').innerText = isLogin ? 'Ainda não tem conta?' : 'Já possui conta?';
+      document.getElementById('toggleBtn').innerText = isLogin ? 'Criar conta grátis' : 'Fazer Login';
+      document.getElementById('forgotPassLink').style.display = isLogin ? 'block' : 'none';
+    }
+
+    document.getElementById('authForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      
+      const email = document.getElementById('email').value;
+      const senha = document.getElementById('senha').value;
+      const nome = document.getElementById('nome').value;
+
+      const endpoint = isLogin ? '/auth/login' : '/auth/register';
+      const body = isLogin ? { email, senha } : { nome, email, senha };
+      const btn = document.getElementById('submitBtn');
+
+      btn.disabled = true;
+      btn.innerHTML = '<svg class="w-5 h-5 animate-spin" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg> Processando...';
+
+      try {
+        const data = await App.api(endpoint, {
+          method: 'POST',
+          body: JSON.stringify(body)
+        });
+
+        App.setToken(data.token);
+        App.showToast('Autenticação bem sucedida! Redirecionando...');
+        
+        setTimeout(() => window.location.href = 'dashboard.html', 1000);
+      } catch (err) {
+        App.showToast(err.message, true);
+        btn.disabled = false;
+        btn.innerHTML = isLogin ? 'Acessar Plataforma' : 'Criar Conta';
+      }
+    });
+
+    document.getElementById('forgotPassLink').addEventListener('click', async (e) => {
+      e.preventDefault();
+      const email = document.getElementById('email').value;
+      if (!email) return App.showToast('Preencha seu e-mail primeiro para recuperar a senha.', true);
+      
+      try {
+        const res = await App.api('/auth/forgot-password', {
+          method: 'POST',
+          body: JSON.stringify({ email })
+        });
+        App.showToast(res.message);
+      } catch (err) {
+        App.showToast(err.message, true);
+      }
+    });
+  </script>
+</body>
+</html>

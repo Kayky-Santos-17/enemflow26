@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html lang="pt-BR" class="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>EnemFlow AI - Plano de Estudos</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
+  <script src="https://unpkg.com/feather-icons"></script>
+  <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: { extend: { fontFamily: { sans: ['Inter', 'sans-serif'] } } }
+    }
+  </script>
+</head>
+<body class="flex h-screen overflow-hidden bg-slate-50 dark:bg-[#09090b]">
+
+  <!-- Mobile Header -->
+  <div class="lg:hidden fixed top-0 w-full glass z-40 px-4 py-3 flex items-center justify-between border-b">
+    <button onclick="window.location.href='dashboard.html'" class="p-2 bg-slate-100 dark:bg-white/5 rounded-lg">
+      <i data-feather="arrow-left" class="w-5 h-5"></i>
+    </button>
+    <div class="flex items-center gap-2">
+      <i data-feather="calendar" class="text-pink-500 w-5 h-5"></i>
+      <span class="font-bold">Plano de <span class="text-gradient">Estudos</span></span>
+    </div>
+    <div class="w-9"></div>
+  </div>
+
+  <div class="hidden lg:flex fixed top-0 left-0 p-6 z-50">
+    <button onclick="window.location.href='dashboard.html'" class="flex items-center gap-2 px-4 py-2 bg-white/50 dark:bg-white/5 hover:bg-white dark:hover:bg-white/10 border border-slate-200 dark:border-white/10 rounded-xl font-medium transition-colors backdrop-blur-md">
+      <i data-feather="arrow-left" class="w-4 h-4"></i> Voltar ao Dashboard
+    </button>
+  </div>
+
+  <main class="flex-1 overflow-y-auto relative pt-16 lg:pt-20 pb-20">
+    <div class="bg-glow top-[10%] right-[30%] bg-pink-500/20"></div>
+    
+    <div class="max-w-4xl mx-auto p-4 md:p-6">
+      
+      <div class="text-center mb-10 animate-fade-in">
+        <div class="w-16 h-16 rounded-2xl bg-pink-500/10 flex items-center justify-center mx-auto mb-4 border border-pink-500/20 shadow-[0_0_30px_rgba(236,72,153,0.2)]">
+          <i data-feather="map" class="w-8 h-8 text-pink-500"></i>
+        </div>
+        <h1 class="text-3xl font-bold mb-2">Cronograma Personalizado</h1>
+        <p class="text-slate-500">Organize sua rotina de estudos com a ajuda da IA.</p>
+      </div>
+
+      <div class="glass-card p-6 md:p-8 mb-8 animate-fade-in" style="animation-delay: 0.1s;">
+        <form id="planForm" class="space-y-6">
+          
+          <div>
+            <label class="text-sm font-medium text-slate-700 dark:text-slate-300 block mb-3">Selecione as Matérias (foco)</label>
+            <div class="grid grid-cols-2 md:grid-cols-4 gap-3">
+              <!-- Checkboxes estilizados -->
+              <label class="flex items-center gap-2 p-3 border border-slate-200 dark:border-white/10 rounded-xl cursor-pointer hover:bg-slate-50 dark:hover:bg-white/5 transition-colors">
+                <input type="checkbox" name="materias" value="Matemática" class="w-4 h-4 text-pink-500 rounded focus:ring-pink-500">
+                <span class="text-sm font-medium">Matemática</span>
+              </label>
+              <label class="flex items-center gap-2 p-3 border border-slate-200 dark:border-white/10 rounded-xl cursor-pointer hover:bg-slate-50 dark:hover:bg-white/5 transition-colors">
+                <input type="checkbox" name="materias" value="Física" class="w-4 h-4 text-pink-500 rounded focus:ring-pink-500">
+                <span class="text-sm font-medium">Física</span>
+              </label>
+              <label class="flex items-center gap-2 p-3 border border-slate-200 dark:border-white/10 rounded-xl cursor-pointer hover:bg-slate-50 dark:hover:bg-white/5 transition-colors">
+                <input type="checkbox" name="materias" value="Química" class="w-4 h-4 text-pink-500 rounded focus:ring-pink-500">
+                <span class="text-sm font-medium">Química</span>
+              </label>
+              <label class="flex items-center gap-2 p-3 border border-slate-200 dark:border-white/10 rounded-xl cursor-pointer hover:bg-slate-50 dark:hover:bg-white/5 transition-colors">
+                <input type="checkbox" name="materias" value="Biologia" class="w-4 h-4 text-pink-500 rounded focus:ring-pink-500">
+                <span class="text-sm font-medium">Biologia</span>
+              </label>
+              <label class="flex items-center gap-2 p-3 border border-slate-200 dark:border-white/10 rounded-xl cursor-pointer hover:bg-slate-50 dark:hover:bg-white/5 transition-colors">
+                <input type="checkbox" name="materias" value="História" class="w-4 h-4 text-pink-500 rounded focus:ring-pink-500">
+                <span class="text-sm font-medium">História</span>
+              </label>
+              <label class="flex items-center gap-2 p-3 border border-slate-200 dark:border-white/10 rounded-xl cursor-pointer hover:bg-slate-50 dark:hover:bg-white/5 transition-colors">
+                <input type="checkbox" name="materias" value="Geografia" class="w-4 h-4 text-pink-500 rounded focus:ring-pink-500">
+                <span class="text-sm font-medium">Geografia</span>
+              </label>
+              <label class="flex items-center gap-2 p-3 border border-slate-200 dark:border-white/10 rounded-xl cursor-pointer hover:bg-slate-50 dark:hover:bg-white/5 transition-colors">
+                <input type="checkbox" name="materias" value="Linguagens" class="w-4 h-4 text-pink-500 rounded focus:ring-pink-500">
+                <span class="text-sm font-medium">Linguagens</span>
+              </label>
+              <label class="flex items-center gap-2 p-3 border border-slate-200 dark:border-white/10 rounded-xl cursor-pointer hover:bg-slate-50 dark:hover:bg-white/5 transition-colors">
+                <input type="checkbox" name="materias" value="Redação" class="w-4 h-4 text-pink-500 rounded focus:ring-pink-500">
+                <span class="text-sm font-medium">Redação</span>
+              </label>
+            </div>
+          </div>
+
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div class="space-y-2">
+              <label class="text-sm font-medium text-slate-700 dark:text-slate-300">Tempo disponível por dia</label>
+              <select id="tempo" class="w-full px-4 py-3 rounded-xl bg-slate-50 dark:bg-black/20 border border-slate-200 dark:border-white/10 outline-none focus:ring-2 focus:ring-pink-500">
+                <option value="1 hora">1 hora</option>
+                <option value="2 horas" selected>2 horas</option>
+                <option value="4 horas">4 horas</option>
+                <option value="Integral (+6h)">Integral (+6h)</option>
+              </select>
+            </div>
+            
+            <div class="space-y-2">
+              <label class="text-sm font-medium text-slate-700 dark:text-slate-300">Seu nível atual</label>
+              <select id="dificuldade" class="w-full px-4 py-3 rounded-xl bg-slate-50 dark:bg-black/20 border border-slate-200 dark:border-white/10 outline-none focus:ring-2 focus:ring-pink-500">
+                <option value="Iniciante">Iniciante (Começando agora)</option>
+                <option value="Intermediário" selected>Intermediário (Já vi algo)</option>
+                <option value="Avançado">Avançado (Foco em revisão/exercícios)</option>
+              </select>
+            </div>
+          </div>
+
+          <button type="submit" id="genBtn" class="w-full py-4 bg-gradient-to-r from-pink-500 to-rose-500 hover:opacity-90 text-white rounded-xl font-semibold shadow-lg shadow-pink-500/30 transition-all flex justify-center items-center gap-2">
+            <i data-feather="calendar" class="w-5 h-5"></i> Montar Meu Cronograma
+          </button>
+        </form>
+      </div>
+
+      <div id="resultContainer" class="hidden">
+        <h2 class="text-lg font-bold mb-4 flex items-center gap-2 border-b border-slate-200 dark:border-white/10 pb-2">
+          <i data-feather="flag" class="text-pink-500 w-5 h-5"></i> Seu Plano Estratégico
+        </h2>
+        
+        <div class="glass border-l-4 border-l-pink-500 rounded-r-2xl p-6 md:p-8 relative">
+          <div id="planContent" class="prose prose-slate dark:prose-invert max-w-none prose-p:leading-relaxed prose-headings:text-pink-500 prose-table:w-full prose-th:bg-slate-100 dark:prose-th:bg-white/10 prose-th:p-2 prose-td:p-2 prose-td:border-b dark:prose-td:border-white/10"></div>
+        </div>
+      </div>
+
+    </div>
+  </main>
+
+  <script src="app.js"></script>
+  <script>
+    feather.replace();
+    if(!App.getToken()) window.location.href = 'login.html';
+
+    document.getElementById('planForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      
+      const materiasChecked = Array.from(document.querySelectorAll('input[name="materias"]:checked')).map(cb => cb.value);
+      if (materiasChecked.length === 0) return App.showToast('Selecione ao menos uma matéria.', true);
+
+      const tempoDisponivel = document.getElementById('tempo').value;
+      const dificuldade = document.getElementById('dificuldade').value;
+      const btn = document.getElementById('genBtn');
+      const resultContainer = document.getElementById('resultContainer');
+      const contentDiv = document.getElementById('planContent');
+
+      btn.disabled = true;
+      btn.innerHTML = '<i data-feather="loader" class="w-5 h-5 animate-spin"></i> Analisando e planejando...';
+      feather.replace();
+
+      try {
+        const data = await App.api('/api/plan', {
+          method: 'POST',
+          body: JSON.stringify({ materias: materiasChecked, tempoDisponivel, dificuldade })
+        });
+
+        contentDiv.innerHTML = marked.parse(data.cronograma);
+        resultContainer.classList.remove('hidden');
+        resultContainer.scrollIntoView({ behavior: 'smooth', block: 'start' });
+
+        App.showToast('Cronograma criado! Salvo na sua conta.');
+      } catch (err) {
+        App.showToast(err.message, true);
+      } finally {
+        btn.disabled = false;
+        btn.innerHTML = '<i data-feather="calendar" class="w-5 h-5"></i> Montar Meu Cronograma';
+        feather.replace();
+      }
+    });
+  </script>
+</body>
+</html>

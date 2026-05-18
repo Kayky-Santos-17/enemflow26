@@ -1,0 +1,743 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>EnemFlow - Modo Imersivo</title>
+  <link rel="stylesheet" href="style.css">
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  
+  <style>
+    body {
+      font-family: 'Plus Jakarta Sans', sans-serif;
+      background: #09090b;
+      color: #fafafa;
+      overflow: hidden;
+      margin: 0;
+      height: 100vh;
+    }
+
+    /* Layout Imersivo Premium */
+    .immersive-container {
+      display: grid;
+      grid-template-columns: 1fr 400px;
+      height: 100vh;
+      width: 100vw;
+      transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+      position: relative;
+    }
+
+    /* Quando NÃO tem mídia ou está no Modo Foco do Timer */
+    .immersive-container.no-media {
+      grid-template-columns: 0fr 1fr;
+    }
+
+    .immersive-container.no-media .media-panel {
+      transform: translateX(-100%);
+      opacity: 0;
+      pointer-events: none;
+    }
+
+    /* Painel da Esquerda (Material PDF/Vídeo) */
+    .media-panel {
+      background: #0c0c0e;
+      border-right: 1px solid rgba(255, 255, 255, 0.06);
+      display: flex;
+      flex-direction: column;
+      height: 100%;
+      position: relative;
+      transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+      z-index: 10;
+    }
+
+    .media-header {
+      padding: 1.25rem 2rem;
+      background: rgba(12, 12, 14, 0.8);
+      backdrop-filter: blur(12px);
+      border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .media-title-area {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+
+    .media-badge {
+      display: inline-flex;
+      align-items: center;
+      padding: 4px 10px;
+      font-size: 0.75rem;
+      font-weight: 700;
+      border-radius: 6px;
+      background: rgba(99, 102, 241, 0.15);
+      color: #818cf8;
+      border: 1px solid rgba(99, 102, 241, 0.2);
+      width: fit-content;
+      text-transform: uppercase;
+    }
+
+    .media-viewport {
+      flex: 1;
+      position: relative;
+      background: #050506;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    /* Painel da Direita (Timer e Controles) */
+    .focus-panel {
+      background: radial-gradient(circle at center, #111115 0%, #09090b 100%);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: space-between;
+      padding: 2.5rem;
+      height: 100%;
+      position: relative;
+      overflow-y: auto;
+      transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    .focus-panel::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 1px;
+      background: linear-gradient(90deg, transparent, rgba(99, 102, 241, 0.2), transparent);
+    }
+
+    /* Header do Painel de Foco */
+    .focus-header {
+      width: 100%;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 2rem;
+    }
+
+    .btn-circle {
+      width: 42px;
+      height: 42px;
+      border-radius: 12px;
+      background: rgba(255, 255, 255, 0.03);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      color: #a1a1aa;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    .btn-circle:hover {
+      background: rgba(255, 255, 255, 0.08);
+      border-color: rgba(255, 255, 255, 0.15);
+      color: #fafafa;
+      transform: translateY(-2px);
+    }
+
+    /* Zona Central do Cronômetro */
+    .timer-zone {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      flex: 1;
+      width: 100%;
+    }
+
+    .status-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 6px 14px;
+      border-radius: 20px;
+      background: rgba(255, 255, 255, 0.03);
+      border: 1px solid rgba(255, 255, 255, 0.06);
+      font-size: 0.8rem;
+      font-weight: 600;
+      color: #a1a1aa;
+      margin-bottom: 2rem;
+      transition: all 0.5s ease;
+    }
+
+    .status-pill.active {
+      background: rgba(16, 185, 129, 0.1);
+      border-color: rgba(16, 185, 129, 0.2);
+      color: #34d399;
+    }
+
+    .status-pill.active .pulse-dot {
+      background: #10b981;
+      box-shadow: 0 0 10px #10b981;
+      animation: indicatorPulse 1.5s infinite;
+    }
+
+    .pulse-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: #a1a1aa;
+      transition: all 0.5s ease;
+    }
+
+    /* Círculo do Cronômetro Neon Premium */
+    .timer-ring-wrapper {
+      position: relative;
+      width: 270px;
+      height: 270px;
+      border-radius: 50%;
+      background: rgba(12, 12, 14, 0.6);
+      border: 2px solid rgba(255, 255, 255, 0.03);
+      box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5), inset 0 4px 20px rgba(0, 0, 0, 0.6);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin-bottom: 2.5rem;
+      transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    .timer-ring-wrapper.active {
+      border-color: rgba(99, 102, 241, 0.3);
+      box-shadow: 0 0 50px rgba(99, 102, 241, 0.15), inset 0 0 30px rgba(99, 102, 241, 0.1);
+      transform: scale(1.02);
+    }
+
+    .timer-time {
+      font-family: 'Outfit', sans-serif;
+      font-size: 3.75rem;
+      font-weight: 800;
+      color: #ffffff;
+      text-shadow: 0 0 20px rgba(255, 255, 255, 0.1);
+      font-variant-numeric: tabular-nums;
+      letter-spacing: -1px;
+    }
+
+    .timer-time.active {
+      background: linear-gradient(135deg, #ffffff 0%, #a5b4fc 100%);
+      -webkit-background-clip: text;
+      background-clip: text;
+      -webkit-text-fill-color: transparent;
+      text-shadow: none;
+    }
+
+    /* Feedback de XP em Tempo Real */
+    .xp-gain-bubble {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      background: rgba(236, 72, 153, 0.08);
+      border: 1px solid rgba(236, 72, 153, 0.15);
+      color: #f472b6;
+      padding: 6px 12px;
+      border-radius: 10px;
+      font-size: 0.8rem;
+      font-weight: 700;
+      margin-top: 1rem;
+      opacity: 0;
+      transform: translateY(10px);
+      transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    .xp-gain-bubble.visible {
+      opacity: 1;
+      transform: translateY(0);
+    }
+
+    /* Botão Imersivo Primário */
+    .btn-focus-action {
+      position: relative;
+      width: 100%;
+      max-width: 250px;
+      padding: 14px 28px;
+      border-radius: 14px;
+      border: none;
+      font-size: 1rem;
+      font-weight: 700;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      cursor: pointer;
+      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+      overflow: hidden;
+      box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+    }
+
+    .btn-focus-action.idle {
+      background: linear-gradient(135deg, #6366f1 0%, #4f46e5 100%);
+      color: #ffffff;
+    }
+
+    .btn-focus-action.idle:hover {
+      box-shadow: 0 0 25px rgba(99, 102, 241, 0.4);
+      transform: translateY(-2px);
+    }
+
+    .btn-focus-action.active {
+      background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+      color: #ffffff;
+      animation: pulsingRedButton 2s infinite;
+    }
+
+    .btn-focus-action.active:hover {
+      transform: translateY(-2px);
+    }
+
+    /* Quotes Inspiracionais */
+    .quote-box {
+      width: 100%;
+      text-align: center;
+      padding-top: 2rem;
+      border-top: 1px solid rgba(255, 255, 255, 0.04);
+      min-height: 80px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .quote-text {
+      font-size: 0.85rem;
+      line-height: 1.5;
+      color: #71717a;
+      font-style: italic;
+      max-width: 320px;
+      transition: opacity 0.5s ease;
+    }
+
+    /* Elemento Flutuante de Foco Absoluto */
+    .focus-mode-toggle-indicator {
+      position: absolute;
+      top: 2rem;
+      right: 2rem;
+      display: flex;
+      gap: 10px;
+      z-index: 100;
+    }
+
+    /* Keyframes Animados */
+    @keyframes indicatorPulse {
+      0% { transform: scale(1); opacity: 1; }
+      50% { transform: scale(1.3); opacity: 0.5; }
+      100% { transform: scale(1); opacity: 1; }
+    }
+
+    @keyframes pulsingRedButton {
+      0% { box-shadow: 0 0 10px rgba(239, 68, 68, 0.3); }
+      50% { box-shadow: 0 0 25px rgba(239, 68, 68, 0.6); }
+      100% { box-shadow: 0 0 10px rgba(239, 68, 68, 0.3); }
+    }
+
+    /* Responsividade */
+    @media (max-width: 900px) {
+      .immersive-container {
+        grid-template-columns: 1fr;
+        grid-template-rows: 1fr 1fr;
+      }
+      .immersive-container.no-media {
+        grid-template-rows: 0fr 1fr;
+      }
+      .media-panel {
+        border-right: none;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+      }
+      .focus-panel {
+        padding: 1.5rem;
+      }
+    }
+  </style>
+</head>
+<body>
+  
+  <!-- Interface Geral de Estudo -->
+  <div class="immersive-container" id="immersiveLayout">
+    
+    <!-- Painel de Mídia (Esquerda) -->
+    <div class="media-panel" id="mediaPanel">
+      <div class="media-header">
+        <div class="media-title-area">
+          <span class="media-badge" id="materiaBadge">Carregando...</span>
+          <h1 id="contentTitle" style="font-size: 1.25rem; font-weight: 700; margin: 0; color: #ffffff;">Carregando Missão...</h1>
+        </div>
+        
+        <!-- Toggle para Tela Cheia do PDF -->
+        <button class="btn-circle" onclick="togglePdfFullscreen()" title="Maximizar Leitor">
+          <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M8 3H5a2 2 0 0 0-2 2v3m18 0V5a2 2 0 0 0-2-2h-3m0 18h3a2 2 0 0 0 2-2v-3M3 16v3a2 2 0 0 0 2 2h3"></path>
+          </svg>
+        </button>
+      </div>
+      
+      <div class="media-viewport" id="mediaViewport">
+        <!-- Iframe é renderizado dinamicamente aqui -->
+        <div id="no-media-text" style="display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 1rem; padding: 2rem;">
+          <svg viewBox="0 0 24 24" width="48" height="48" fill="none" stroke="#71717a" stroke-width="1.5">
+            <path d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"></path>
+          </svg>
+          <p class="text-muted" style="text-align: center; max-width: 320px; font-size: 0.9rem; margin: 0;">
+            Esta missão não possui material de apoio anexado. Use o cronômetro para focar no seu caderno, videoaula ou YouTube!
+          </p>
+        </div>
+      </div>
+    </div>
+    
+    <!-- Painel de Controle e Cronômetro (Direita) -->
+    <div class="focus-panel" id="focusPanel">
+      
+      <!-- Topbar do Cronômetro -->
+      <div class="focus-header">
+        <button class="btn-circle" onclick="window.location.href='dashboard.html'" title="Sair do Modo Imersivo">
+          <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2">
+            <line x1="18" y1="6" x2="6" y2="18"></line>
+            <line x1="6" y1="6" x2="18" y2="18"></line>
+          </svg>
+        </button>
+        
+        <h3 style="font-size: 1rem; font-weight: 700; margin: 0; color: #a1a1aa;">ZONA DE FOCO</h3>
+        
+        <!-- Toggle de Maximização do Timer / Modo Foco de Timer -->
+        <button class="btn-circle" id="timerExpandBtn" onclick="toggleTimerFocusMode()" title="Expandir Zona de Foco">
+          <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
+            <circle cx="12" cy="12" r="3"></circle>
+          </svg>
+        </button>
+      </div>
+      
+      <!-- Zona Principal do Cronômetro -->
+      <div class="timer-zone">
+        <div class="status-pill" id="statusPill">
+          <span class="pulse-dot"></span>
+          <span id="statusText">PRONTO PARA A MISSÃO</span>
+        </div>
+        
+        <!-- Círculo do Cronômetro -->
+        <div class="timer-ring-wrapper" id="timerRing">
+          <span class="timer-time" id="display">00:00:00</span>
+        </div>
+        
+        <!-- Botão Primário de Ação -->
+        <button id="focusBtn" class="btn-focus-action idle" onclick="handleFocusToggle()">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" id="focusBtnIcon">
+            <polygon points="5 3 19 12 5 21 5 3"></polygon>
+          </svg>
+          <span id="focusBtnText">Iniciar Foco</span>
+        </button>
+        
+        <!-- XP Acumulado em Tempo Real -->
+        <div class="xp-gain-bubble" id="xpBubble">
+          <svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor">
+            <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon>
+          </svg>
+          <span id="sessionXpCounter">Acumulando +0 XP</span>
+        </div>
+      </div>
+      
+      <!-- Quotes Inspiracionais -->
+      <div class="quote-box">
+        <p class="quote-text" id="quoteText">"A persistência é o caminho do êxito."</p>
+      </div>
+      
+    </div>
+    
+  </div>
+
+  <script src="app.js"></script>
+  <script>
+    if (!App.getToken()) window.location.href = 'login.html';
+
+    const contentId = localStorage.getItem('currentContentId');
+    if (!contentId) {
+      window.location.href = 'dashboard.html';
+    }
+
+    // Variáveis Globais de Estado
+    let timerInterval;
+    let localStartTime = 0;
+    let serverStartTime = null;
+    let isTimerRunning = false;
+    let isTimerFocusMode = false;
+    let isPdfFullscreen = false;
+
+    // Lista de Frases Inspiradoras para Estudo
+    const quotes = [
+      "\"A persistência é o caminho do êxito.\"",
+      "\"O sucesso é a soma de pequenos esforços repetidos dia após dia.\"",
+      "\"O foco é dizer não para centenas de outras boas ideias.\"",
+      "\"Quem tem um 'porquê' enfrenta qualquer 'como'.\"",
+      "\"Sua preparação de hoje é o seu resultado do Enem de amanhã.\"",
+      "\"A disciplina é a ponte entre as metas e as realizações.\""
+    ];
+
+    // Web Audio API para tocar chimes premium sintéticos de forma 100% nativa
+    const playChime = (type) => {
+      try {
+        const ctx = new (window.AudioContext || window.webkitAudioContext)();
+        const osc = ctx.createOscillator();
+        const gain = ctx.createGain();
+        
+        osc.connect(gain);
+        gain.connect(ctx.destination);
+        
+        if (type === 'start') {
+          // Tom ascendente inspirador
+          osc.type = 'sine';
+          osc.frequency.setValueAtTime(523.25, ctx.currentTime); // C5
+          osc.frequency.exponentialRampToValueAtTime(783.99, ctx.currentTime + 0.4); // G5
+          gain.gain.setValueAtTime(0.08, ctx.currentTime);
+          gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.45);
+          osc.start(ctx.currentTime);
+          osc.stop(ctx.currentTime + 0.45);
+        } else if (type === 'stop') {
+          // Tom relaxante descendente
+          osc.type = 'sine';
+          osc.frequency.setValueAtTime(659.25, ctx.currentTime); // E5
+          osc.frequency.exponentialRampToValueAtTime(440.00, ctx.currentTime + 0.7); // A4
+          gain.gain.setValueAtTime(0.1, ctx.currentTime);
+          gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.75);
+          osc.start(ctx.currentTime);
+          osc.stop(ctx.currentTime + 0.75);
+        }
+      } catch (e) {
+        console.log("Audio API not active yet");
+      }
+    };
+
+    // Carregar Detalhes do Conteúdo via API
+    async function loadContentDetails() {
+      try {
+        const content = await App.api(`/contents/${contentId}`);
+        
+        document.getElementById('contentTitle').innerText = content.titulo || 'Estudo Livre';
+        document.getElementById('materiaBadge').innerText = content.materia || 'Geral';
+
+        // Se o conteúdo tiver um link ou PDF real anexado
+        if (content.url && content.url.trim() !== '') {
+          document.getElementById('no-media-text').style.display = 'none';
+          
+          const iframe = document.createElement('iframe');
+          let finalUrl = content.url;
+          
+          if (content.url.includes('youtube.com/watch?v=')) {
+            finalUrl = content.url.replace('watch?v=', 'embed/');
+          }
+          
+          iframe.src = finalUrl;
+          iframe.style.width = '100%';
+          iframe.style.height = '100%';
+          iframe.style.border = 'none';
+          iframe.setAttribute('allowfullscreen', 'true');
+          
+          document.getElementById('mediaViewport').appendChild(iframe);
+        } else {
+          // Caso NÃO haja mídia, ajusta o layout para focar 100% no Cronômetro centralizado
+          document.getElementById('immersiveLayout').classList.add('no-media');
+          document.getElementById('timerExpandBtn').style.display = 'none'; // Esconde botão de expandir já que está tela cheia
+        }
+      } catch (err) {
+        App.showToast('Erro ao carregar aula: ' + err.message, true);
+        // Em caso de falha, permite estudo livre apenas com o cronômetro
+        document.getElementById('contentTitle').innerText = 'Estudo Livre';
+        document.getElementById('materiaBadge').innerText = 'GERAL';
+        document.getElementById('immersiveLayout').classList.add('no-media');
+        document.getElementById('timerExpandBtn').style.display = 'none';
+      }
+    }
+
+    // Gerenciar Início / Fim do Cronômetro
+    async function handleFocusToggle() {
+      if (!isTimerRunning) {
+        await startStudySession();
+      } else {
+        await stopStudySession();
+      }
+    }
+
+    // Iniciar Foco
+    async function startStudySession() {
+      try {
+        const focusBtn = document.getElementById('focusBtn');
+        focusBtn.disabled = true;
+        focusBtn.innerText = 'Iniciando...';
+
+        const data = await App.api('/study/start', { method: 'POST' });
+        serverStartTime = data.startTime;
+        localStartTime = Date.now();
+        isTimerRunning = true;
+
+        // Tocar som premium de início
+        playChime('start');
+
+        // Alternar classes visuais
+        document.getElementById('timerRing').classList.add('active');
+        document.getElementById('display').classList.add('active');
+        
+        const statusPill = document.getElementById('statusPill');
+        statusPill.classList.add('active');
+        document.getElementById('statusText').innerText = 'FOCO TOTAL EM CURSO';
+
+        // Atualizar Botão Primário
+        focusBtn.disabled = false;
+        focusBtn.className = 'btn-focus-action active';
+        focusBtn.innerHTML = `
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+            <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
+          </svg>
+          <span>Encerrar Sessão</span>
+        `;
+
+        // Mostrar Bolha de XP Dinâmica
+        document.getElementById('xpBubble').classList.add('visible');
+
+        // Loop de Atualização do Timer (Usa relógio de alta fidelidade)
+        timerInterval = setInterval(updateTimerDisplay, 1000);
+        updateTimerDisplay(); // Primeira chamada imediata
+
+        App.showToast('Sessão iniciada! Foco absoluto e ótimos estudos.');
+      } catch (err) {
+        document.getElementById('focusBtn').disabled = false;
+        document.getElementById('focusBtn').innerText = 'Iniciar Foco';
+        
+        if (err.message.includes('Sessão')) {
+          App.logout();
+        } else {
+          App.showToast(err.message, true);
+        }
+      }
+    }
+
+    // Encerrar Sessão
+    async function stopStudySession() {
+      clearInterval(timerInterval);
+      isTimerRunning = false;
+
+      const focusBtn = document.getElementById('focusBtn');
+      focusBtn.innerHTML = 'Calculando XP...';
+      focusBtn.disabled = true;
+
+      playChime('stop');
+
+      try {
+        const data = await App.api('/study/end', {
+          method: 'POST',
+          body: JSON.stringify({
+            startTime: serverStartTime,
+            contentId: contentId
+          })
+        });
+
+        // Limpa os dados do progresso temporário
+        localStorage.removeItem('currentContentId');
+
+        App.showToast(`Sessão finalizada com sucesso! Você conquistou +${data.xpGanho} XP!`);
+
+        setTimeout(() => {
+          window.location.href = 'dashboard.html';
+        }, 2200);
+
+      } catch (err) {
+        App.showToast('Falha ao sincronizar com o servidor: ' + err.message, true);
+        
+        // Em caso de falha de conexão, dá opção para tentar enviar novamente
+        focusBtn.disabled = false;
+        focusBtn.className = 'btn-focus-action active';
+        focusBtn.innerHTML = `
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+            <polygon points="5 3 19 12 5 21 5 3"></polygon>
+          </svg>
+          <span>Tentar Novamente</span>
+        `;
+        isTimerRunning = true; // Reinicia o estado lógico para permitir reenvio
+      }
+    }
+
+    // Atualização do Tempo e XP na Tela
+    function updateTimerDisplay() {
+      const now = Date.now();
+      const diffMs = now - localStartTime;
+      const secondsElapsed = Math.floor(diffMs / 1000);
+
+      // Formatação hh:mm:ss
+      const h = Math.floor(secondsElapsed / 3600).toString().padStart(2, '0');
+      const m = Math.floor((secondsElapsed % 3600) / 60).toString().padStart(2, '0');
+      const s = (secondsElapsed % 60).toString().padStart(2, '0');
+      document.getElementById('display').innerText = `${h}:${m}:${s}`;
+
+      // Estimador de XP em Tempo Real: 1 XP a cada 6 minutos (360s)
+      const currentSessionXp = Math.floor(secondsElapsed / 360);
+      document.getElementById('sessionXpCounter').innerText = `Acumulando +${currentSessionXp} XP`;
+
+      // Atualiza frases de forma randômica a cada 2 minutos
+      if (secondsElapsed > 0 && secondsElapsed % 120 === 0) {
+        changeQuote();
+      }
+    }
+
+    // Mudar frase inspiradora de forma suave
+    function changeQuote() {
+      const qText = document.getElementById('quoteText');
+      qText.style.opacity = 0;
+      setTimeout(() => {
+        const randomIndex = Math.floor(Math.random() * quotes.length);
+        qText.innerText = quotes[randomIndex];
+        qText.style.opacity = 1;
+      }, 500);
+    }
+
+    // Modo Foco Completo do Cronômetro (Recolhe/Expande o leitor de PDF)
+    function toggleTimerFocusMode() {
+      const layout = document.getElementById('immersiveLayout');
+      const expandBtn = document.getElementById('timerExpandBtn');
+
+      if (!isTimerFocusMode) {
+        layout.classList.add('no-media');
+        expandBtn.innerHTML = `
+          <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
+            <circle cx="12" cy="12" r="3"></circle>
+          </svg>
+        `;
+        expandBtn.title = "Exibir Leitor de Material";
+        isTimerFocusMode = true;
+      } else {
+        layout.classList.remove('no-media');
+        expandBtn.innerHTML = `
+          <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
+            <circle cx="12" cy="12" r="3"></circle>
+          </svg>
+        `;
+        expandBtn.title = "Recolher Leitor (Foco Completo)";
+        isTimerFocusMode = false;
+      }
+    }
+
+    // Modo PDF Maximizado (Esconde a barra do timer temporariamente)
+    function togglePdfFullscreen() {
+      const layout = document.getElementById('immersiveLayout');
+      
+      if (!isPdfFullscreen) {
+        layout.style.gridTemplateColumns = "1fr 0px";
+        document.getElementById('focusPanel').style.opacity = "0";
+        document.getElementById('focusPanel').style.pointerEvents = "none";
+        isPdfFullscreen = true;
+      } else {
+        layout.style.gridTemplateColumns = "1fr 400px";
+        document.getElementById('focusPanel').style.opacity = "1";
+        document.getElementById('focusPanel').style.pointerEvents = "all";
+        isPdfFullscreen = false;
+      }
+    }
+
+    // Inicializa a Página
+    loadContentDetails();
+  </script>
+</body>
+</html>

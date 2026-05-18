@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<html lang="pt-BR" class="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>EnemFlow AI - Histórico</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
+  <script src="https://unpkg.com/feather-icons"></script>
+  <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: { extend: { fontFamily: { sans: ['Inter', 'sans-serif'] } } }
+    }
+  </script>
+</head>
+<body class="flex h-screen bg-slate-50 dark:bg-[#09090b]">
+
+  <!-- Mobile Header -->
+  <div class="lg:hidden fixed top-0 w-full glass z-40 px-4 py-3 flex items-center justify-between border-b">
+    <button onclick="window.location.href='dashboard.html'" class="p-2 bg-slate-100 dark:bg-white/5 rounded-lg">
+      <i data-feather="arrow-left" class="w-5 h-5"></i>
+    </button>
+    <div class="flex items-center gap-2">
+      <i data-feather="clock" class="text-indigo-500 w-5 h-5"></i>
+      <span class="font-bold">Seu <span class="text-gradient">Histórico</span></span>
+    </div>
+    <div class="w-9"></div>
+  </div>
+
+  <div class="hidden lg:flex fixed top-0 left-0 p-6 z-50">
+    <button onclick="window.location.href='dashboard.html'" class="flex items-center gap-2 px-4 py-2 bg-white/50 dark:bg-white/5 hover:bg-white dark:hover:bg-white/10 border border-slate-200 dark:border-white/10 rounded-xl font-medium transition-colors backdrop-blur-md">
+      <i data-feather="arrow-left" class="w-4 h-4"></i> Voltar ao Dashboard
+    </button>
+  </div>
+
+  <main class="flex-1 overflow-y-auto relative pt-20 lg:pt-24 pb-20">
+    <div class="max-w-4xl mx-auto p-4 md:p-6">
+      
+      <div class="flex flex-col md:flex-row md:items-end justify-between gap-4 mb-8">
+        <div>
+          <h1 class="text-3xl font-bold mb-2">Histórico Inteligente</h1>
+          <p class="text-slate-500 text-sm max-w-md">Reveja suas interações com o Tutor IA. O sistema armazena automaticamente as suas últimas 30 conversas.</p>
+        </div>
+      </div>
+
+      <!-- Content Viewer Modal / Container (Hidden by default) -->
+      <div id="viewerContainer" class="hidden mb-8">
+        <div class="flex items-center justify-between mb-4">
+          <h2 id="viewerTitle" class="text-xl font-bold">...</h2>
+          <button onclick="document.getElementById('viewerContainer').classList.add('hidden')" class="p-2 rounded-lg hover:bg-slate-200 dark:hover:bg-white/10 transition-colors">
+            <i data-feather="x" class="w-5 h-5"></i>
+          </button>
+        </div>
+        <div class="glass border border-slate-200 dark:border-white/10 rounded-2xl p-6 md:p-8">
+          <div id="viewerContent" class="prose prose-slate dark:prose-invert max-w-none"></div>
+        </div>
+      </div>
+
+      <!-- List -->
+      <div class="glass-card overflow-hidden">
+        <div id="historyList" class="divide-y divide-slate-100 dark:divide-white/5">
+          <div class="p-8 text-center text-slate-500">
+            <i data-feather="loader" class="w-8 h-8 animate-spin mx-auto mb-4"></i>
+            Carregando histórico...
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </main>
+
+  <script src="app.js"></script>
+  <script>
+    feather.replace();
+    if(!App.getToken()) window.location.href = 'login.html';
+
+    async function loadHistory() {
+      try {
+        const chats = await App.api('/api/chat');
+        const list = document.getElementById('historyList');
+
+        if (chats.length === 0) {
+          list.innerHTML = `
+            <div class="p-10 text-center">
+              <div class="w-16 h-16 rounded-full bg-slate-100 dark:bg-white/5 flex items-center justify-center mx-auto mb-4">
+                <i data-feather="inbox" class="w-8 h-8 text-slate-400"></i>
+              </div>
+              <h3 class="font-medium text-lg">Sem histórico ainda</h3>
+              <p class="text-sm text-slate-500 mt-1">Interaja com o Tutor IA para ver suas atividades aqui.</p>
+            </div>
+          `;
+          feather.replace();
+          return;
+        }
+
+        list.innerHTML = chats.map(c => `
+          <div class="flex items-center justify-between p-4 md:p-6 hover:bg-slate-50 dark:hover:bg-white/5 transition-colors group cursor-pointer" onclick="viewChat('${c._id}')">
+            <div class="flex items-center gap-4 min-w-0">
+              <div class="w-10 h-10 rounded-full ${
+                c.tipo === 'exercicio' ? 'bg-purple-500/10 text-purple-500' : 
+                c.tipo === 'plano' ? 'bg-pink-500/10 text-pink-500' : 
+                c.tipo === 'resumo' ? 'bg-emerald-500/10 text-emerald-500' : 
+                'bg-indigo-500/10 text-indigo-500'
+              } flex items-center justify-center shrink-0">
+                <i data-feather="${
+                  c.tipo === 'exercicio' ? 'edit-3' : 
+                  c.tipo === 'plano' ? 'map' : 
+                  c.tipo === 'resumo' ? 'file-text' : 
+                  'message-circle'
+                }" class="w-4 h-4"></i>
+              </div>
+              <div class="min-w-0">
+                <h4 class="font-semibold text-slate-900 dark:text-slate-100 truncate pr-4">${c.titulo}</h4>
+                <p class="text-xs text-slate-500 mt-0.5">
+                  <span class="capitalize font-medium text-[10px] bg-slate-100 dark:bg-white/10 px-2 py-0.5 rounded-full">${c.tipo}</span>
+                  • ${new Date(c.createdAt).toLocaleString('pt-BR')}
+                </p>
+              </div>
+            </div>
+            <div class="flex items-center gap-2">
+              <button onclick="event.stopPropagation(); deleteChat('${c._id}')" class="p-2 text-slate-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-500/10 rounded-lg transition-colors opacity-0 group-hover:opacity-100 hidden md:block">
+                <i data-feather="trash-2" class="w-4 h-4"></i>
+              </button>
+              <i data-feather="chevron-right" class="w-5 h-5 text-slate-300 group-hover:text-indigo-500 transition-colors"></i>
+            </div>
+          </div>
+        `).join('');
+        feather.replace();
+
+        // Checar URL params (se veio do dashboard e quer visualizar de cara)
+        const urlParams = new URLSearchParams(window.location.search);
+        const idToView = urlParams.get('id');
+        if (idToView) {
+          const chatType = chats.find(x => x._id === idToView)?.tipo;
+          if(chatType === 'chat') {
+            window.location.href = `chat.html?id=${idToView}`;
+          } else {
+            viewChat(idToView);
+          }
+        }
+
+      } catch (err) {
+        App.showToast('Erro ao carregar histórico', true);
+      }
+    }
+
+    async function viewChat(id) {
+      try {
+        const data = await App.api(`/api/chat/${id}`);
+        
+        // Se for um chat comum, redireciona para a interface rica de chat
+        if (data.tipo === 'chat') {
+          window.location.href = `chat.html?id=${id}`;
+          return;
+        }
+
+        // Se for exercício/plano/resumo, mostramos aqui no Modal In-page
+        const container = document.getElementById('viewerContainer');
+        const contentDiv = document.getElementById('viewerContent');
+        
+        document.getElementById('viewerTitle').innerText = data.titulo;
+        
+        // Renderiza apenas a última resposta do assistente
+        const assistantMsg = [...data.mensagens].reverse().find(m => m.role === 'assistant');
+        if (assistantMsg) {
+          contentDiv.innerHTML = marked.parse(assistantMsg.content);
+        } else {
+          contentDiv.innerHTML = '<p>Conteúdo não encontrado.</p>';
+        }
+
+        container.classList.remove('hidden');
+        container.scrollIntoView({ behavior: 'smooth' });
+
+      } catch (err) {
+        App.showToast('Erro ao carregar os dados.', true);
+      }
+    }
+
+    async function deleteChat(id) {
+      if(!confirm('Tem certeza que deseja apagar este item do histórico?')) return;
+      try {
+        await App.api(`/api/chat/${id}`, { method: 'DELETE' });
+        App.showToast('Item excluído.');
+        document.getElementById('viewerContainer').classList.add('hidden');
+        loadHistory();
+      } catch (err) {
+        App.showToast('Erro ao excluir.', true);
+      }
+    }
+
+    loadHistory();
+  </script>
+</body>
+</html>

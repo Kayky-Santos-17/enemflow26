@@ -1,0 +1,21 @@
+{
+  "version": 2,
+  "name": "enemflow-ai",
+  "builds": [
+    { "src": "backend/server.js", "use": "@vercel/node" },
+    { "src": "frontend/**", "use": "@vercel/static" }
+  ],
+  "rewrites": [
+    { "source": "/auth/(.*)", "destination": "/backend/server.js" },
+    { "source": "/api/(.*)", "destination": "/backend/server.js" },
+    { "source": "/contents", "destination": "/backend/server.js" },
+    { "source": "/contents/(.*)", "destination": "/backend/server.js" },
+    { "source": "/study/(.*)", "destination": "/backend/server.js" },
+    { "source": "/ai/(.*)", "destination": "/backend/server.js" },
+    { "source": "/upload", "destination": "/backend/server.js" },
+    { "source": "/upload/(.*)", "destination": "/backend/server.js" },
+    { "source": "/health", "destination": "/backend/server.js" },
+    { "source": "/", "destination": "/frontend/login.html" },
+    { "source": "/(.*)", "destination": "/frontend/$1" }
+  ]
+}

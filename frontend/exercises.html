@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="pt-BR" class="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>EnemFlow AI - Questões ENEM</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
+  <script src="https://unpkg.com/feather-icons"></script>
+  <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: { extend: { fontFamily: { sans: ['Inter', 'sans-serif'] } } }
+    }
+  </script>
+</head>
+<body class="flex h-screen overflow-hidden bg-slate-50 dark:bg-[#09090b]">
+
+  <!-- Mobile Header -->
+  <div class="lg:hidden fixed top-0 w-full glass z-40 px-4 py-3 flex items-center justify-between border-b">
+    <button onclick="window.location.href='dashboard.html'" class="p-2 bg-slate-100 dark:bg-white/5 rounded-lg">
+      <i data-feather="arrow-left" class="w-5 h-5"></i>
+    </button>
+    <div class="flex items-center gap-2">
+      <i data-feather="edit-3" class="text-indigo-500 w-5 h-5"></i>
+      <span class="font-bold">Gerador de <span class="text-gradient">Questões</span></span>
+    </div>
+    <div class="w-9"></div>
+  </div>
+
+  <!-- Sidebar Omitida para focar no conteúdo, ou podemos ter botão voltar (neste caso, layout simplificado) -->
+  <div class="hidden lg:flex fixed top-0 left-0 p-6 z-50">
+    <button onclick="window.location.href='dashboard.html'" class="flex items-center gap-2 px-4 py-2 bg-white/50 dark:bg-white/5 hover:bg-white dark:hover:bg-white/10 border border-slate-200 dark:border-white/10 rounded-xl font-medium transition-colors backdrop-blur-md">
+      <i data-feather="arrow-left" class="w-4 h-4"></i> Voltar ao Dashboard
+    </button>
+  </div>
+
+  <main class="flex-1 overflow-y-auto relative pt-16 lg:pt-20 pb-20">
+    <div class="bg-glow top-[10%] right-[10%]"></div>
+    
+    <div class="max-w-4xl mx-auto p-4 md:p-6">
+      
+      <div class="text-center mb-10 animate-fade-in">
+        <div class="w-16 h-16 rounded-2xl bg-purple-500/10 flex items-center justify-center mx-auto mb-4 border border-purple-500/20 shadow-[0_0_30px_rgba(168,85,247,0.2)]">
+          <i data-feather="edit-3" class="w-8 h-8 text-purple-500"></i>
+        </div>
+        <h1 class="text-3xl font-bold mb-2">Simulado Inteligente</h1>
+        <p class="text-slate-500">Gere questões no estilo ENEM focadas nas suas dificuldades.</p>
+      </div>
+
+      <!-- Formulário de Geração -->
+      <div class="glass-card p-6 md:p-8 mb-8 animate-fade-in" style="animation-delay: 0.1s;">
+        <form id="exerciseForm" class="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div class="space-y-2">
+            <label class="text-sm font-medium text-slate-700 dark:text-slate-300">Área de Conhecimento</label>
+            <select id="materia" required class="w-full px-4 py-3 rounded-xl bg-slate-50 dark:bg-black/20 border border-slate-200 dark:border-white/10 outline-none focus:ring-2 focus:ring-purple-500">
+              <option value="">Selecione...</option>
+              <option value="Matemática">Matemática e suas Tecnologias</option>
+              <option value="Linguagens">Linguagens, Códigos e suas Tecnologias</option>
+              <option value="Ciências da Natureza">Ciências da Natureza (Física, Química, Biologia)</option>
+              <option value="Ciências Humanas">Ciências Humanas (História, Geografia, Filosofia, Sociologia)</option>
+            </select>
+          </div>
+          <div class="space-y-2">
+            <label class="text-sm font-medium text-slate-700 dark:text-slate-300">Assunto Específico (Opcional)</label>
+            <input type="text" id="assunto" class="w-full px-4 py-3 rounded-xl bg-slate-50 dark:bg-black/20 border border-slate-200 dark:border-white/10 outline-none focus:ring-2 focus:ring-purple-500" placeholder="Ex: Termodinâmica, Era Vargas, Função do 1º Grau">
+          </div>
+          <div class="md:col-span-2">
+            <button type="submit" id="genBtn" class="w-full py-4 bg-gradient-to-r from-purple-500 to-indigo-500 hover:opacity-90 text-white rounded-xl font-semibold shadow-lg shadow-purple-500/30 transition-all flex justify-center items-center gap-2">
+              <i data-feather="zap" class="w-5 h-5"></i> Gerar Questão Inédita
+            </button>
+          </div>
+        </form>
+      </div>
+
+      <!-- Container do Resultado (Escondido inicialmente) -->
+      <div id="resultContainer" class="hidden">
+        <h2 class="text-lg font-bold mb-4 flex items-center gap-2 border-b border-slate-200 dark:border-white/10 pb-2">
+          <i data-feather="book-open" class="text-purple-500 w-5 h-5"></i> Sua Questão
+        </h2>
+        
+        <div class="glass border-l-4 border-l-purple-500 rounded-r-2xl p-6 md:p-8 relative">
+          <!-- Renderização do Markdown -->
+          <div id="exerciseContent" class="prose prose-slate dark:prose-invert max-w-none prose-p:leading-relaxed prose-headings:text-purple-500"></div>
+          
+          <div class="mt-8 flex justify-end">
+             <button onclick="document.getElementById('resultContainer').classList.add('hidden'); document.getElementById('genBtn').focus();" class="px-4 py-2 bg-slate-100 dark:bg-white/5 hover:bg-slate-200 dark:hover:bg-white/10 rounded-lg text-sm font-medium transition-colors">
+               Ocultar e Tentar Outra
+             </button>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </main>
+
+  <script src="app.js"></script>
+  <script>
+    feather.replace();
+    if(!App.getToken()) window.location.href = 'login.html';
+
+    document.getElementById('exerciseForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      
+      const materia = document.getElementById('materia').value;
+      const assunto = document.getElementById('assunto').value;
+      const btn = document.getElementById('genBtn');
+      const resultContainer = document.getElementById('resultContainer');
+      const contentDiv = document.getElementById('exerciseContent');
+
+      btn.disabled = true;
+      btn.innerHTML = '<i data-feather="loader" class="w-5 h-5 animate-spin"></i> Elaborando questão...';
+      feather.replace();
+
+      try {
+        const data = await App.api('/api/chat/exercise', {
+          method: 'POST',
+          body: JSON.stringify({ materia, assunto })
+        });
+
+        contentDiv.innerHTML = marked.parse(data.resposta);
+        resultContainer.classList.remove('hidden');
+        resultContainer.scrollIntoView({ behavior: 'smooth', block: 'start' });
+
+        App.showToast('Questão gerada com sucesso! Salva no histórico.');
+      } catch (err) {
+        App.showToast(err.message, true);
+      } finally {
+        btn.disabled = false;
+        btn.innerHTML = '<i data-feather="zap" class="w-5 h-5"></i> Gerar Questão Inédita';
+        feather.replace();
+      }
+    });
+  </script>
+</body>
+</html>

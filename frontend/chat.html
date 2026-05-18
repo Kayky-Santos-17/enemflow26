@@ -1,0 +1,318 @@
+<!DOCTYPE html>
+<html lang="pt-BR" class="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>EnemFlow AI - Tutor</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
+  <script src="https://unpkg.com/feather-icons"></script>
+  <!-- Biblioteca para renderizar Markdown retornado pela IA -->
+  <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: { extend: { fontFamily: { sans: ['Inter', 'sans-serif'] } } }
+    }
+  </script>
+  <style>
+    /* Estilos para o Markdown renderizado */
+    .prose h1, .prose h2, .prose h3 { font-weight: 700; margin-top: 1em; margin-bottom: 0.5em; color: currentColor; }
+    .prose p { margin-bottom: 1em; }
+    .prose ul { list-style-type: disc; padding-left: 1.5em; margin-bottom: 1em; }
+    .prose ol { list-style-type: decimal; padding-left: 1.5em; margin-bottom: 1em; }
+    .prose strong { font-weight: 700; color: currentColor; }
+    .prose blockquote { border-left: 4px solid #6366f1; padding-left: 1em; font-style: italic; opacity: 0.8; }
+    .prose code { background: rgba(128,128,128,0.2); padding: 0.2em 0.4em; border-radius: 4px; font-family: monospace; font-size: 0.9em; }
+  </style>
+</head>
+<body class="flex h-screen overflow-hidden bg-slate-50 dark:bg-[#09090b]">
+
+  <!-- Top Bar Mobile -->
+  <div class="lg:hidden fixed top-0 w-full glass z-40 px-4 py-3 flex items-center justify-between border-b">
+    <button onclick="window.location.href='dashboard.html'" class="p-2 bg-slate-100 dark:bg-white/5 rounded-lg">
+      <i data-feather="arrow-left" class="w-5 h-5"></i>
+    </button>
+    <div class="flex items-center gap-2">
+      <i data-feather="message-circle" class="text-indigo-500 w-5 h-5"></i>
+      <span class="font-bold">Tutor <span class="text-gradient">IA</span></span>
+    </div>
+    <div class="w-9"></div> <!-- Spacer -->
+  </div>
+
+  <!-- Sidebar (Desktop Only) -->
+  <aside class="hidden lg:flex flex-col w-64 glass border-r z-50 h-full relative">
+    <div class="p-6 flex items-center gap-3 border-b border-slate-200 dark:border-white/10">
+      <button onclick="window.location.href='dashboard.html'" class="p-2 bg-slate-100 dark:bg-white/5 rounded-lg hover:bg-slate-200 dark:hover:bg-white/10 transition-colors">
+        <i data-feather="arrow-left" class="w-4 h-4 text-slate-500"></i>
+      </button>
+      <span class="text-lg font-bold tracking-tight">Tutor <span class="text-gradient">IA</span></span>
+    </div>
+
+    <div class="p-4">
+      <button onclick="newChat()" class="w-full py-2.5 px-4 bg-indigo-50 dark:bg-indigo-500/10 hover:bg-indigo-100 dark:hover:bg-indigo-500/20 text-indigo-600 dark:text-indigo-400 rounded-xl font-medium transition-colors flex items-center justify-center gap-2 border border-indigo-200 dark:border-indigo-500/20 text-sm">
+        <i data-feather="plus" class="w-4 h-4"></i> Nova Conversa
+      </button>
+    </div>
+
+    <div class="flex-1 overflow-y-auto p-4 space-y-1" id="historyList">
+      <!-- Preenchido via JS -->
+      <div class="skeleton w-full h-10 rounded-lg mb-2"></div>
+      <div class="skeleton w-full h-10 rounded-lg"></div>
+    </div>
+  </aside>
+
+  <!-- Chat Area -->
+  <main class="flex-1 flex flex-col relative pt-16 lg:pt-0">
+    <div class="bg-glow top-[20%] left-[20%]"></div>
+    
+    <!-- Messages Container -->
+    <div id="chatBox" class="flex-1 overflow-y-auto p-4 md:p-8 space-y-6 scroll-smooth pb-32">
+      
+      <!-- Welcome Message (vazio) -->
+      <div id="welcomeMessage" class="flex flex-col items-center justify-center h-full opacity-50 animate-fade-in">
+        <div class="w-20 h-20 rounded-full bg-gradient-primary flex items-center justify-center mb-6 shadow-xl shadow-indigo-500/20">
+          <i data-feather="cpu" class="w-10 h-10 text-white"></i>
+        </div>
+        <h2 class="text-2xl font-bold mb-2">Como posso ajudar?</h2>
+        <p class="text-center max-w-sm text-sm">Sou seu professor particular. Tire dúvidas, peça resumos ou dicas sobre qualquer assunto do ENEM.</p>
+      </div>
+
+    </div>
+
+    <!-- Input Area -->
+    <div class="absolute bottom-0 w-full glass border-t border-slate-200 dark:border-white/10 p-4 md:px-8 md:py-6">
+      <div class="max-w-4xl mx-auto relative">
+        
+        <!-- Upload Form (Escondido, acionado pelo botão clip) -->
+        <input type="file" id="fileUpload" class="hidden" accept=".pdf,.png,.jpg,.jpeg,.txt" onchange="handleFileUpload(event)">
+        
+        <form id="chatForm" class="flex items-end gap-2 bg-white dark:bg-black/40 border border-slate-300 dark:border-white/20 rounded-2xl p-2 shadow-lg focus-within:ring-2 focus-within:ring-indigo-500 focus-within:border-transparent transition-all">
+          
+          <button type="button" onclick="document.getElementById('fileUpload').click()" class="p-3 text-slate-400 hover:text-indigo-500 transition-colors rounded-xl hover:bg-slate-100 dark:hover:bg-white/5 shrink-0" title="Anexar Arquivo (PDF, Imagem, TXT)">
+            <i data-feather="paperclip" class="w-5 h-5"></i>
+          </button>
+          
+          <textarea id="msgInput" rows="1" class="flex-1 bg-transparent border-none outline-none resize-none max-h-32 py-3 px-2 text-slate-900 dark:text-white placeholder:text-slate-400" placeholder="Digite sua dúvida ou cole um texto..."></textarea>
+          
+          <button type="submit" id="sendBtn" class="p-3 bg-indigo-500 hover:bg-indigo-600 text-white rounded-xl transition-all shadow-md shrink-0 disabled:opacity-50 disabled:cursor-not-allowed">
+            <i data-feather="send" class="w-5 h-5"></i>
+          </button>
+        </form>
+        <p class="text-center text-[10px] text-slate-400 mt-2">A Inteligência Artificial pode cometer erros. Verifique informações importantes.</p>
+      </div>
+    </div>
+
+  </main>
+
+  <script src="app.js"></script>
+  <script>
+    feather.replace();
+    if(!App.getToken()) window.location.href = 'login.html';
+
+    const urlParams = new URLSearchParams(window.location.search);
+    let currentChatId = urlParams.get('id') || null;
+
+    const chatBox = document.getElementById('chatBox');
+    const msgInput = document.getElementById('msgInput');
+    const welcomeMessage = document.getElementById('welcomeMessage');
+
+    // Auto-resize do textarea
+    msgInput.addEventListener('input', function() {
+      this.style.height = 'auto';
+      this.style.height = (this.scrollHeight) + 'px';
+      if(this.value === '') this.style.height = 'auto';
+    });
+
+    // Enviar no Enter (sem shift)
+    msgInput.addEventListener('keydown', function(e) {
+      if (e.key === 'Enter' && !e.shiftKey) {
+        e.preventDefault();
+        document.getElementById('chatForm').dispatchEvent(new Event('submit'));
+      }
+    });
+
+    function newChat() {
+      currentChatId = null;
+      chatBox.innerHTML = '';
+      chatBox.appendChild(welcomeMessage);
+      welcomeMessage.style.display = 'flex';
+      window.history.pushState({}, '', 'chat.html');
+    }
+
+    // Renderiza uma mensagem no chat
+    function appendMessage(role, content) {
+      welcomeMessage.style.display = 'none';
+      
+      const div = document.createElement('div');
+      div.className = `flex w-full animate-fade-in ${role === 'user' ? 'justify-end' : 'justify-start'}`;
+      
+      if (role === 'user') {
+        div.innerHTML = `
+          <div class="max-w-[85%] md:max-w-[70%] bg-indigo-500 text-white rounded-3xl rounded-tr-sm px-6 py-4 shadow-md">
+            <p class="whitespace-pre-wrap">${content.replace(/</g, '&lt;').replace(/>/g, '&gt;')}</p>
+          </div>
+        `;
+      } else {
+        div.innerHTML = `
+          <div class="flex gap-4 max-w-[95%] md:max-w-[85%]">
+            <div class="w-8 h-8 rounded-full bg-gradient-primary flex items-center justify-center shrink-0 shadow-lg mt-1">
+              <i data-feather="cpu" class="w-4 h-4 text-white"></i>
+            </div>
+            <div class="glass border border-slate-200 dark:border-white/10 rounded-3xl rounded-tl-sm px-6 py-4 shadow-sm text-slate-800 dark:text-slate-200 prose prose-sm md:prose-base dark:prose-invert">
+              ${marked.parse(content)}
+            </div>
+          </div>
+        `;
+      }
+      
+      chatBox.appendChild(div);
+      feather.replace();
+      chatBox.scrollTop = chatBox.scrollHeight;
+    }
+
+    // Efeito digitando
+    function showTyping() {
+      welcomeMessage.style.display = 'none';
+      const div = document.createElement('div');
+      div.id = 'typingIndicator';
+      div.className = `flex w-full justify-start animate-fade-in`;
+      div.innerHTML = `
+        <div class="flex gap-4 max-w-[85%]">
+          <div class="w-8 h-8 rounded-full bg-slate-200 dark:bg-white/10 flex items-center justify-center shrink-0 mt-1">
+            <i data-feather="cpu" class="w-4 h-4 text-slate-500"></i>
+          </div>
+          <div class="glass rounded-3xl rounded-tl-sm px-6 py-4 flex items-center gap-1 h-[52px]">
+            <div class="w-2 h-2 rounded-full bg-slate-400 typing-dot"></div>
+            <div class="w-2 h-2 rounded-full bg-slate-400 typing-dot"></div>
+            <div class="w-2 h-2 rounded-full bg-slate-400 typing-dot"></div>
+          </div>
+        </div>
+      `;
+      chatBox.appendChild(div);
+      feather.replace();
+      chatBox.scrollTop = chatBox.scrollHeight;
+    }
+
+    function removeTyping() {
+      const el = document.getElementById('typingIndicator');
+      if (el) el.remove();
+    }
+
+    document.getElementById('chatForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      
+      const texto = msgInput.value.trim();
+      if (!texto) return;
+
+      const btn = document.getElementById('sendBtn');
+      msgInput.value = '';
+      msgInput.style.height = 'auto';
+      btn.disabled = true;
+
+      appendMessage('user', texto);
+      showTyping();
+
+      try {
+        const payload = { mensagem: texto };
+        if (currentChatId) payload.chatId = currentChatId;
+
+        const data = await App.api('/api/chat', {
+          method: 'POST',
+          body: JSON.stringify(payload)
+        });
+
+        removeTyping();
+        appendMessage('assistant', data.resposta);
+        
+        if (!currentChatId) {
+          currentChatId = data.chatId;
+          window.history.replaceState({}, '', `chat.html?id=${currentChatId}`);
+          loadHistoryList();
+        }
+
+      } catch (err) {
+        removeTyping();
+        App.showToast(err.message, true);
+      } finally {
+        btn.disabled = false;
+        msgInput.focus();
+      }
+    });
+
+    // Upload Dinâmico de Arquivos
+    async function handleFileUpload(e) {
+      const file = e.target.files[0];
+      if (!file) return;
+
+      App.showToast(`Processando arquivo: ${file.name}...`);
+      showTyping();
+
+      const formData = new FormData();
+      formData.append('file', file);
+      formData.append('pergunta', 'Extraia os dados principais e me dê um resumo ou análise para estudos do ENEM.');
+
+      try {
+        const data = await App.api('/upload/analyze', {
+          method: 'POST',
+          body: formData
+        });
+
+        // Simula a mensagem do usuário (O que foi extraído)
+        appendMessage('user', `📄 [Arquivo Anexado: ${file.name}]\n\nPor favor, analise este conteúdo.`);
+        removeTyping();
+        
+        // Resposta da IA
+        appendMessage('assistant', data.resposta);
+
+      } catch (err) {
+        removeTyping();
+        App.showToast(err.message, true);
+      }
+      e.target.value = ''; // Reset
+    }
+
+    // Carregar Sidebar de Histórico
+    async function loadHistoryList() {
+      try {
+        const list = document.getElementById('historyList');
+        const chats = await App.api('/api/chat');
+        
+        if (chats.length === 0) {
+          list.innerHTML = '<p class="text-xs text-slate-500 text-center mt-4">Nenhuma conversa recente.</p>';
+          return;
+        }
+
+        list.innerHTML = chats.filter(c => c.tipo === 'chat').map(c => `
+          <a href="chat.html?id=${c._id}" class="block w-full text-left px-3 py-2.5 rounded-xl hover:bg-slate-100 dark:hover:bg-white/5 transition-colors text-sm text-slate-700 dark:text-slate-300 truncate ${c._id === currentChatId ? 'bg-indigo-50 dark:bg-indigo-500/10 font-medium text-indigo-600 dark:text-indigo-400' : ''}">
+            <i data-feather="message-square" class="w-3.5 h-3.5 inline mr-2 opacity-50"></i>
+            ${c.titulo}
+          </a>
+        `).join('');
+        feather.replace();
+      } catch (err) {}
+    }
+
+    // Carregar Conversa Específica
+    async function loadCurrentChat() {
+      if (!currentChatId) return;
+      
+      try {
+        welcomeMessage.style.display = 'none';
+        const data = await App.api(`/api/chat/${currentChatId}`);
+        
+        chatBox.innerHTML = '';
+        data.mensagens.forEach(m => appendMessage(m.role, m.content));
+      } catch (err) {
+        App.showToast('Erro ao carregar conversa.', true);
+        newChat();
+      }
+    }
+
+    loadHistoryList();
+    if (currentChatId) loadCurrentChat();
+
+  </script>
+</body>
+</html>
