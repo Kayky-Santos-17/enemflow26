@@ -393,7 +393,7 @@
       
       <!-- Topbar do Cronômetro -->
       <div class="focus-header">
-        <button class="btn-circle" onclick="window.location.href='dashboard.html'" title="Sair do Modo Imersivo">
+        <button class="btn-circle" onclick="window.location.href='materias.html'" title="Sair do Modo Imersivo">
           <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2">
             <line x1="18" y1="6" x2="6" y2="18"></line>
             <line x1="6" y1="6" x2="18" y2="18"></line>
@@ -639,7 +639,7 @@
         App.showToast(`Sessão finalizada com sucesso! Você conquistou +${data.xpGanho} XP!`);
 
         setTimeout(() => {
-          window.location.href = 'dashboard.html';
+          window.location.href = 'materias.html';
         }, 2200);
 
       } catch (err) {
