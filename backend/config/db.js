@@ -1,11 +1,15 @@
 const mongoose = require('mongoose');
-const dns = require('dns');
 
-// Força o Node.js a usar os DNS públicos do Google e Cloudflare se for localmente
-try {
-  dns.setServers(['8.8.8.8', '1.1.1.1']);
-} catch (e) {
-  console.warn('⚠️ Não foi possível configurar servidores DNS personalizados (Ok no Vercel):', e.message);
+// Força o Node.js a usar os DNS públicos do Google e Cloudflare APENAS localmente
+// Isso evita que a Vercel derrube o servidor devido às restrições de sandbox de rede dela.
+if (!process.env.VERCEL) {
+  try {
+    const dns = require('dns');
+    dns.setServers(['8.8.8.8', '1.1.1.1']);
+    console.log('⚡ DNS Bypass local ativado (Google/Cloudflare)');
+  } catch (e) {
+    console.warn('⚠️ Não foi possível configurar servidores DNS personalizados:', e.message);
+  }
 }
 
 /**
