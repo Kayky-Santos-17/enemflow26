@@ -54,13 +54,20 @@ const App = {
         headers,
       });
       
-      const contentType = response.headers.get("content-type");
+      let text = '';
+      try {
+        text = await response.text();
+      } catch (err) {
+        console.error('Falha ao ler o corpo da resposta do servidor:', err);
+        throw new Error('Servidor temporariamente indisponível.');
+      }
+
       let data;
-      
-      if (contentType && contentType.indexOf("application/json") !== -1) {
-        data = await response.json();
-      } else {
-        throw new Error('Erro no servidor (não retornou JSON).');
+      try {
+        data = JSON.parse(text);
+      } catch (err) {
+        console.error('Resposta do Servidor (Não-JSON - HTML de Erro):', text);
+        throw new Error('Servidor temporariamente indisponível. Por favor, tente novamente mais tarde.');
       }
       
       if (!response.ok) {

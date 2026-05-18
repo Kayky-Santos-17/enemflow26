@@ -17,8 +17,13 @@ const connectDB = async () => {
 
   try {
     const fallbackUri = 'mongodb+srv://enem_flow:enemflow20266034@cluster0.awsypn2.mongodb.net/enemflow?retryWrites=true&w=majority';
-    const uri = process.env.MONGO_URI || fallbackUri;
+    let uri = process.env.MONGO_URI || fallbackUri;
     
+    // Remove aspas ou espaços adicionais acidentais das variáveis de ambiente
+    if (uri) {
+      uri = uri.replace(/["']/g, "").trim();
+    }
+
     if (!uri) {
       throw new Error('Variável MONGO_URI ausente.');
     }
