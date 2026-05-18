@@ -6,7 +6,7 @@
   <title>EnemFlow AI - Autenticação Neural</title>
   <link rel="manifest" href="manifest.json">
   <script src="https://cdn.tailwindcss.com"></script>
-  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="style.css">
   <script>
     tailwind.config = {
@@ -25,8 +25,8 @@
 <body class="min-h-screen flex items-center justify-center relative overflow-hidden bg-[#070709] text-slate-100">
   
   <!-- Ambient Grid Glows (Digno de IA!) -->
-  <div class="absolute top-[-10%] left-[-10%] w-[500px] h-[500px] bg-indigo-500/15 rounded-full blur-[100px] pointer-events-none animate-pulse"></div>
-  <div class="absolute bottom-[-10%] right-[-10%] w-[500px] h-[500px] bg-pink-500/15 rounded-full blur-[100px] pointer-events-none animate-pulse"></div>
+  <div class="absolute top-[-10%] left-[-10%] w-[500px] h-[500px] bg-violet-500/15 rounded-full blur-[100px] pointer-events-none animate-pulse"></div>
+  <div class="absolute bottom-[-10%] right-[-10%] w-[500px] h-[500px] bg-purple-500/15 rounded-full blur-[100px] pointer-events-none animate-pulse"></div>
 
   <!-- Background Decorative Grid -->
   <div class="absolute inset-0 bg-[linear-gradient(to_right,#8080800a_1px,transparent_1px),linear-gradient(to_bottom,#8080800a_1px,transparent_1px)] bg-[size:14px_24px] pointer-events-none"></div>
@@ -36,25 +36,25 @@
     <!-- Hero Section (Desktop Only) -->
     <div class="hidden lg:flex flex-col justify-center px-12 animate-fade-in" style="animation-delay: 0.1s;">
       <div class="flex items-center gap-3 mb-8">
-        <div class="w-10 h-10 rounded-2xl bg-indigo-500/10 flex items-center justify-center border border-indigo-500/30 shadow-[0_0_20px_rgba(99,102,241,0.2)]">
-          <svg class="w-6 h-6 text-indigo-400" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5">
+        <div class="w-10 h-10 rounded-2xl bg-violet-500/10 flex items-center justify-center border border-violet-500/30 shadow-[0_0_20px_rgba(124,92,252,0.2)]">
+          <svg class="w-6 h-6 text-violet-400" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5">
             <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon>
           </svg>
         </div>
-        <span class="text-3xl font-extrabold tracking-tight font-outfit text-white">EnemFlow <span class="bg-clip-text text-transparent bg-gradient-to-r from-indigo-400 to-pink-500">AI</span></span>
+        <span class="text-3xl font-extrabold tracking-tight font-outfit text-white">EnemFlow <span class="bg-clip-text text-transparent bg-gradient-to-r from-violet-400 to-purple-400">AI</span></span>
       </div>
       <h1 class="text-5xl font-extrabold leading-tight mb-6 font-outfit text-white">
-        O seu tutor particular com <span class="bg-clip-text text-transparent bg-gradient-to-r from-indigo-400 via-purple-400 to-pink-500">Superpoderes de IA</span>.
+        O seu tutor particular com <span class="bg-clip-text text-transparent bg-gradient-to-r from-violet-400 via-purple-400 to-fuchsia-400">Superpoderes de IA</span>.
       </h1>
-      <p class="text-base text-slate-400 mb-8 max-w-md leading-relaxed">
+      <p class="text-base mb-8 max-w-md leading-relaxed" style="color:rgba(255,255,255,0.55);">
         Domine o ENEM com resumos inteligentes, banco de materiais unificado, cronômetro de estudos e uma inteligência artificial adaptada a você.
       </p>
       
       <div class="flex items-center gap-4">
         <div class="flex -space-x-3">
           <div class="w-10 h-10 rounded-full bg-slate-800 border-2 border-slate-700 shadow-md"></div>
-          <div class="w-10 h-10 rounded-full bg-indigo-900 border-2 border-indigo-700 shadow-md"></div>
-          <div class="w-10 h-10 rounded-full bg-pink-900 border-2 border-pink-700 shadow-md flex items-center justify-center text-xs font-bold text-white shadow-md">+1k</div>
+          <div class="w-10 h-10 rounded-full bg-violet-900 border-2 border-violet-700 shadow-md"></div>
+          <div class="w-10 h-10 rounded-full bg-purple-900 border-2 border-purple-700 shadow-md flex items-center justify-center text-xs font-bold text-white">+1k</div>
         </div>
         <p class="text-xs font-bold uppercase tracking-wider text-slate-500">Junte-se à revolução nos estudos.</p>
       </div>
@@ -71,12 +71,12 @@
               <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon>
             </svg>
           </div>
-          <span class="text-2xl font-bold tracking-tight font-outfit text-white">EnemFlow <span class="bg-clip-text text-transparent bg-gradient-to-r from-indigo-400 to-pink-500">AI</span></span>
+          <span class="text-2xl font-bold tracking-tight font-outfit text-white">EnemFlow <span class="bg-clip-text text-transparent bg-gradient-to-r from-violet-400 to-purple-400">AI</span></span>
         </div>
 
         <div class="text-center mb-8">
           <h2 id="formTitle" class="text-2xl font-extrabold text-white mb-2 font-outfit tracking-tight">Bem-vindo de volta</h2>
-          <p id="formSubtitle" class="text-xs text-slate-400 font-medium">Insira suas credenciais para acessar sua jornada.</p>
+          <p id="formSubtitle" class="text-xs font-medium" style="color:rgba(255,255,255,0.45);">Insira suas credenciais para acessar sua jornada.</p>
           
           <!-- Caixa de Alerta Inline Premium (Fixo na Tela, sem Flutuação) -->
           <div id="authAlert" class="hidden mt-4 p-3.5 rounded-2xl text-xs font-semibold border text-left flex items-start gap-2.5 animate-fade-in transition-all">
@@ -89,26 +89,26 @@
 
         <form id="authForm" class="space-y-5">
           <div id="nomeGroup" class="hidden space-y-1">
-            <label class="text-xs font-semibold text-slate-400">Nome Completo</label>
-            <input type="text" id="nome" class="w-full px-4 py-3 rounded-xl bg-black/40 border border-white/10 text-white focus:ring-2 focus:ring-indigo-500 focus:border-transparent outline-none transition-all placeholder:text-slate-600 text-sm" placeholder="Ex: João Silva">
+            <label class="text-xs font-semibold" style="color:rgba(255,255,255,0.5);">Nome Completo</label>
+            <input type="text" id="nome" class="w-full px-4 py-3 rounded-xl bg-black/40 border border-white/10 text-white focus:ring-2 focus:ring-violet-500 focus:border-transparent outline-none transition-all placeholder:text-slate-600 text-sm" placeholder="Ex: João Silva">
           </div>
 
           <div class="space-y-1">
-            <label class="text-xs font-semibold text-slate-400">E-mail</label>
-            <input type="email" id="email" required class="w-full px-4 py-3 rounded-xl bg-black/40 border border-white/10 text-white focus:ring-2 focus:ring-indigo-500 focus:border-transparent outline-none transition-all placeholder:text-slate-600 text-sm" placeholder="voce@email.com">
+            <label class="text-xs font-semibold" style="color:rgba(255,255,255,0.5);">E-mail</label>
+            <input type="email" id="email" required class="w-full px-4 py-3 rounded-xl bg-black/40 border border-white/10 text-white focus:ring-2 focus:ring-violet-500 focus:border-transparent outline-none transition-all placeholder:text-slate-600 text-sm" placeholder="voce@email.com">
           </div>
 
           <div class="space-y-1">
             <div class="flex items-center justify-between">
-              <label class="text-xs font-semibold text-slate-400">Senha</label>
-              <a href="#" class="text-[11px] font-bold text-indigo-400 hover:text-indigo-300 transition-colors" id="forgotPassLink">Esqueceu a senha?</a>
+              <label class="text-xs font-semibold" style="color:rgba(255,255,255,0.5);">Senha</label>
+              <a href="#" class="text-[11px] font-bold text-violet-400 hover:text-violet-300 transition-colors" id="forgotPassLink">Esqueceu a senha?</a>
             </div>
             <div class="relative">
-              <input type="password" id="senha" required class="w-full px-4 py-3 rounded-xl bg-black/40 border border-white/10 text-white focus:ring-2 focus:ring-indigo-500 focus:border-transparent outline-none transition-all placeholder:text-slate-600 text-sm pr-12" placeholder="••••••••">
+              <input type="password" id="senha" required class="w-full px-4 py-3 rounded-xl bg-black/40 border border-white/10 text-white focus:ring-2 focus:ring-violet-500 focus:border-transparent outline-none transition-all placeholder:text-slate-600 text-sm pr-12" placeholder="••••••••">
             </div>
           </div>
 
-          <button type="submit" id="submitBtn" class="w-full py-4 px-4 bg-gradient-primary hover:opacity-95 text-white rounded-xl font-bold transition-all flex justify-center items-center gap-2 text-sm shadow-lg shadow-indigo-500/25">
+          <button type="submit" id="submitBtn" class="w-full py-4 px-4 hover:opacity-95 text-white rounded-xl font-bold transition-all flex justify-center items-center gap-2 text-sm" style="background:linear-gradient(135deg,#7c5cfc,#a855f7); box-shadow:0 4px 20px rgba(124,92,252,0.3);">
             Acessar Plataforma
             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M14 5l7 7m0 0l-7 7m7-7H3"></path></svg>
           </button>
@@ -117,7 +117,7 @@
         <div class="mt-8 text-center border-t border-white/10 pt-6">
           <p class="text-xs font-medium text-slate-400">
             <span id="toggleText">Ainda não tem conta?</span>
-            <button type="button" onclick="toggleMode()" id="toggleBtn" class="ml-1 font-bold text-indigo-400 hover:text-indigo-300 transition-colors">Criar conta grátis</button>
+            <button type="button" onclick="toggleMode()" id="toggleBtn" class="ml-1 font-bold text-violet-400 hover:text-violet-300 transition-colors">Criar conta grátis</button>
           </p>
         </div>
       </div>
@@ -127,12 +127,12 @@
   <!-- Tela de Ativação Neural (Splash Screen Premium) -->
   <div id="neuralSplash" class="fixed inset-0 bg-[#070709] z-[9999] hidden flex flex-col items-center justify-center animate-fade-in">
     <!-- Ambient mesh glow nodes -->
-    <div class="absolute w-[500px] h-[500px] bg-indigo-500/10 rounded-full blur-[100px]"></div>
-    <div class="absolute w-[500px] h-[500px] bg-pink-500/10 rounded-full blur-[100px] -translate-y-12"></div>
+    <div class="absolute w-[500px] h-[500px] bg-violet-500/10 rounded-full blur-[100px]"></div>
+    <div class="absolute w-[500px] h-[500px] bg-purple-500/10 rounded-full blur-[100px] -translate-y-12"></div>
     
     <div class="relative flex flex-col items-center justify-center text-center p-8 space-y-6 max-w-md z-10 animate-fade-in">
       <!-- Lightning Bolt Pulse Icon -->
-      <div class="relative w-24 h-24 rounded-3xl bg-gradient-to-r from-indigo-500 to-pink-500 flex items-center justify-center text-white shadow-[0_0_50px_rgba(99,102,241,0.3)] animate-bounce duration-1000">
+      <div class="relative w-24 h-24 rounded-3xl flex items-center justify-center text-white animate-bounce duration-1000" style="background:linear-gradient(135deg,#7c5cfc,#a855f7); box-shadow:0 0 50px rgba(124,92,252,0.3);">
         <svg class="w-12 h-12 text-white animate-pulse" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5">
           <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon>
         </svg>
@@ -145,7 +145,7 @@
 
       <!-- Linear Loading Bar -->
       <div class="w-64 h-1.5 bg-white/5 rounded-full overflow-hidden border border-white/10 relative">
-        <div class="h-full bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 w-0 transition-all duration-[1500ms] ease-in-out" id="splash-loader"></div>
+        <div class="h-full w-0 transition-all duration-[1500ms] ease-in-out" id="splash-loader" style="background:linear-gradient(90deg,#7c5cfc,#a855f7,#c084fc);"></div>
       </div>
     </div>
   </div>
