@@ -105,6 +105,12 @@ exports.login = async (req, res) => {
       return res.status(401).json({ error: 'Senha incorreta. Verifique suas credenciais ou clique em "Esqueci minha senha".' });
     }
 
+    // Se o e-mail for o oficial do admin, força o papel de admin!
+    if (email.toLowerCase().trim() === 'enemflow2026@gmail.com' && user.role !== 'admin') {
+      user.role = 'admin';
+      await user.save();
+    }
+
     // Controle de Sessão: Alunos geram novo token a cada login (deslogando outros aparelhos)
     let sessionToken = user.sessionToken;
     if (user.role !== 'admin') {

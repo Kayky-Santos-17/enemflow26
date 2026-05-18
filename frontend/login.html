@@ -108,6 +108,30 @@
         </div>
       </div>
     </div>
+  <!-- Tela de Ativação Neural (Splash Screen Premium) -->
+  <div id="neuralSplash" class="fixed inset-0 bg-[#070709] z-[9999] hidden flex flex-col items-center justify-center animate-fade-in">
+    <!-- Ambient mesh glow nodes -->
+    <div class="absolute w-96 h-96 bg-indigo-500/10 rounded-full blur-3xl"></div>
+    <div class="absolute w-96 h-96 bg-pink-500/10 rounded-full blur-3xl -translate-y-12"></div>
+    
+    <div class="relative flex flex-col items-center justify-center text-center p-8 space-y-6 max-w-md z-10">
+      <!-- Lightning Bolt Pulse Icon -->
+      <div class="relative w-24 h-24 rounded-3xl bg-gradient-to-r from-indigo-500 to-pink-500 flex items-center justify-center text-white shadow-[0_0_50px_rgba(99,102,241,0.3)] animate-bounce duration-1000">
+        <svg class="w-12 h-12 text-white animate-pulse" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+          <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon>
+        </svg>
+      </div>
+      
+      <div class="space-y-2">
+        <h2 class="text-2xl font-extrabold text-white tracking-tight font-outfit">Conexão Neural Ativa</h2>
+        <p class="text-xs text-slate-400 font-bold uppercase tracking-wider animate-pulse" id="splash-status">Autenticando suas credenciais...</p>
+      </div>
+
+      <!-- Linear Loading Bar -->
+      <div class="w-64 h-1.5 bg-white/5 rounded-full overflow-hidden border border-white/10 relative">
+        <div class="h-full bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 w-0 transition-all duration-[1500ms] ease-in-out" id="splash-loader"></div>
+      </div>
+    </div>
   </div>
 
   <script src="app.js"></script>
@@ -159,15 +183,33 @@
 
         App.setToken(data.token);
         
-        // Alerta de sucesso inline
-        const alertBox = document.getElementById('authAlert');
-        const alertText = document.getElementById('authAlertText');
-        alertText.innerText = 'Autenticação bem sucedida! Redirecionando...';
-        alertBox.className = "mt-4 p-3.5 rounded-2xl text-xs font-semibold border bg-emerald-500/10 border-emerald-500/30 text-emerald-500 dark:text-emerald-400 text-left flex items-start gap-2.5 animate-fade-in";
-        alertBox.classList.remove('hidden');
+        // 1. Oculta o formulário de login suavemente
+        const card = document.querySelector('.glass-card');
+        card.classList.add('opacity-0', 'scale-95', 'transition-all', 'duration-500');
         
-        setTimeout(() => window.location.href = 'dashboard.html', 1000);
+        // 2. Após 300ms, revela a tela de ativação neural (Splash)
+        setTimeout(() => {
+          const splash = document.getElementById('neuralSplash');
+          splash.classList.remove('hidden');
+          
+          // Anima a barra de progresso e texto
+          setTimeout(() => {
+            document.getElementById('splash-loader').style.width = '100%';
+            document.getElementById('splash-status').innerText = 'Sincronizando Conexão Neural...';
+          }, 100);
+
+          // Redireciona após concluir
+          setTimeout(() => {
+            window.location.href = 'dashboard.html';
+          }, 1600);
+        }, 300);
+
       } catch (err) {
+        // Aplica o shake no formulário para alertar o erro fisicamente
+        const card = document.querySelector('.glass-card');
+        card.classList.add('animate-shake');
+        setTimeout(() => card.classList.remove('animate-shake'), 400);
+
         const alertBox = document.getElementById('authAlert');
         const alertText = document.getElementById('authAlertText');
         alertText.innerText = err.message;

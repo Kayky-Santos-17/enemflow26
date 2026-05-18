@@ -1,105 +1,78 @@
 <!DOCTYPE html>
-<html lang="pt-BR">
+<html lang="pt-BR" class="dark">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>EnemFlow - Admin Control</title>
+  <title>EnemFlow AI - Admin Control</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="sidebar.js" defer></script>
   <link rel="stylesheet" href="style.css">
+  <script src="https://unpkg.com/feather-icons"></script>
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: { extend: { fontFamily: { sans: ['Inter', 'sans-serif'] } } }
+    }
+  </script>
 </head>
-<body>
-  <div class="page-enter"></div>
+<body class="flex h-screen overflow-hidden bg-slate-50 dark:bg-[#070709]">
 
-  <!-- Mobile Top Bar -->
-  <div class="mobile-top-actions" style="display: none;">
-    <div class="sidebar-logo" style="margin: 0; padding: 0;">
-      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="url(#gradMobileAdmin)" stroke-width="2">
-        <defs>
-          <linearGradient id="gradMobileAdmin" x1="0%" y1="0%" x2="100%" y2="100%">
-            <stop offset="0%" style="stop-color:#6366f1;stop-opacity:1" />
-            <stop offset="100%" style="stop-color:#ec4899;stop-opacity:1" />
-          </linearGradient>
-        </defs>
-        <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon>
-      </svg>
-      <span class="text-gradient" style="font-family: 'Outfit'; font-weight: 800; font-size: 1.1rem;">Admin</span>
-    </div>
-  </div>
+  <!-- Overlay Mobile -->
+  <div id="mobileOverlay" class="fixed inset-0 bg-black/50 z-40 hidden lg:hidden backdrop-blur-sm"></div>
 
-  <div class="app-container">
-    
-    <!-- Sidebar -->
-    <aside class="sidebar">
-      <div class="sidebar-logo">
-        <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="url(#grad)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-          <defs>
-            <linearGradient id="grad" x1="0%" y1="0%" x2="100%" y2="100%">
-              <stop offset="0%" style="stop-color:#6366f1;stop-opacity:1" />
-              <stop offset="100%" style="stop-color:#ec4899;stop-opacity:1" />
-            </linearGradient>
-          </defs>
-          <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon>
-        </svg>
-        <span class="text-gradient" style="font-family: 'Outfit'; font-weight: 800;">EnemFlow</span>
-      </div>
+  <!-- Main Content -->
+  <main class="flex-1 overflow-y-auto relative pt-16 lg:pt-0">
+    <!-- Ambient Glow Blobs -->
+    <div class="bg-glow top-[-10%] right-[-5%]"></div>
+    <div class="bg-glow bottom-[-10%] left-[-5%] opacity-50"></div>
 
-      <nav style="flex: 1;">
-        <span class="text-muted desktop-only" style="font-size: 0.8rem; text-transform: uppercase; letter-spacing: 0.1em; margin-bottom: 10px; display: block;">Painel Master</span>
-        <a href="#" class="nav-link active">
-          <svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></svg>
-          Conteúdos
-        </a>
-        <a href="dashboard.html" class="nav-link">
-          <svg viewBox="0 0 24 24"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>
-          Visão de Aluno
-        </a>
-      </nav>
-
-      <button onclick="App.logout()" class="btn btn-danger" style="margin-top: auto; justify-content: flex-start; padding-left: 16px;">
-        <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path><polyline points="16 17 21 12 16 7"></polyline><line x1="21" y1="12" x2="9" y2="12"></line></svg>
-        Sair do Sistema
-      </button>
-    </aside>
-
-    <!-- Main Content -->
-    <main class="main-content">
+    <div class="p-6 md:p-10 max-w-6xl mx-auto space-y-8 animate-fade-in">
       
-      <header class="topbar">
-        <div style="display: flex; align-items: center; gap: 20px;">
-          <div class="user-profile" style="cursor: pointer;" onclick="window.location.href='perfil.html'">
-            <div class="avatar" id="avatarLetter" style="background-size: cover; background-position: center;">?</div>
-            <div>
-              <h2 id="adminNameTop" style="font-size: 1.4rem; line-height: 1.2;">Admin</h2>
-              <p class="text-muted">Painel de Controle</p>
-            </div>
+      <!-- Header -->
+      <header class="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-slate-200 dark:border-white/10 pb-6">
+        <div class="flex items-center gap-3">
+          <div class="w-12 h-12 rounded-2xl bg-yellow-500/10 flex items-center justify-center border border-yellow-500/20 shadow-lg shadow-yellow-500/10 shrink-0">
+            <i data-feather="shield" class="w-6 h-6 text-yellow-500"></i>
           </div>
-          <button onclick="togglePasswordSection()" class="btn-link" style="color: var(--primary); font-size: 0.9rem; border: 1px solid var(--border); padding: 8px 15px; border-radius: 8px;">Alterar Senha Admin</button>
+          <div>
+            <h1 class="text-3xl font-extrabold tracking-tight">Painel de <span class="bg-clip-text text-transparent bg-gradient-to-r from-yellow-400 via-amber-400 to-orange-500">Controle Master</span></h1>
+            <p class="text-sm text-slate-500 dark:text-slate-400">Adicione PDFs, gerencie aulas e modere alunos na plataforma.</p>
+          </div>
+        </div>
+        <div>
+          <button onclick="togglePasswordSection()" class="px-4 py-2 rounded-xl text-xs font-bold border border-red-500/20 bg-red-500/5 text-red-500 hover:bg-red-500/10 transition-colors flex items-center gap-2">
+            <i data-feather="key" class="w-4 h-4"></i> Credenciais Admin
+          </button>
         </div>
       </header>
 
-      <!-- Seção de Senha do Admin -->
-      <div id="password-section" style="display: none; background: rgba(239, 68, 68, 0.05); padding: 1.5rem; border-radius: 16px; border: 1px solid rgba(239, 68, 68, 0.2); margin-bottom: 2rem; animation: slideDown 0.3s ease-out; max-width: 500px;">
-        <h4 style="color: #ef4444; margin-bottom: 1rem;">Alteração de Credencial Administrativa</h4>
-        <div class="input-group">
-          <input type="password" id="senhaAtual" placeholder="Senha Atual" style="background: rgba(0,0,0,0.2);">
+      <!-- Seção de Troca de Senha (Escondido) -->
+      <div id="password-section" class="hidden glass-card p-6 border border-red-500/20 bg-red-500/5 max-w-md animate-fade-in">
+        <h3 class="text-sm font-bold text-red-500 mb-4 flex items-center gap-1.5">
+          <i data-feather="alert-triangle" class="w-4 h-4"></i> Alteração de Credencial Administrativa
+        </h3>
+        <div class="space-y-4">
+          <input type="password" id="senhaAtual" placeholder="Senha Atual Mestra" class="w-full px-4 py-2.5 rounded-xl bg-white/50 dark:bg-black/40 border border-slate-200 dark:border-white/10 text-sm focus:ring-2 focus:ring-red-500 outline-none transition-all placeholder:text-slate-500">
+          <input type="password" id="novaSenha" placeholder="Nova Senha Mestra" class="w-full px-4 py-2.5 rounded-xl bg-white/50 dark:bg-black/40 border border-slate-200 dark:border-white/10 text-sm focus:ring-2 focus:ring-red-500 outline-none transition-all placeholder:text-slate-500">
+          <button onclick="updatePassword()" id="passBtn" class="w-full py-2.5 bg-red-500 hover:bg-red-600 text-white font-bold rounded-xl text-xs transition-colors">Confirmar Troca de Senha</button>
         </div>
-        <div class="input-group">
-          <input type="password" id="novaSenha" placeholder="Nova Senha Mestra" style="background: rgba(0,0,0,0.2);">
-        </div>
-        <button onclick="updatePassword()" class="btn" style="background: #ef4444; color: white; width: 100%;" id="passBtn">Confirmar Troca</button>
       </div>
 
-      <div class="grid" style="grid-template-columns: 1fr 1.5fr;">
+      <!-- Main Admin Grid -->
+      <div class="grid grid-cols-1 lg:grid-cols-12 gap-8">
         
-        <!-- Bloco de Criação -->
-        <div>
-          <h3 style="margin-bottom: 1rem; font-size: 1.2rem;">Publicar Material</h3>
-          <div class="card" style="padding: 2rem;">
-            <form id="add-content-form">
-              <div class="input-group">
-                <select id="materia" required>
-                  <option value="" disabled selected>Matéria</option>
+        <!-- Left: Upload/Deploy Material Form -->
+        <div class="lg:col-span-5 space-y-6">
+          <h3 class="text-lg font-bold flex items-center gap-2">
+            <i data-feather="upload-cloud" class="text-indigo-500 w-5 h-5"></i> Publicar Material (PDFs/Vídeos)
+          </h3>
+          <div class="glass-card p-6 md:p-8 space-y-5">
+            <form id="add-content-form" class="space-y-4">
+              
+              <div class="space-y-1">
+                <label class="text-xs font-semibold text-slate-500 dark:text-slate-400">Selecione a Matéria Oficial</label>
+                <select id="materia" required class="w-full px-4 py-3 rounded-xl bg-white dark:bg-[#0f0f12] border border-slate-200 dark:border-white/10 text-slate-800 dark:text-slate-200 focus:ring-2 focus:ring-indigo-500 outline-none transition-all text-sm">
+                  <option value="" disabled selected>Escolher Matéria...</option>
                   <option value="Matemática">Matemática</option>
                   <option value="Física">Física</option>
                   <option value="Química">Química</option>
@@ -116,169 +89,220 @@
                   <option value="Espanhol">Espanhol</option>
                 </select>
               </div>
-              <div class="input-group">
-                <input type="text" id="assunto" placeholder="Assunto" required>
+
+              <div class="space-y-1">
+                <label class="text-xs font-semibold text-slate-500 dark:text-slate-400">Assunto Principal (Ex: Termodinâmica)</label>
+                <input type="text" id="assunto" placeholder="Ex: Termodinâmica" required class="w-full px-4 py-3 rounded-xl bg-white dark:bg-[#0f0f12] border border-slate-200 dark:border-white/10 text-slate-800 dark:text-slate-200 focus:ring-2 focus:ring-indigo-500 outline-none transition-all text-sm placeholder:text-slate-600">
               </div>
-              <div class="input-group">
-                <input type="text" id="subassunto" placeholder="Tópico (Opcional)">
+
+              <div class="space-y-1">
+                <label class="text-xs font-semibold text-slate-500 dark:text-slate-400">Subtópico / Aula (Ex: Trabalho e Calor)</label>
+                <input type="text" id="subassunto" placeholder="Ex: Trabalho e Calor" class="w-full px-4 py-3 rounded-xl bg-white dark:bg-[#0f0f12] border border-slate-200 dark:border-white/10 text-slate-800 dark:text-slate-200 focus:ring-2 focus:ring-indigo-500 outline-none transition-all text-sm placeholder:text-slate-600">
               </div>
-              <div class="input-group">
-                <select id="tipo" required>
-                  <option value="" disabled selected>Tipo do Material</option>
-                  <option value="video">Vídeo Aula (Upload ou URL)</option>
-                  <option value="pdf">Material em PDF (Upload)</option>
-                  <option value="artigo">Artigo Texto</option>
-                  <option value="exercicio">Exercício / Simulado</option>
+
+              <div class="space-y-1">
+                <label class="text-xs font-semibold text-slate-500 dark:text-slate-400">Tipo de Recurso</label>
+                <select id="tipo" required class="w-full px-4 py-3 rounded-xl bg-white dark:bg-[#0f0f12] border border-slate-200 dark:border-white/10 text-slate-800 dark:text-slate-200 focus:ring-2 focus:ring-indigo-500 outline-none transition-all text-sm">
+                  <option value="" disabled selected>Escolher tipo...</option>
+                  <option value="pdf">Material em PDF (Upload Direto)</option>
+                  <option value="video">Vídeo Aula / Link Externo</option>
+                  <option value="artigo">Artigo Escrito</option>
                 </select>
               </div>
-              <div class="input-group">
-                <label class="text-muted" style="display: block; margin-bottom: 8px; font-size: 0.85rem;">Anexar Arquivo Real (PDF/Vídeo)</label>
-                <div style="position: relative; width: 100%;">
-                  <input type="file" id="arquivoUpload" accept=".pdf,video/mp4" style="opacity: 0; position: absolute; inset: 0; width: 100%; height: 100%; cursor: pointer; z-index: 10;">
-                  <div id="upload-display" style="background: rgba(99, 102, 241, 0.05); border: 2px dashed rgba(99, 102, 241, 0.5); color: var(--primary); border-radius: 12px; padding: 1.5rem; text-align: center; transition: all 0.3s; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 8px;">
-                    <svg viewBox="0 0 24 24" width="28" height="28" fill="none" stroke="currentColor" stroke-width="2" style="margin-bottom: 4px;"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="17 8 12 3 7 8"></polyline><line x1="12" y1="3" x2="12" y2="15"></line></svg>
-                    <span id="upload-text" style="font-weight: 500; font-size: 0.95rem; display: -webkit-box; -webkit-line-clamp: 2; line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; max-width: 100%;">Clique para escolher ou arraste o arquivo</span>
-                    <span id="upload-subtext" style="font-size: 0.8rem; color: var(--text-muted); font-weight: normal;">PDF ou Vídeo MP4</span>
+
+              <!-- Upload Area -->
+              <div class="space-y-2">
+                <label class="text-xs font-semibold text-slate-500 dark:text-slate-400">Anexo do Arquivo (PDF / MP4)</label>
+                <div class="relative w-full group">
+                  <input type="file" id="arquivoUpload" accept=".pdf,video/mp4" class="opacity-0 absolute inset-0 w-full h-full cursor-pointer z-10">
+                  <div id="upload-display" class="bg-indigo-500/5 border-2 border-dashed border-indigo-500/20 group-hover:border-indigo-500/40 text-indigo-500 dark:text-indigo-400 rounded-2xl p-6 text-center transition-all flex flex-col items-center justify-center gap-2">
+                    <i data-feather="file" class="w-8 h-8 mb-1"></i>
+                    <span id="upload-text" class="font-bold text-sm">Clique para anexar arquivo PDF</span>
+                    <span id="upload-subtext" class="text-xs text-slate-400 font-semibold">Tamanho máximo recomendado: 12MB</span>
                   </div>
                 </div>
               </div>
-              <div class="input-group">
-                <p class="text-muted" style="text-align: center; margin: 5px 0;">OU</p>
-                <input type="text" id="url" placeholder="Link externo (ex: YouTube URL)">
+
+              <div class="relative py-2 flex items-center justify-center">
+                <div class="absolute inset-0 flex items-center"><div class="w-full border-t border-slate-200 dark:border-white/10"></div></div>
+                <span class="relative px-3 bg-white dark:bg-[#0c0c0f] text-xs font-bold text-slate-400 uppercase">Ou Link Web</span>
               </div>
-              <button type="submit" class="btn btn-primary" style="margin-top: 0.5rem;">Fazer Deploy</button>
+
+              <div class="space-y-1">
+                <label class="text-xs font-semibold text-slate-500 dark:text-slate-400">URL Externa (YouTube, Google Drive, etc.)</label>
+                <input type="text" id="url" placeholder="https://youtube.com/watch?v=..." class="w-full px-4 py-3 rounded-xl bg-white dark:bg-[#0f0f12] border border-slate-200 dark:border-white/10 text-slate-800 dark:text-slate-200 focus:ring-2 focus:ring-indigo-500 outline-none transition-all text-sm placeholder:text-slate-600">
+              </div>
+
+              <button type="submit" id="submitDeployBtn" class="w-full py-4 bg-gradient-primary hover:opacity-95 text-white font-bold rounded-2xl transition-all shadow-lg shadow-indigo-500/20 flex items-center justify-center gap-2 text-sm">
+                <i data-feather="cloud-lightning" class="w-4 h-4"></i> Publicar na Plataforma
+              </button>
             </form>
           </div>
         </div>
 
-        <!-- Bloco de Listagem e Alunos -->
-        <div style="display: flex; flex-direction: column; gap: 2rem;">
+        <!-- Right: Active Database Content List & Students Panel -->
+        <div class="lg:col-span-7 space-y-8">
           
-          <div>
-            <h3 style="margin-bottom: 1rem; font-size: 1.2rem;">Banco de Dados (Ativos)</h3>
-            <div id="admin-content-list" style="display: flex; flex-direction: column; gap: 1rem; max-height: 400px; overflow-y: auto; padding-right: 10px;">
+          <!-- Materials Database -->
+          <div class="space-y-4">
+            <h3 class="text-lg font-bold flex items-center gap-2">
+              <i data-feather="database" class="text-indigo-500 w-5 h-5"></i> Arquivos Ativos no Sistema
+            </h3>
+            <div id="admin-content-list" class="space-y-3 max-h-[350px] overflow-y-auto pr-2">
+              <!-- Renderizado via JS -->
+              <div class="text-center py-6 text-slate-500">
+                <i data-feather="loader" class="w-6 h-6 animate-spin mx-auto mb-2 text-indigo-500"></i>
+                Carregando base de dados...
+              </div>
+            </div>
+          </div>
+
+          <!-- Students Moderation -->
+          <div class="space-y-4">
+            <h3 class="text-lg font-bold flex items-center gap-2 text-red-500">
+              <i data-feather="users" class="w-5 h-5"></i> Alunos Cadastrados & Moderados
+            </h3>
+            <div id="admin-users-list" class="space-y-3 max-h-[350px] overflow-y-auto pr-2">
               <!-- Renderizado via JS -->
             </div>
           </div>
 
-          <div>
-            <h3 style="margin-bottom: 1rem; font-size: 1.2rem; color: var(--danger);">Gerenciamento de Alunos</h3>
-            <div id="admin-users-list" style="display: flex; flex-direction: column; gap: 1rem; max-height: 400px; overflow-y: auto; padding-right: 10px;">
-              <!-- Renderizado via JS -->
+          <!-- Danger Zone -->
+          <div class="glass-card p-6 border border-red-500/20 bg-red-500/5 space-y-4">
+            <div>
+              <h3 class="text-sm font-bold text-red-500 flex items-center gap-1.5">
+                <i data-feather="shield-alert" class="w-4 h-4"></i> Zona de Perigo Administrativa
+              </h3>
+              <p class="text-xs text-slate-500 dark:text-slate-400 mt-1">Essas ações limpam as estatísticas gerais de XP e progresso de todos os alunos registrados.</p>
             </div>
-          </div>
-
-          <div class="card" style="border: 1px solid var(--danger); background: rgba(239, 68, 68, 0.05); padding: 1.5rem;">
-            <h3 style="color: var(--danger); margin-bottom: 0.5rem; font-size: 1.1rem;">Zona de Perigo</h3>
-            <p class="text-muted" style="font-size: 0.85rem; margin-bottom: 1.2rem;">Essas ações são irreversíveis e afetam todos os usuários da plataforma.</p>
-            <button onclick="resetSystem()" class="btn btn-danger" style="width: 100%;">
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="margin-right: 8px; vertical-align: middle;"><path d="M3 6h18"></path><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"></path><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"></path></svg>
-              Resetar XP e Progresso de Todos os Alunos
+            <button onclick="resetSystem()" class="w-full py-3 bg-red-500/10 hover:bg-red-500 text-red-500 hover:text-white border border-red-500/20 font-bold rounded-xl text-xs transition-colors flex items-center justify-center gap-2">
+              <i data-feather="trash-2" class="w-4 h-4"></i> Resetar Todo o XP e Progresso de Alunos
             </button>
           </div>
 
         </div>
 
       </div>
-    </main>
-  </div>
+
+    </div>
+  </main>
 
   <script src="app.js"></script>
   <script>
+    feather.replace();
     if(!App.getToken()) window.location.href = 'login.html';
 
     async function checkAdmin() {
       try {
         const user = await App.api('/auth/me');
         if(user.role !== 'admin') {
-          App.showToast('Violação de Segurança: Acesso restrito.', true);
-          setTimeout(() => window.location.href = 'dashboard.html', 2000);
+          App.showToast('Violação de Segurança: Área restrita a administradores.', true);
+          setTimeout(() => window.location.href = 'dashboard.html', 1500);
         }
       } catch (err) {
-        if(err.message.includes('Sessão') || err.message.includes('Token') || err.message.includes('Usuário')) {
-          window.location.href = 'login.html';
-        }
+        window.location.href = 'login.html';
       }
     }
 
     async function loadAdminContents() {
       try {
         const listContainer = document.getElementById('admin-content-list');
-        listContainer.innerHTML = '<p class="text-muted">Lendo banco de dados...</p>';
+        listContainer.innerHTML = `
+          <div class="text-center py-6 text-slate-500">
+            <i data-feather="loader" class="w-5 h-5 animate-spin mx-auto mb-2 text-indigo-500"></i>
+            Atualizando base...
+          </div>
+        `;
+        feather.replace();
 
         const contents = await App.api('/contents');
         
         if(contents.length === 0) {
-          listContainer.innerHTML = '<div class="card" style="text-align: center;"><p class="text-muted">O banco de dados está vazio.</p></div>';
+          listContainer.innerHTML = `
+            <div class="glass p-8 text-center rounded-2xl border border-dashed border-slate-200 dark:border-white/10">
+              <i data-feather="folder-open" class="w-8 h-8 text-slate-400 mx-auto mb-2"></i>
+              <p class="text-sm font-semibold text-slate-400">O banco de dados está vazio.</p>
+            </div>
+          `;
+          feather.replace();
           return;
         }
 
-        listContainer.innerHTML = contents.map(c => `
-          <div class="card" style="display: flex; justify-content: space-between; align-items: center; padding: 1.2rem 1.5rem;">
-            <div>
-              <span class="tag" style="margin-bottom: 6px;">${(c.tipo || 'artigo').toUpperCase()}</span>
-              <strong style="display: block; font-size: 1.1rem; margin-bottom: 2px;">${c.titulo}</strong>
-              <span class="text-muted" style="font-size: 0.85rem;">
-                ${c.materia} &gt; ${c.assunto || 'Geral'} ${c.subassunto ? '&gt; ' + c.subassunto : ''}
-              </span>
+        listContainer.innerHTML = contents.map(c => {
+          let badgeColor = 'bg-indigo-500/10 text-indigo-400 border border-indigo-500/20';
+          if (c.tipo === 'pdf') badgeColor = 'bg-red-500/10 text-red-400 border border-red-500/20';
+          else if (c.tipo === 'video') badgeColor = 'bg-amber-500/10 text-amber-400 border border-amber-500/20';
+
+          return `
+            <div class="glass p-4 rounded-2xl flex items-center justify-between border border-slate-200 dark:border-white/5 hover:border-indigo-500/20 transition-all">
+              <div class="min-w-0">
+                <div class="flex items-center gap-2 mb-1.5">
+                  <span class="px-2 py-0.5 rounded-full font-bold text-[9px] uppercase tracking-wider ${badgeColor}">${c.tipo || 'artigo'}</span>
+                  <span class="text-xs font-semibold text-slate-400">${c.materia}</span>
+                </div>
+                <h4 class="font-bold text-sm truncate max-w-[280px]">${c.titulo}</h4>
+                <p class="text-[10px] text-slate-500 truncate max-w-[280px] mt-0.5">${c.assunto} ${c.subassunto ? '• ' + c.subassunto : ''}</p>
+              </div>
+              <button onclick="deleteContent('${c._id}')" class="px-3 py-2 bg-red-500/10 hover:bg-red-500 text-red-500 hover:text-white rounded-xl text-xs font-bold transition-all flex items-center gap-1">
+                <i data-feather="trash" class="w-3.5 h-3.5"></i> Excluir
+              </button>
             </div>
-            <button onclick="deleteContent('${c._id}')" class="btn btn-danger" style="padding: 8px 16px; font-size: 0.85rem;">
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="margin-right: 4px; vertical-align: text-bottom;"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
-              Excluir
-            </button>
-          </div>
-        `).join('');
+          `;
+        }).join('');
+        feather.replace();
 
       } catch (err) {
-        App.showToast('Erro ao carregar o banco: Verifique a conexão com o servidor.', true);
+        App.showToast('Erro ao ler base de dados.', true);
       }
     }
 
     async function loadAdminUsers() {
       try {
         const listContainer = document.getElementById('admin-users-list');
-        listContainer.innerHTML = '<p class="text-muted">Buscando alunos...</p>';
+        listContainer.innerHTML = '<p class="text-xs text-slate-500">Listando alunos...</p>';
 
         const users = await App.api('/auth/users');
         
         if(users.length === 0) {
-          listContainer.innerHTML = '<div class="card" style="text-align: center;"><p class="text-muted">Nenhum aluno registrado ainda.</p></div>';
+          listContainer.innerHTML = `
+            <div class="glass p-6 text-center rounded-2xl">
+              <p class="text-xs font-semibold text-slate-500">Nenhum aluno registrado ainda.</p>
+            </div>
+          `;
           return;
         }
 
         listContainer.innerHTML = users.map(u => `
-          <div class="card" style="display: flex; justify-content: space-between; align-items: center; padding: 1.2rem 1.5rem; border: 1px solid rgba(239, 68, 68, 0.2);">
-            <div>
-              <strong style="display: block; font-size: 1.1rem; margin-bottom: 2px;">${u.nome}</strong>
-              <span class="text-muted" style="font-size: 0.85rem;">${u.email} • <strong>${u.xp} XP</strong></span>
+          <div class="glass p-4 rounded-2xl flex items-center justify-between border border-red-500/5 hover:border-red-500/10 transition-all">
+            <div class="min-w-0">
+              <h4 class="font-bold text-sm truncate">${u.nome}</h4>
+              <p class="text-xs text-slate-500 truncate mt-0.5">${u.email} • <span class="text-indigo-500 font-bold">${u.xp} XP</span></p>
             </div>
-            <button onclick="banUser('${u._id}')" class="btn btn-danger" style="padding: 8px 16px; font-size: 0.85rem;">
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="margin-right: 4px; vertical-align: text-bottom;"><path d="M18.36 6.64a9 9 0 1 1-12.73 0"></path><line x1="12" y1="2" x2="12" y2="12"></line></svg>
-              Banir Aluno
+            <button onclick="banUser('${u._id}')" class="px-3 py-2 bg-red-500/10 hover:bg-red-500 text-red-500 hover:text-white rounded-xl text-xs font-bold transition-all flex items-center gap-1">
+              <i data-feather="user-x" class="w-3.5 h-3.5"></i> Banir
             </button>
           </div>
         `).join('');
+        feather.replace();
 
       } catch (err) {
         App.showToast('Falha ao listar alunos.', true);
       }
     }
 
-    // Interatividade do Upload Customizado
+    // Drag and Drop & Input File styling
     document.getElementById('arquivoUpload').addEventListener('change', function(e) {
       const display = document.getElementById('upload-display');
       const text = document.getElementById('upload-text');
       const subtext = document.getElementById('upload-subtext');
       if(this.files && this.files.length > 0) {
-        display.style.background = 'rgba(16, 185, 129, 0.1)';
-        display.style.borderColor = '#10b981';
-        display.style.color = '#10b981';
+        display.classList.add('bg-emerald-500/10', 'border-emerald-500/40', 'text-emerald-500');
+        display.classList.remove('bg-indigo-500/5', 'border-indigo-500/20', 'text-indigo-500');
         text.innerText = this.files[0].name;
         subtext.innerText = (this.files[0].size / (1024*1024)).toFixed(2) + ' MB';
       } else {
-        display.style.background = 'rgba(99, 102, 241, 0.05)';
-        display.style.borderColor = 'rgba(99, 102, 241, 0.5)';
-        display.style.color = 'var(--primary)';
+        display.classList.remove('bg-emerald-500/10', 'border-emerald-500/40', 'text-emerald-500');
+        display.classList.add('bg-indigo-500/5', 'border-indigo-500/20', 'text-indigo-500');
         text.innerText = 'Clique para escolher ou arraste o arquivo';
         subtext.innerText = 'PDF ou Vídeo MP4';
       }
@@ -287,37 +311,38 @@
     document.getElementById('add-content-form').addEventListener('submit', async (e) => {
       e.preventDefault();
       
-      const submitBtn = e.target.querySelector('button[type="submit"]');
+      const submitBtn = document.getElementById('submitDeployBtn');
       submitBtn.disabled = true;
-      submitBtn.innerText = 'Fazendo Deploy...';
+      submitBtn.innerHTML = '<i data-feather="loader" class="w-4 h-4 animate-spin"></i> Processando Deploy...';
+      feather.replace();
 
       let finalUrl = document.getElementById('url').value;
       const fileInput = document.getElementById('arquivoUpload');
 
       try {
-        // Se escolheu um arquivo real para fazer upload
         if (fileInput.files.length > 0) {
           const file = fileInput.files[0];
           
           if (file.type === 'application/pdf') {
-            submitBtn.innerText = 'Processando PDF para o banco online...';
-            // Converte o arquivo PDF em Base64 Data URL para salvar direto no MongoDB Atlas
+            submitBtn.innerHTML = '<i data-feather="loader" class="w-4 h-4 animate-spin"></i> Compactando PDF para nuvem...';
+            feather.replace();
+
             finalUrl = await new Promise((resolve, reject) => {
               const reader = new FileReader();
               reader.onload = () => {
-                // Limite máximo para se manter seguro dentro do BSON de 16MB do MongoDB
                 if (reader.result.length > 15.5 * 1024 * 1024) {
-                  reject(new Error('Este arquivo PDF é muito grande. O limite máximo para upload direto no banco online é de 11.5 MB devido a restrições técnicas. Para arquivos maiores, hospede no Google Drive e adicione o link no campo "Link externo".'));
+                  reject(new Error('PDF muito grande (limite da nuvem é 12MB). Por favor use um arquivo menor ou envie via Link do Drive.'));
                 } else {
                   resolve(reader.result);
                 }
               };
-              reader.onerror = () => reject(new Error('Erro ao ler o arquivo PDF.'));
+              reader.onerror = () => reject(new Error('Falha na compactação.'));
               reader.readAsDataURL(file);
             });
           } else {
-            // Outros tipos de arquivo (vídeo, etc.) usam o upload padrão que tem aviso amigável na Vercel
-            submitBtn.innerText = 'Enviando arquivo pesado...';
+            submitBtn.innerHTML = '<i data-feather="loader" class="w-4 h-4 animate-spin"></i> Subindo vídeo aula pesada...';
+            feather.replace();
+
             const formData = new FormData();
             formData.append('file', file);
 
@@ -327,7 +352,7 @@
               body: formData
             });
             const uploadData = await uploadRes.json();
-            if (!uploadRes.ok) throw new Error(uploadData.error || 'Erro no upload');
+            if (!uploadRes.ok) throw new Error(uploadData.error || 'Falha no upload.');
             finalUrl = uploadData.url;
           }
         }
@@ -350,46 +375,22 @@
           body: JSON.stringify(payload)
         });
         
-        App.showToast('Material injetado na base de dados com sucesso!');
+        App.showToast('Material injetado no banco de dados!');
         e.target.reset();
         document.getElementById('arquivoUpload').dispatchEvent(new Event('change'));
         loadAdminContents();
       } catch (err) {
-        let msg = err.message;
-        if (msg.includes('Unexpected token') || msg.includes('is not valid JSON')) {
-          msg = 'Erro de comunicação: O servidor pode estar reiniciando ou offline. Tente novamente.';
-        } else if (msg === 'Failed to fetch' || msg.includes('NetworkError')) {
-          msg = 'Sem conexão com o servidor. Verifique sua rede.';
-        }
-        App.showToast(msg, true);
+        App.showToast(err.message, true);
       } finally {
         submitBtn.disabled = false;
-        submitBtn.innerText = 'Fazer Deploy';
+        submitBtn.innerHTML = '<i data-feather="cloud-lightning" class="w-4 h-4"></i> Publicar na Plataforma';
+        feather.replace();
       }
     });
 
-    async function loadProfile() {
-      try {
-        const user = await App.api('/auth/me');
-        document.getElementById('adminNameTop').innerText = user.nome;
-        const avatarDiv = document.getElementById('avatarLetter');
-        if (user.avatarUrl) {
-          avatarDiv.style.backgroundImage = `url(${user.avatarUrl})`;
-          avatarDiv.innerText = '';
-        } else {
-          avatarDiv.innerText = user.nome.charAt(0).toUpperCase();
-        }
-      } catch (err) {}
-    }
-
     function togglePasswordSection() {
       const section = document.getElementById('password-section');
-      const isVisible = section.style.display !== 'none';
-      section.style.display = isVisible ? 'none' : 'block';
-      if (!isVisible) {
-        document.getElementById('senhaAtual').value = '';
-        document.getElementById('novaSenha').value = '';
-      }
+      section.classList.toggle('hidden');
     }
 
     async function updatePassword() {
@@ -397,7 +398,7 @@
       const senhaAtual = document.getElementById('senhaAtual').value;
       const novaSenha = document.getElementById('novaSenha').value;
 
-      if(!senhaAtual || !novaSenha) return App.showToast('Preencha os dois campos.', true);
+      if(!senhaAtual || !novaSenha) return App.showToast('Preencha as duas senhas.', true);
 
       btn.innerText = 'Processando...';
       btn.disabled = true;
@@ -407,22 +408,22 @@
           method: 'PUT',
           body: JSON.stringify({ senhaAtual, novaSenha })
         });
-        App.showToast('Senha de administrador atualizada!');
+        App.showToast('Senha mestra administrativa atualizada!');
         togglePasswordSection();
       } catch (err) {
         App.showToast(err.message, true);
       } finally {
-        btn.innerText = 'Confirmar Alteração';
+        btn.innerText = 'Confirmar Troca de Senha';
         btn.disabled = false;
       }
     }
 
     async function deleteContent(id) {
-      if(!confirm('Atenção: Você tem certeza que deseja expurgar este material da plataforma?')) return;
+      if(!confirm('Expurgar este material permanentemente do banco?')) return;
       
       try {
         await App.api(`/contents/${id}`, { method: 'DELETE' });
-        App.showToast('Arquivo deletado do servidor.');
+        App.showToast('Material expurgado.');
         loadAdminContents();
       } catch (err) {
         App.showToast(err.message, true);
@@ -430,11 +431,11 @@
     }
 
     async function banUser(id) {
-      if(!confirm('ATENÇÃO: Deseja banir este aluno e excluir permanentemente todo o seu XP e histórico? O martelo do ban não tem volta!')) return;
+      if(!confirm('Banir permanentemente este aluno e expurgar seu XP?')) return;
       
       try {
         await App.api(`/auth/users/${id}`, { method: 'DELETE' });
-        App.showToast('Aluno banido com sucesso. 🔨');
+        App.showToast('Martelo do Ban ativado! Aluno excluído.');
         loadAdminUsers();
       } catch (err) {
         App.showToast(err.message, true);
@@ -442,7 +443,7 @@
     }
 
     async function resetSystem() {
-      const confirmation = prompt('DANGER ZONE: Isso irá deletar o XP e o Progresso de TODOS os alunos para o lançamento. Digite "RESETAR" para confirmar:');
+      const confirmation = prompt('DANGER ZONE: Isso limpa as estatísticas de todos os alunos registrados. Digite "RESETAR" para prosseguir:');
       if (confirmation !== 'RESETAR') return;
 
       try {
@@ -454,7 +455,6 @@
       }
     }
 
-    loadProfile();
     checkAdmin();
     loadAdminContents();
     loadAdminUsers();
