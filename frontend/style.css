@@ -9,7 +9,7 @@
 
 @layer base {
   body {
-    @apply bg-slate-50 text-slate-900 dark:bg-[#070709] dark:text-slate-100 transition-colors duration-300;
+    @apply bg-[#070709] text-slate-100 dark:bg-[#070709] dark:text-slate-100 transition-colors duration-300;
     font-family: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
   }
 

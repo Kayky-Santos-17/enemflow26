@@ -3,128 +3,144 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>EnemFlow AI - Autenticação</title>
+  <title>EnemFlow AI - Autenticação Neural</title>
   <link rel="manifest" href="manifest.json">
   <script src="https://cdn.tailwindcss.com"></script>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="style.css">
   <script>
     tailwind.config = {
       darkMode: 'class',
-      theme: { extend: { fontFamily: { sans: ['Inter', 'sans-serif'] } } }
+      theme: { 
+        extend: { 
+          fontFamily: { 
+            sans: ['Inter', 'sans-serif'],
+            outfit: ['Outfit', 'sans-serif']
+          } 
+        } 
+      }
     }
   </script>
 </head>
-<body class="min-h-screen flex items-center justify-center relative overflow-hidden bg-slate-50 dark:bg-[#09090b]">
+<body class="min-h-screen flex items-center justify-center relative overflow-hidden bg-[#070709] text-slate-100">
   
-  <!-- Blur Background Elements -->
-  <div class="absolute top-[-10%] left-[-10%] w-96 h-96 bg-indigo-500/20 rounded-full blur-3xl pointer-events-none"></div>
-  <div class="absolute bottom-[-10%] right-[-10%] w-96 h-96 bg-pink-500/20 rounded-full blur-3xl pointer-events-none"></div>
+  <!-- Ambient Grid Glows (Digno de IA!) -->
+  <div class="absolute top-[-10%] left-[-10%] w-[500px] h-[500px] bg-indigo-500/15 rounded-full blur-[100px] pointer-events-none animate-pulse"></div>
+  <div class="absolute bottom-[-10%] right-[-10%] w-[500px] h-[500px] bg-pink-500/15 rounded-full blur-[100px] pointer-events-none animate-pulse"></div>
 
-  <div class="w-full max-w-6xl grid grid-cols-1 lg:grid-cols-2 gap-8 p-6 z-10">
+  <!-- Background Decorative Grid -->
+  <div class="absolute inset-0 bg-[linear-gradient(to_right,#8080800a_1px,transparent_1px),linear-gradient(to_bottom,#8080800a_1px,transparent_1px)] bg-[size:14px_24px] pointer-events-none"></div>
+
+  <div class="w-full max-w-6xl grid grid-cols-1 lg:grid-cols-2 gap-12 p-6 z-10">
     
     <!-- Hero Section (Desktop Only) -->
     <div class="hidden lg:flex flex-col justify-center px-12 animate-fade-in" style="animation-delay: 0.1s;">
       <div class="flex items-center gap-3 mb-8">
-        <svg class="w-10 h-10 text-indigo-500" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
-          <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon>
-        </svg>
-        <span class="text-3xl font-bold tracking-tight text-slate-900 dark:text-white">EnemFlow <span class="text-gradient">AI</span></span>
+        <div class="w-10 h-10 rounded-2xl bg-indigo-500/10 flex items-center justify-center border border-indigo-500/30 shadow-[0_0_20px_rgba(99,102,241,0.2)]">
+          <svg class="w-6 h-6 text-indigo-400" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5">
+            <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon>
+          </svg>
+        </div>
+        <span class="text-3xl font-extrabold tracking-tight font-outfit text-white">EnemFlow <span class="bg-clip-text text-transparent bg-gradient-to-r from-indigo-400 to-pink-500">AI</span></span>
       </div>
-      <h1 class="text-5xl font-bold leading-tight mb-6 text-slate-900 dark:text-white">
-        O seu professor particular movido a Inteligência Artificial.
+      <h1 class="text-5xl font-extrabold leading-tight mb-6 font-outfit text-white">
+        O seu tutor particular com <span class="bg-clip-text text-transparent bg-gradient-to-r from-indigo-400 via-purple-400 to-pink-500">Superpoderes de IA</span>.
       </h1>
-      <p class="text-lg text-slate-600 dark:text-slate-400 mb-8 max-w-md">
-        Domine o ENEM com resumos inteligentes, planos de estudo personalizados e uma trilha de aprendizado adaptativa.
+      <p class="text-base text-slate-400 mb-8 max-w-md leading-relaxed">
+        Domine o ENEM com resumos inteligentes, banco de materiais unificado, cronômetro de estudos e uma inteligência artificial adaptada a você.
       </p>
       
       <div class="flex items-center gap-4">
         <div class="flex -space-x-3">
-          <div class="w-10 h-10 rounded-full bg-slate-200 border-2 border-white dark:border-zinc-900"></div>
-          <div class="w-10 h-10 rounded-full bg-slate-300 border-2 border-white dark:border-zinc-900"></div>
-          <div class="w-10 h-10 rounded-full bg-slate-400 border-2 border-white dark:border-zinc-900 flex items-center justify-center text-xs font-bold text-white">+1k</div>
+          <div class="w-10 h-10 rounded-full bg-slate-800 border-2 border-slate-700 shadow-md"></div>
+          <div class="w-10 h-10 rounded-full bg-indigo-900 border-2 border-indigo-700 shadow-md"></div>
+          <div class="w-10 h-10 rounded-full bg-pink-900 border-2 border-pink-700 shadow-md flex items-center justify-center text-xs font-bold text-white shadow-md">+1k</div>
         </div>
-        <p class="text-sm font-medium text-slate-500 dark:text-slate-400">Junte-se aos aprovados.</p>
+        <p class="text-xs font-bold uppercase tracking-wider text-slate-500">Junte-se à revolução nos estudos.</p>
       </div>
     </div>
 
     <!-- Auth Card -->
     <div class="flex items-center justify-center animate-fade-in" style="animation-delay: 0.2s;">
-      <div class="glass-card w-full max-w-md p-8 md:p-10 relative">
+      <div class="glass-card w-full max-w-md p-8 md:p-10 relative bg-[#0c0c0f]/90 border border-white/10 rounded-3xl shadow-2xl">
         
         <!-- Mobile Logo -->
         <div class="flex lg:hidden items-center justify-center gap-2 mb-8">
-          <svg class="w-8 h-8 text-indigo-500" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
-            <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon>
-          </svg>
-          <span class="text-2xl font-bold tracking-tight text-slate-900 dark:text-white">EnemFlow <span class="text-gradient">AI</span></span>
+          <div class="w-8 h-8 rounded-xl bg-indigo-500/10 flex items-center justify-center border border-indigo-500/30">
+            <svg class="w-5 h-5 text-indigo-400" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5">
+              <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon>
+            </svg>
+          </div>
+          <span class="text-2xl font-bold tracking-tight font-outfit text-white">EnemFlow <span class="bg-clip-text text-transparent bg-gradient-to-r from-indigo-400 to-pink-500">AI</span></span>
         </div>
 
         <div class="text-center mb-8">
-          <h2 id="formTitle" class="text-2xl font-bold text-slate-900 dark:text-white mb-2">Bem-vindo de volta</h2>
-          <p id="formSubtitle" class="text-sm text-slate-500 dark:text-slate-400">Insira suas credenciais para acessar sua jornada.</p>
+          <h2 id="formTitle" class="text-2xl font-extrabold text-white mb-2 font-outfit tracking-tight">Bem-vindo de volta</h2>
+          <p id="formSubtitle" class="text-xs text-slate-400 font-medium">Insira suas credenciais para acessar sua jornada.</p>
           
-          <!-- Caixa de Alerta Inline Premium (Requisito 2) -->
+          <!-- Caixa de Alerta Inline Premium (Fixo na Tela, sem Flutuação) -->
           <div id="authAlert" class="hidden mt-4 p-3.5 rounded-2xl text-xs font-semibold border text-left flex items-start gap-2.5 animate-fade-in transition-all">
-            <svg class="w-4 h-4 shrink-0 text-red-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+            <svg class="w-4 h-4 shrink-0 text-red-500 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
               <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/>
             </svg>
-            <span id="authAlertText" class="text-red-600 dark:text-red-400"></span>
+            <span id="authAlertText" class="text-red-400 leading-tight"></span>
           </div>
         </div>
 
         <form id="authForm" class="space-y-5">
           <div id="nomeGroup" class="hidden space-y-1">
-            <label class="text-sm font-medium text-slate-700 dark:text-slate-300">Nome Completo</label>
-            <input type="text" id="nome" class="w-full px-4 py-3 rounded-xl bg-white/50 dark:bg-black/20 border border-slate-200 dark:border-white/10 text-slate-900 dark:text-white focus:ring-2 focus:ring-indigo-500 focus:border-transparent outline-none transition-all placeholder:text-slate-400" placeholder="Ex: João Silva">
+            <label class="text-xs font-semibold text-slate-400">Nome Completo</label>
+            <input type="text" id="nome" class="w-full px-4 py-3 rounded-xl bg-black/40 border border-white/10 text-white focus:ring-2 focus:ring-indigo-500 focus:border-transparent outline-none transition-all placeholder:text-slate-600 text-sm" placeholder="Ex: João Silva">
           </div>
 
           <div class="space-y-1">
-            <label class="text-sm font-medium text-slate-700 dark:text-slate-300">E-mail</label>
-            <input type="email" id="email" required class="w-full px-4 py-3 rounded-xl bg-white/50 dark:bg-black/20 border border-slate-200 dark:border-white/10 text-slate-900 dark:text-white focus:ring-2 focus:ring-indigo-500 focus:border-transparent outline-none transition-all placeholder:text-slate-400" placeholder="voce@email.com">
+            <label class="text-xs font-semibold text-slate-400">E-mail</label>
+            <input type="email" id="email" required class="w-full px-4 py-3 rounded-xl bg-black/40 border border-white/10 text-white focus:ring-2 focus:ring-indigo-500 focus:border-transparent outline-none transition-all placeholder:text-slate-600 text-sm" placeholder="voce@email.com">
           </div>
 
           <div class="space-y-1">
             <div class="flex items-center justify-between">
-              <label class="text-sm font-medium text-slate-700 dark:text-slate-300">Senha</label>
-              <a href="#" class="text-xs font-medium text-indigo-500 hover:text-indigo-400 transition-colors" id="forgotPassLink">Esqueceu a senha?</a>
+              <label class="text-xs font-semibold text-slate-400">Senha</label>
+              <a href="#" class="text-[11px] font-bold text-indigo-400 hover:text-indigo-300 transition-colors" id="forgotPassLink">Esqueceu a senha?</a>
             </div>
             <div class="relative">
-              <input type="password" id="senha" required class="w-full px-4 py-3 rounded-xl bg-white/50 dark:bg-black/20 border border-slate-200 dark:border-white/10 text-slate-900 dark:text-white focus:ring-2 focus:ring-indigo-500 focus:border-transparent outline-none transition-all placeholder:text-slate-400 pr-12" placeholder="••••••••">
+              <input type="password" id="senha" required class="w-full px-4 py-3 rounded-xl bg-black/40 border border-white/10 text-white focus:ring-2 focus:ring-indigo-500 focus:border-transparent outline-none transition-all placeholder:text-slate-600 text-sm pr-12" placeholder="••••••••">
             </div>
           </div>
 
-          <button type="submit" id="submitBtn" class="w-full py-3.5 px-4 bg-gradient-primary hover:opacity-90 text-white rounded-xl font-semibold shadow-lg shadow-indigo-500/30 transition-all flex justify-center items-center gap-2">
+          <button type="submit" id="submitBtn" class="w-full py-4 px-4 bg-gradient-primary hover:opacity-95 text-white rounded-xl font-bold transition-all flex justify-center items-center gap-2 text-sm shadow-lg shadow-indigo-500/25">
             Acessar Plataforma
-            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"></path></svg>
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M14 5l7 7m0 0l-7 7m7-7H3"></path></svg>
           </button>
         </form>
 
-        <div class="mt-8 text-center border-t border-slate-200 dark:border-white/10 pt-6">
-          <p class="text-sm text-slate-500 dark:text-slate-400">
+        <div class="mt-8 text-center border-t border-white/10 pt-6">
+          <p class="text-xs font-medium text-slate-400">
             <span id="toggleText">Ainda não tem conta?</span>
-            <button type="button" onclick="toggleMode()" id="toggleBtn" class="ml-1 font-semibold text-indigo-500 hover:text-indigo-400 transition-colors">Criar conta grátis</button>
+            <button type="button" onclick="toggleMode()" id="toggleBtn" class="ml-1 font-bold text-indigo-400 hover:text-indigo-300 transition-colors">Criar conta grátis</button>
           </p>
         </div>
       </div>
     </div>
+  </div>
+
   <!-- Tela de Ativação Neural (Splash Screen Premium) -->
   <div id="neuralSplash" class="fixed inset-0 bg-[#070709] z-[9999] hidden flex flex-col items-center justify-center animate-fade-in">
     <!-- Ambient mesh glow nodes -->
-    <div class="absolute w-96 h-96 bg-indigo-500/10 rounded-full blur-3xl"></div>
-    <div class="absolute w-96 h-96 bg-pink-500/10 rounded-full blur-3xl -translate-y-12"></div>
+    <div class="absolute w-[500px] h-[500px] bg-indigo-500/10 rounded-full blur-[100px]"></div>
+    <div class="absolute w-[500px] h-[500px] bg-pink-500/10 rounded-full blur-[100px] -translate-y-12"></div>
     
-    <div class="relative flex flex-col items-center justify-center text-center p-8 space-y-6 max-w-md z-10">
+    <div class="relative flex flex-col items-center justify-center text-center p-8 space-y-6 max-w-md z-10 animate-fade-in">
       <!-- Lightning Bolt Pulse Icon -->
       <div class="relative w-24 h-24 rounded-3xl bg-gradient-to-r from-indigo-500 to-pink-500 flex items-center justify-center text-white shadow-[0_0_50px_rgba(99,102,241,0.3)] animate-bounce duration-1000">
-        <svg class="w-12 h-12 text-white animate-pulse" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+        <svg class="w-12 h-12 text-white animate-pulse" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5">
           <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon>
         </svg>
       </div>
       
       <div class="space-y-2">
-        <h2 class="text-2xl font-extrabold text-white tracking-tight font-outfit">Conexão Neural Ativa</h2>
-        <p class="text-xs text-slate-400 font-bold uppercase tracking-wider animate-pulse" id="splash-status">Autenticando suas credenciais...</p>
+        <h2 class="text-2xl font-extrabold text-white tracking-tight font-outfit">Sincronização Neural Ativa</h2>
+        <p class="text-[10px] text-slate-400 font-bold uppercase tracking-wider animate-pulse" id="splash-status">Autenticando suas credenciais...</p>
       </div>
 
       <!-- Linear Loading Bar -->
@@ -152,8 +168,8 @@
       document.getElementById('formSubtitle').innerText = isLogin ? 'Insira suas credenciais para acessar sua jornada.' : 'O primeiro passo para dominar o ENEM.';
       
       document.getElementById('submitBtn').innerHTML = isLogin 
-        ? 'Acessar Plataforma <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"></path></svg>'
-        : 'Criar Conta <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z"></path></svg>';
+        ? 'Acessar Plataforma <svg class="w-4 h-4 ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M14 5l7 7m0 0l-7 7m7-7H3"></path></svg>'
+        : 'Criar Conta <svg class="w-4 h-4 ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z"></path></svg>';
         
       document.getElementById('toggleText').innerText = isLogin ? 'Ainda não tem conta?' : 'Já possui conta?';
       document.getElementById('toggleBtn').innerText = isLogin ? 'Criar conta grátis' : 'Fazer Login';
@@ -173,7 +189,7 @@
       const btn = document.getElementById('submitBtn');
 
       btn.disabled = true;
-      btn.innerHTML = '<svg class="w-5 h-5 animate-spin" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg> Processando...';
+      btn.innerHTML = '<svg class="w-4 h-4 animate-spin mr-1" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg> Conectando...';
 
       try {
         const data = await App.api(endpoint, {
@@ -218,7 +234,9 @@
         alertBox.classList.remove('hidden');
 
         btn.disabled = false;
-        btn.innerHTML = isLogin ? 'Acessar Plataforma' : 'Criar Conta';
+        btn.innerHTML = isLogin 
+          ? 'Acessar Plataforma <svg class="w-4 h-4 ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M14 5l7 7m0 0l-7 7m7-7H3"></path></svg>'
+          : 'Criar Conta <svg class="w-4 h-4 ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z"></path></svg>';
       }
     });
 
