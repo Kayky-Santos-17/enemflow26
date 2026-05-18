@@ -1,8 +1,12 @@
 const mongoose = require('mongoose');
 const dns = require('dns');
 
-// Força o Node.js a usar os DNS públicos do Google e Cloudflare
-dns.setServers(['8.8.8.8', '1.1.1.1']);
+// Força o Node.js a usar os DNS públicos do Google e Cloudflare se for localmente
+try {
+  dns.setServers(['8.8.8.8', '1.1.1.1']);
+} catch (e) {
+  console.warn('⚠️ Não foi possível configurar servidores DNS personalizados (Ok no Vercel):', e.message);
+}
 
 /**
  * Conecta ao MongoDB usando a URI definida em .env
