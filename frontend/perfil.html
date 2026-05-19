@@ -124,16 +124,28 @@
 
           <div class="glass-card p-6">
             <h3 class="text-base font-bold mb-4 flex items-center gap-2" style="font-family:'Sora',sans-serif;color:#e4dff0;">
-              <i data-feather="monitor" class="w-4 h-4" style="color:#c084fc;"></i> Aparência
+              <i data-feather="sun" class="w-4 h-4" style="color:#c084fc;"></i> Aparência
             </h3>
             <div class="flex items-center justify-between p-3 rounded-xl" style="background:rgba(124,92,252,0.04);border:1px solid rgba(124,92,252,0.08);">
               <div>
-                <p class="text-sm font-semibold" style="color:#e4dff0;">Modo Escuro</p>
-                <p class="text-[11px]" style="color:rgba(196,188,220,0.4);">Alterne entre claro e escuro.</p>
+                <p class="text-sm font-semibold" style="color:#e4dff0;">Tema do Sistema</p>
+                <p class="text-[11px]" style="color:rgba(196,188,220,0.4);">Escolha sua preferência visual.</p>
               </div>
-              <button onclick="App.toggleTheme()" class="w-11 h-6 rounded-full relative transition-colors focus:outline-none" style="background:rgba(124,92,252,0.3);">
-                <div class="w-5 h-5 bg-white rounded-full absolute top-0.5 left-0.5 dark:translate-x-5 transition-transform shadow"></div>
-              </button>
+              <!-- Segmented Theme Switcher (Sol / Lua) -->
+              <div class="flex items-center bg-black/40 p-1 rounded-xl border border-white/5 relative shrink-0">
+                <!-- Sliding highlight background pill -->
+                <div id="theme-indicator" class="absolute top-1 bottom-1 rounded-lg transition-all duration-300 bg-violet-600/35 border border-violet-500/30"></div>
+                
+                <button type="button" onclick="setThemeMode('light')" id="theme-btn-light" class="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs font-bold transition-all relative z-10 text-slate-400">
+                  <i data-feather="sun" class="w-3.5 h-3.5"></i>
+                  <span>Claro</span>
+                </button>
+                
+                <button type="button" onclick="setThemeMode('dark')" id="theme-btn-dark" class="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs font-bold transition-all relative z-10 text-slate-400">
+                  <i data-feather="moon" class="w-3.5 h-3.5"></i>
+                  <span>Escuro</span>
+                </button>
+              </div>
             </div>
           </div>
         </div>
@@ -255,7 +267,48 @@
       finally { btn.innerText = 'Confirmar Alteração'; btn.disabled = false; }
     }
 
+    function setThemeMode(mode) {
+      const html = document.documentElement;
+      const indicator = document.getElementById('theme-indicator');
+      const btnLight = document.getElementById('theme-btn-light');
+      const btnDark = document.getElementById('theme-btn-dark');
+      
+      if (!indicator || !btnLight || !btnDark) return;
+
+      if (mode === 'light') {
+        html.classList.remove('dark');
+        localStorage.setItem('theme', 'light');
+        
+        indicator.style.left = `${btnLight.offsetLeft}px`;
+        indicator.style.width = `${btnLight.offsetWidth}px`;
+        
+        btnLight.classList.add('text-violet-300');
+        btnLight.classList.remove('text-slate-400');
+        btnDark.classList.remove('text-violet-300');
+        btnDark.classList.add('text-slate-400');
+      } else {
+        html.classList.add('dark');
+        localStorage.setItem('theme', 'dark');
+        
+        indicator.style.left = `${btnDark.offsetLeft}px`;
+        indicator.style.width = `${btnDark.offsetWidth}px`;
+        
+        btnDark.classList.add('text-violet-300');
+        btnDark.classList.remove('text-slate-400');
+        btnLight.classList.remove('text-violet-300');
+        btnLight.classList.add('text-slate-400');
+      }
+    }
+
+    function initThemeSwitcher() {
+      const currentTheme = localStorage.getItem('theme') || 'dark';
+      setTimeout(() => {
+        setThemeMode(currentTheme);
+      }, 100);
+    }
+
     loadData();
+    initThemeSwitcher();
   </script>
 </body>
 </html>

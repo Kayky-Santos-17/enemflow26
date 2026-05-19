@@ -153,7 +153,6 @@ document.addEventListener('DOMContentLoaded', () => {
     { title: 'Simulados', icon: 'check-square', url: 'exercises.html', cat: 'Menu Principal' },
     { title: 'Histórico', icon: 'clock', url: 'history.html', cat: 'Sua Conta' },
     { title: 'Perfil', icon: 'user', url: 'perfil.html', cat: 'Sua Conta' },
-    { title: 'Configurações', icon: 'settings', url: 'settings.html', cat: 'Sua Conta' },
   ];
 
   let menuHtml = '';

@@ -30,6 +30,104 @@
   --ef-font-body: 'Inter', 'Sora', sans-serif;
 }
 
+/* ── Light Mode Color Scheme Variables & Overrides ────────────────────────── */
+html:not(.dark) {
+  --ef-bg-deep: #f5f4fa;
+  --ef-bg-surface: rgba(255, 255, 255, 0.85);
+  --ef-border: rgba(124, 92, 252, 0.08);
+  --ef-border-hover: rgba(124, 92, 252, 0.25);
+  --ef-shadow-card: 0 8px 32px rgba(124, 92, 252, 0.06);
+  --ef-shadow-glow: 0 0 40px rgba(124, 92, 252, 0.04);
+  --ef-text-primary: #1e1b29;
+  --ef-text-secondary: rgba(30, 27, 41, 0.7);
+  --ef-text-muted: rgba(30, 27, 41, 0.5);
+}
+
+html:not(.dark) body {
+  background: var(--ef-bg-deep);
+  color: var(--ef-text-primary);
+}
+
+html:not(.dark) .ef-deep-bg::before {
+  background:
+    radial-gradient(ellipse 80% 50% at 20% 10%, rgba(124, 92, 252, 0.05) 0%, transparent 60%),
+    radial-gradient(ellipse 60% 40% at 80% 90%, rgba(236, 72, 153, 0.04) 0%, transparent 55%),
+    radial-gradient(ellipse 50% 50% at 50% 50%, rgba(124, 92, 252, 0.02) 0%, transparent 70%) !important;
+}
+
+html:not(.dark) input,
+html:not(.dark) select,
+html:not(.dark) textarea {
+  background: rgba(255, 255, 255, 0.7) !important;
+  color: var(--ef-text-primary) !important;
+  border-color: rgba(124, 92, 252, 0.15) !important;
+}
+
+html:not(.dark) input::placeholder,
+html:not(.dark) select::placeholder,
+html:not(.dark) textarea::placeholder {
+  color: rgba(30, 27, 41, 0.4) !important;
+}
+
+html:not(.dark) #ef-sidebar {
+  background: rgba(255, 255, 255, 0.9) !important;
+  border-color: rgba(124, 92, 252, 0.08) !important;
+  box-shadow: 4px 0 24px rgba(124, 92, 252, 0.04) !important;
+}
+
+html:not(.dark) .sb-text,
+html:not(.dark) .sb-label,
+html:not(.dark) #sb-username,
+html:not(.dark) .sb-footer-user p {
+  color: #1e1b29 !important;
+}
+
+html:not(.dark) .sb-nav-item {
+  color: rgba(30, 27, 41, 0.6) !important;
+}
+
+html:not(.dark) .sb-nav-item:not(.active):hover {
+  background: rgba(124, 92, 252, 0.04) !important;
+  color: #7c5cfc !important;
+}
+
+html:not(.dark) .sb-nav-item.active {
+  background: rgba(124, 92, 252, 0.08) !important;
+  color: #7c5cfc !important;
+}
+
+html:not(.dark) #ef-mobile-header {
+  background: rgba(255, 255, 255, 0.95) !important;
+  border-bottom-color: rgba(124, 92, 252, 0.08) !important;
+}
+
+html:not(.dark) #ef-mobile-header span {
+  background: var(--ef-gradient-brand);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+/* Map inline dark-themed colors to light mode counterparts */
+html:not(.dark) [style*="color:#e4dff0"],
+html:not(.dark) [style*="color: #e4dff0"],
+html:not(.dark) [style*="color:#e4dff0;"] {
+  color: var(--ef-text-primary) !important;
+}
+
+html:not(.dark) [style*="color:rgba(196,188,220,0.3)"],
+html:not(.dark) [style*="color:rgba(196,188,220, 0.3)"],
+html:not(.dark) [style*="color:rgba(196,188,220,0.35)"],
+html:not(.dark) [style*="color:rgba(196,188,220, 0.35)"],
+html:not(.dark) [style*="color:rgba(196,188,220,0.4)"],
+html:not(.dark) [style*="color:rgba(196,188,220, 0.4)"] {
+  color: var(--ef-text-muted) !important;
+}
+
+html:not(.dark) [style*="color:rgba(196,188,220,"]:not([style*="0.3"]):not([style*="0.4"]) {
+  color: var(--ef-text-secondary) !important;
+}
+
 /* ── Global Reset Enhancements ────────────────────────────────────────────── */
 html {
   -webkit-font-smoothing: antialiased;
