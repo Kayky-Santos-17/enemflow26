@@ -91,7 +91,7 @@ document.addEventListener('DOMContentLoaded', () => {
         width: 48px;
         height: 48px;
         border-radius: 14px;
-        background: linear-gradient(135deg, #7c5cfc, #ec4899, #3b82f6);
+        background: linear-gradient(135deg, #7c5cfc, #ec4899);
         box-shadow: 0 0 25px rgba(124,92,252,0.4);
         transform: translateY(0);
         animation: sb-bolt-float 3s ease-in-out infinite;
@@ -177,12 +177,12 @@ document.addEventListener('DOMContentLoaded', () => {
     <div class="sb-header-container px-5 py-5 flex items-center justify-between transition-all duration-300" style="border-bottom: 1px solid rgba(124,92,252,0.08);">
       <!-- Full Logo (when expanded) -->
       <a href="dashboard.html" class="sb-logo-full-wrap flex items-center gap-2.5" style="text-decoration:none;">
-        <div class="w-8 h-8 rounded-lg flex items-center justify-center shrink-0 shadow-[0_0_15px_rgba(124,92,252,0.35)]" style="background: linear-gradient(135deg, #7c5cfc, #ec4899, #3b82f6);">
+        <div class="w-8 h-8 rounded-lg flex items-center justify-center shrink-0 shadow-[0_0_15px_rgba(124,92,252,0.35)]" style="background: linear-gradient(135deg, #7c5cfc, #ec4899);">
           <svg class="w-4.5 h-4.5" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
             <path d="M13 5L6 13H11L10 19L17 11H12L13 5Z" fill="#ffffff" />
           </svg>
         </div>
-        <span class="sb-logo-text text-lg font-bold tracking-tight" style="color:#e4dff0; font-family:'Sora',sans-serif;">EnemFlow <span style="background:linear-gradient(135deg,#a78bfa,#f472b6);-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;">AI</span></span>
+        <span class="sb-logo-text text-lg font-bold tracking-tight logo-text-gradient" style="font-family:'Sora',sans-serif;">EnemFlow</span>
       </a>
       
       <!-- Collapsed Logo (floating bolt) -->
@@ -234,12 +234,12 @@ document.addEventListener('DOMContentLoaded', () => {
   mobileHeader.style.cssText = 'background:rgba(7,6,14,0.9); backdrop-filter:blur(24px); -webkit-backdrop-filter:blur(24px); border-bottom:1px solid rgba(124,92,252,0.08);';
   mobileHeader.innerHTML = `
     <div class="flex items-center gap-2">
-      <div class="w-7 h-7 rounded-lg flex items-center justify-center shrink-0" style="background:linear-gradient(135deg, #7c5cfc, #ec4899, #3b82f6);">
+      <div class="w-7 h-7 rounded-lg flex items-center justify-center shrink-0" style="background:linear-gradient(135deg, #7c5cfc, #ec4899);">
         <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
           <path d="M13 5L6 13H11L10 19L17 11H12L13 5Z" fill="white" />
         </svg>
       </div>
-      <span class="font-bold" style="color:#e4dff0;font-family:'Sora',sans-serif;">EnemFlow <span style="background:linear-gradient(135deg,#a78bfa,#f472b6);-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;">AI</span></span>
+      <span class="font-bold logo-text-gradient" style="font-family:'Sora',sans-serif;">EnemFlow</span>
     </div>
     <button id="ef-mobile-menu-btn" class="p-2 rounded-lg" style="background:rgba(124,92,252,0.08); color:rgba(167,139,250,0.6);">
       <i data-feather="menu" class="w-5 h-5"></i>
@@ -343,20 +343,48 @@ document.addEventListener('DOMContentLoaded', () => {
         avatarEl.innerText = user.nome.charAt(0).toUpperCase();
       }
 
-      // Admin section
-      if (user.role === 'admin') {
+      // Admin / Owner section
+      if (user.role === 'admin' || user.role === 'owner') {
         const adminSection = document.getElementById('sb-admin-section');
         if (adminSection && !adminSection.querySelector('a')) {
           const isAdminActive = page === 'admin.html';
-          adminSection.innerHTML = `
-            <p class="sb-label px-4 text-[10px] font-bold uppercase tracking-widest mb-2 mt-5" style="color: rgba(251,191,36,0.4); font-family:'Sora',sans-serif;">Admin</p>
-            <a href="admin.html" class="sb-nav-item flex items-center gap-3 px-4 py-2.5 rounded-xl font-bold transition-all duration-200 text-sm mx-2 mb-0.5 ${
-              isAdminActive ? '' : 'hover:bg-yellow-500/5'
-            }" style="${isAdminActive ? 'background:rgba(251,191,36,0.12); color:#fbbf24; border-left:3px solid #f59e0b;' : 'color:rgba(251,191,36,0.5); border:1px solid rgba(251,191,36,0.1);'}; font-family:'Inter',sans-serif;">
-              <i data-feather="shield" class="w-[18px] h-[18px] shrink-0" style="color:#fbbf24;"></i>
-              <span class="sb-text">Painel Admin</span>
-            </a>
-          `;
+          const isOwnerActive = page === 'owner.html';
+          
+          let htmlContent = '';
+          
+          // Se for admin normal
+          if (user.role === 'admin') {
+            htmlContent = `
+              <p class="sb-label px-4 text-[10px] font-bold uppercase tracking-widest mb-2 mt-5" style="color: rgba(251,191,36,0.4); font-family:'Sora',sans-serif;">Admin</p>
+              <a href="admin.html" class="sb-nav-item flex items-center gap-3 px-4 py-2.5 rounded-xl font-bold transition-all duration-200 text-sm mx-2 mb-0.5 ${
+                isAdminActive ? '' : 'hover:bg-yellow-500/5'
+              }" style="${isAdminActive ? 'background:rgba(251,191,36,0.12); color:#fbbf24; border-left:3px solid #f59e0b;' : 'color:rgba(251,191,36,0.5); border:1px solid rgba(251,191,36,0.1);'}; font-family:'Inter',sans-serif;">
+                <i data-feather="shield" class="w-[18px] h-[18px] shrink-0" style="color:#fbbf24;"></i>
+                <span class="sb-text">Painel Admin</span>
+              </a>
+            `;
+          }
+          
+          // Se for owner (Administrador principal)
+          if (user.role === 'owner') {
+            htmlContent = `
+              <p class="sb-label px-4 text-[10px] font-bold uppercase tracking-widest mb-2 mt-5" style="color: rgba(236,72,153,0.4); font-family:'Sora',sans-serif;">Administração Principal</p>
+              <a href="admin.html" class="sb-nav-item flex items-center gap-3 px-4 py-2.5 rounded-xl font-bold transition-all duration-200 text-sm mx-2 mb-1 ${
+                isAdminActive ? '' : 'hover:bg-violet-500/5'
+              }" style="${isAdminActive ? 'background:rgba(124,92,252,0.12); color:#c4b5fd; border-left:3px solid #7c5cfc;' : 'color:rgba(196,188,220,0.6); border:1px solid rgba(124,92,252,0.1);'}; font-family:'Inter',sans-serif;">
+                <i data-feather="shield" class="w-[18px] h-[18px] shrink-0" style="color:#7c5cfc;"></i>
+                <span class="sb-text">Painel Admin</span>
+              </a>
+              <a href="owner.html" class="sb-nav-item flex items-center gap-3 px-4 py-2.5 rounded-xl font-bold transition-all duration-200 text-sm mx-2 mb-0.5 ${
+                isOwnerActive ? '' : 'hover:bg-pink-500/5'
+              }" style="${isOwnerActive ? 'background:rgba(236,72,153,0.15); color:#f472b6; border-left:3px solid #ec4899;' : 'color:rgba(236,72,153,0.7); border:1px solid rgba(236,72,153,0.12);'}; font-family:'Inter',sans-serif;">
+                <i data-feather="key" class="w-[18px] h-[18px] shrink-0" style="color:#ec4899;"></i>
+                <span class="sb-text">Painel Owner</span>
+              </a>
+            `;
+          }
+          
+          adminSection.innerHTML = htmlContent;
           if (typeof feather !== 'undefined') feather.replace();
         }
       }

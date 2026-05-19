@@ -1,0 +1,422 @@
+<!DOCTYPE html>
+<html lang="pt-BR" class="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>EnemFlow - Master Control</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="sidebar.js" defer></script>
+  <link rel="stylesheet" href="style.css">
+  <script src="https://unpkg.com/feather-icons"></script>
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: { extend: { fontFamily: { sans: ['Inter', 'sans-serif'] } } }
+    }
+  </script>
+</head>
+<body class="flex h-screen overflow-hidden bg-[#07060e] text-white">
+
+  <!-- Main Content -->
+  <main class="flex-1 overflow-y-auto relative pt-16 lg:pt-0 pb-12">
+    <!-- Ambient Glow Blobs -->
+    <div class="bg-glow top-[-10%] right-[-5%]"></div>
+    <div class="bg-glow bottom-[-10%] left-[-5%] opacity-40"></div>
+
+    <div class="p-6 md:p-10 max-w-6xl mx-auto space-y-8 animate-fade-in">
+      
+      <!-- Header -->
+      <header class="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-white/10 pb-6">
+        <div class="flex items-center gap-3">
+          <div class="w-12 h-12 rounded-2xl bg-pink-500/10 flex items-center justify-center border border-pink-500/20 shadow-lg shadow-pink-500/10 shrink-0">
+            <i data-feather="key" class="w-6 h-6 text-pink-500"></i>
+          </div>
+          <div>
+            <h1 class="text-3xl font-extrabold tracking-tight">Painel de <span class="text-gradient">Controle OWNER</span></h1>
+            <p class="text-sm text-slate-400">Administração de alunos, gerenciamento de conversas do Tutor IA e métricas do sistema.</p>
+          </div>
+        </div>
+      </header>
+
+      <!-- Grid de Métricas -->
+      <div class="grid grid-cols-1 md:grid-cols-4 gap-6">
+        <div class="glass-card p-6 border border-white/5 relative overflow-hidden group">
+          <div class="absolute right-4 top-4 opacity-10 group-hover:opacity-20 transition-opacity">
+            <i data-feather="users" class="w-12 h-12 text-violet-500"></i>
+          </div>
+          <span class="text-xs font-semibold text-slate-400">Total de Alunos</span>
+          <h3 id="metric-students" class="text-3xl font-extrabold mt-1 text-white">...</h3>
+        </div>
+        <div class="glass-card p-6 border border-white/5 relative overflow-hidden group">
+          <div class="absolute right-4 top-4 opacity-10 group-hover:opacity-20 transition-opacity">
+            <i data-feather="file" class="w-12 h-12 text-pink-500"></i>
+          </div>
+          <span class="text-xs font-semibold text-slate-400">Materiais & PDFs</span>
+          <h3 id="metric-pdfs" class="text-3xl font-extrabold mt-1 text-white">...</h3>
+        </div>
+        <div class="glass-card p-6 border border-white/5 relative overflow-hidden group">
+          <div class="absolute right-4 top-4 opacity-10 group-hover:opacity-20 transition-opacity">
+            <i data-feather="database" class="w-12 h-12 text-blue-500"></i>
+          </div>
+          <span class="text-xs font-semibold text-slate-400">Espaço Físico (Uploads)</span>
+          <h3 id="metric-space-phys" class="text-3xl font-extrabold mt-1 text-white">...</h3>
+        </div>
+        <div class="glass-card p-6 border border-white/5 relative overflow-hidden group">
+          <div class="absolute right-4 top-4 opacity-10 group-hover:opacity-20 transition-opacity">
+            <i data-feather="server" class="w-12 h-12 text-violet-500"></i>
+          </div>
+          <span class="text-xs font-semibold text-slate-400">Espaço Estimado Total</span>
+          <h3 id="metric-space-total" class="text-3xl font-extrabold mt-1 text-white">...</h3>
+        </div>
+      </div>
+
+      <!-- Main Layout Grid -->
+      <div class="grid grid-cols-1 lg:grid-cols-12 gap-8">
+        
+        <!-- Coluna Esquerda: Gerenciar Conversas e Cadastro -->
+        <div class="lg:col-span-4 space-y-8">
+          
+          <!-- Cadastrar Aluno -->
+          <div class="space-y-4">
+            <h3 class="text-lg font-bold flex items-center gap-2">
+              <i data-feather="user-plus" class="text-violet-500 w-5 h-5"></i> Cadastrar Novo Aluno
+            </h3>
+            <div class="glass-card p-6 space-y-4">
+              <form id="create-student-form" class="space-y-3">
+                <input type="text" id="create-nome" placeholder="Nome Completo" required class="w-full px-4 py-2.5 rounded-xl bg-black/40 border border-white/10 text-sm focus:ring-2 focus:ring-violet-500 outline-none transition-all placeholder:text-slate-600">
+                <input type="email" id="create-email" placeholder="E-mail" required class="w-full px-4 py-2.5 rounded-xl bg-black/40 border border-white/10 text-sm focus:ring-2 focus:ring-violet-500 outline-none transition-all placeholder:text-slate-600">
+                <input type="password" id="create-senha" placeholder="Senha Temporária" required class="w-full px-4 py-2.5 rounded-xl bg-black/40 border border-white/10 text-sm focus:ring-2 focus:ring-violet-500 outline-none transition-all placeholder:text-slate-600">
+                <button type="submit" class="w-full py-2.5 bg-gradient-primary hover:opacity-90 font-bold rounded-xl text-xs transition-colors flex items-center justify-center gap-1.5 shadow-lg shadow-violet-500/10">
+                  <i data-feather="check" class="w-4 h-4"></i> Criar Estudante
+                </button>
+              </form>
+            </div>
+          </div>
+
+          <!-- Gerenciador de Conversas -->
+          <div class="space-y-4">
+            <h3 class="text-lg font-bold flex items-center gap-2">
+              <i data-feather="message-circle" class="text-pink-500 w-5 h-5"></i> Gerenciador de Conversas
+            </h3>
+            <div class="glass-card p-6 space-y-4">
+              
+              <!-- Cleanup por dias -->
+              <div class="space-y-2 border-b border-white/5 pb-4">
+                <label class="text-xs font-semibold text-slate-400">Limpar conversas antigas</label>
+                <div class="flex gap-2">
+                  <input type="number" id="cleanup-days" value="30" min="1" class="w-20 px-3 py-1.5 rounded-xl bg-black/40 border border-white/10 text-center text-sm focus:ring-2 focus:ring-pink-500 outline-none transition-all">
+                  <button onclick="cleanupOldChats()" class="flex-1 py-1.5 px-3 bg-pink-500/10 hover:bg-pink-500 text-pink-500 hover:text-white border border-pink-500/20 font-semibold rounded-xl text-xs transition-colors">
+                    Excluir inativas
+                  </button>
+                </div>
+              </div>
+
+              <!-- Truncar mensagens (Otimizar banco) -->
+              <div class="space-y-2 border-b border-white/5 pb-4">
+                <div class="flex justify-between items-center">
+                  <span class="text-xs font-semibold text-slate-400">Otimizar Tamanho Mensagens</span>
+                  <span class="text-[9px] bg-blue-500/20 text-blue-300 px-1.5 py-0.5 rounded-full font-bold">MongoDB</span>
+                </div>
+                <p class="text-[10px] text-slate-500 leading-normal">Limita chats longos a no máximo 20 mensagens mais recentes, reduzindo tamanho ocupado pelo banco.</p>
+                <button onclick="truncateMessages()" class="w-full py-2 bg-blue-500/10 hover:bg-blue-500 text-blue-400 hover:text-white border border-blue-500/20 font-bold rounded-xl text-xs transition-colors">
+                  Otimizar banco de dados
+                </button>
+              </div>
+
+              <!-- Danger: Delete all chats -->
+              <div class="space-y-2">
+                <label class="text-xs font-semibold text-red-400">Zona Vermelha</label>
+                <button onclick="deleteAllChats()" class="w-full py-2 bg-red-500/10 hover:bg-red-500 text-red-500 hover:text-white border border-red-500/20 font-bold rounded-xl text-xs transition-colors flex items-center justify-center gap-1.5">
+                  <i data-feather="trash-2" class="w-3.5 h-3.5"></i> Apagar Todos os Chats
+                </button>
+              </div>
+
+            </div>
+          </div>
+
+        </div>
+
+        <!-- Coluna Direita: Lista de Estudantes -->
+        <div class="lg:col-span-8 space-y-4">
+          <h3 class="text-lg font-bold flex items-center gap-2">
+            <i data-feather="users" class="text-violet-500 w-5 h-5"></i> Estudantes Cadastrados
+          </h3>
+          
+          <div class="glass-card overflow-hidden border border-white/5">
+            <div class="overflow-x-auto">
+              <table class="w-full text-left text-sm">
+                <thead>
+                  <tr class="border-b border-white/5 text-slate-400 text-xs uppercase tracking-wider bg-white/2">
+                    <th class="px-6 py-4 font-semibold">Nome / E-mail</th>
+                    <th class="px-6 py-4 font-semibold text-center">XP</th>
+                    <th class="px-6 py-4 font-semibold text-center">Status</th>
+                    <th class="px-6 py-4 font-semibold text-right">Ações de Controle</th>
+                  </tr>
+                </thead>
+                <tbody id="students-table-body" class="divide-y divide-white/5">
+                  <!-- Renderizado dinamicamente -->
+                  <tr>
+                    <td colspan="4" class="text-center py-8 text-slate-500">
+                      <i data-feather="loader" class="w-6 h-6 animate-spin mx-auto mb-2 text-violet-500"></i>
+                      Carregando dados dos alunos...
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+
+      </div>
+
+    </div>
+  </main>
+
+  <script src="app.js"></script>
+  <script>
+    feather.replace();
+    if(!App.getToken()) window.location.href = 'login.html';
+
+    async function checkOwner() {
+      try {
+        const user = await App.api('/auth/me');
+        if(user.role !== 'owner') {
+          App.showToast('Acesso negado. Apenas o OWNER pode acessar esta seção.', true);
+          setTimeout(() => window.location.href = 'dashboard.html', 1500);
+        }
+      } catch (err) {
+        window.location.href = 'login.html';
+      }
+    }
+
+    async function loadMetrics() {
+      try {
+        const data = await App.api('/api/owner/metrics');
+        document.getElementById('metric-students').innerText = data.metrics.totalAlunos;
+        document.getElementById('metric-pdfs').innerText = data.metrics.totalMaterial;
+        document.getElementById('metric-space-phys').innerText = data.metrics.espacoUsadoFisico;
+        document.getElementById('metric-space-total').innerText = data.metrics.espacoTotal;
+      } catch (err) {
+        console.error('Metrics loading error:', err);
+      }
+    }
+
+    async function loadStudents() {
+      try {
+        const tbody = document.getElementById('students-table-body');
+        const students = await App.api('/api/owner/users');
+
+        if(students.length === 0) {
+          tbody.innerHTML = `
+            <tr>
+              <td colspan="4" class="text-center py-8 text-slate-500 font-semibold">Nenhum estudante cadastrado no momento.</td>
+            </tr>
+          `;
+          return;
+        }
+
+        tbody.innerHTML = students.map(s => `
+          <tr class="hover:bg-white/2 transition-colors">
+            <td class="px-6 py-4">
+              <div class="font-bold text-slate-200">${s.nome}</div>
+              <div class="text-xs text-slate-500 mt-0.5">${s.email}</div>
+            </td>
+            <td class="px-6 py-4 text-center font-bold text-violet-400">${s.xp || 0} XP</td>
+            <td class="px-6 py-4 text-center">
+              ${s.blocked 
+                ? '<span class="px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider bg-red-500/20 text-red-400 border border-red-500/20">Bloqueado</span>' 
+                : '<span class="px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider bg-emerald-500/20 text-emerald-400 border border-emerald-500/20">Ativo</span>'}
+            </td>
+            <td class="px-6 py-4 text-right space-y-1.5 md:space-y-0">
+              <div class="flex flex-wrap items-center justify-end gap-1.5">
+                
+                <!-- Reset senha -->
+                <button onclick="resetPasswordPrompt('${s._id}', '${s.nome}')" class="p-2 bg-white/5 hover:bg-white/10 text-slate-400 hover:text-white rounded-lg transition-colors" title="Redefinir Senha">
+                  <i data-feather="lock" class="w-3.5 h-3.5"></i>
+                </button>
+
+                <!-- Reset XP -->
+                <button onclick="resetXP('${s._id}', '${s.nome}')" class="p-2 bg-violet-500/10 hover:bg-violet-500 text-violet-400 hover:text-white rounded-lg transition-colors border border-violet-500/10" title="Zerar XP">
+                  <i data-feather="award" class="w-3.5 h-3.5"></i>
+                </button>
+
+                <!-- Reset Progresso -->
+                <button onclick="resetProgress('${s._id}', '${s.nome}')" class="p-2 bg-blue-500/10 hover:bg-blue-500 text-blue-400 hover:text-white rounded-lg transition-colors border border-blue-500/10" title="Zerar Progresso">
+                  <i data-feather="rotate-ccw" class="w-3.5 h-3.5"></i>
+                </button>
+
+                <!-- Block/Unblock -->
+                ${s.blocked 
+                  ? `<button onclick="unblockStudent('${s._id}')" class="p-2 bg-emerald-500/10 hover:bg-emerald-500 text-emerald-400 hover:text-white rounded-lg transition-colors border border-emerald-500/10" title="Desbloquear Aluno">
+                       <i data-feather="user-check" class="w-3.5 h-3.5"></i>
+                     </button>` 
+                  : `<button onclick="blockStudent('${s._id}')" class="p-2 bg-amber-500/10 hover:bg-amber-500 text-amber-400 hover:text-white rounded-lg transition-colors border border-amber-500/10" title="Bloquear Aluno">
+                       <i data-feather="user-minus" class="w-3.5 h-3.5"></i>
+                     </button>`
+                }
+
+                <!-- Apagar chats -->
+                <button onclick="deleteStudentChats('${s._id}', '${s.nome}')" class="p-2 bg-pink-500/10 hover:bg-pink-500 text-pink-400 hover:text-white rounded-lg transition-colors border border-pink-500/10" title="Apagar Conversas">
+                  <i data-feather="message-square" class="w-3.5 h-3.5"></i>
+                </button>
+
+                <!-- Excluir/Ban -->
+                <button onclick="banStudent('${s._id}', '${s.nome}')" class="p-2 bg-red-500/10 hover:bg-red-500 text-red-500 hover:text-white rounded-lg transition-colors border border-red-500/10" title="Banir Aluno">
+                  <i data-feather="user-x" class="w-3.5 h-3.5"></i>
+                </button>
+
+              </div>
+            </td>
+          </tr>
+        `).join('');
+        feather.replace();
+      } catch (err) {
+        App.showToast('Erro ao listar estudantes.', true);
+      }
+    }
+
+    // Ações de estudantes
+    async function resetPasswordPrompt(id, nome) {
+      const novaSenha = prompt(`Digite a nova senha temporária para o aluno ${nome}:`);
+      if(!novaSenha) return;
+      if(novaSenha.length < 6) return App.showToast('A senha deve ter pelo menos 6 caracteres.', true);
+
+      try {
+        await App.api(`/api/owner/users/${id}/reset-password`, {
+          method: 'POST',
+          body: JSON.stringify({ novaSenha })
+        });
+        App.showToast(`Senha de ${nome} redefinida!`);
+      } catch (err) {
+        App.showToast(err.message, true);
+      }
+    }
+
+    async function resetXP(id, nome) {
+      if(!confirm(`Tem certeza que quer zerar o XP do aluno ${nome}?`)) return;
+      try {
+        await App.api(`/api/owner/users/${id}/reset-xp`, { method: 'POST' });
+        App.showToast(`Pontos de XP de ${nome} zerados!`);
+        loadStudents();
+      } catch (err) {
+        App.showToast(err.message, true);
+      }
+    }
+
+    async function resetProgress(id, nome) {
+      if(!confirm(`Tem certeza que quer zerar todo o progresso acadêmico do aluno ${nome}?`)) return;
+      try {
+        await App.api(`/api/owner/users/${id}/reset-progress`, { method: 'POST' });
+        App.showToast(`Progresso de ${nome} resetado!`);
+        loadStudents();
+      } catch (err) {
+        App.showToast(err.message, true);
+      }
+    }
+
+    async function blockStudent(id) {
+      try {
+        await App.api(`/api/owner/users/${id}/block`, { method: 'POST' });
+        App.showToast('Aluno bloqueado com sucesso.');
+        loadStudents();
+      } catch (err) {
+        App.showToast(err.message, true);
+      }
+    }
+
+    async function unblockStudent(id) {
+      try {
+        await App.api(`/api/owner/users/${id}/unblock`, { method: 'POST' });
+        App.showToast('Aluno desbloqueado com sucesso.');
+        loadStudents();
+      } catch (err) {
+        App.showToast(err.message, true);
+      }
+    }
+
+    async function deleteStudentChats(id, nome) {
+      if(!confirm(`Excluir absolutamente todo o histórico de conversas do aluno ${nome}?`)) return;
+      try {
+        await App.api(`/api/owner/chats/user/${id}`, { method: 'DELETE' });
+        App.showToast(`Conversas de ${nome} deletadas.`);
+      } catch (err) {
+        App.showToast(err.message, true);
+      }
+    }
+
+    async function banStudent(id, nome) {
+      if(!confirm(`ATENÇÃO: Banir permanentemente o aluno ${nome} e expurgar seus dados do sistema?`)) return;
+      try {
+        await App.api(`/api/owner/users/${id}`, { method: 'DELETE' });
+        App.showToast('Aluno banido e removido!');
+        loadStudents();
+        loadMetrics();
+      } catch (err) {
+        App.showToast(err.message, true);
+      }
+    }
+
+    // Criação de Estudantes
+    document.getElementById('create-student-form').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const nome = document.getElementById('create-nome').value;
+      const email = document.getElementById('create-email').value;
+      const senha = document.getElementById('create-senha').value;
+
+      try {
+        await App.api('/api/owner/users', {
+          method: 'POST',
+          body: JSON.stringify({ nome, email, senha })
+        });
+        App.showToast('Estudante criado com sucesso!');
+        e.target.reset();
+        loadStudents();
+        loadMetrics();
+      } catch (err) {
+        App.showToast(err.message, true);
+      }
+    });
+
+    // Ações de limpeza e otimização
+    async function cleanupOldChats() {
+      const days = document.getElementById('cleanup-days').value || 30;
+      if(!confirm(`Tem certeza que quer remover todas as conversas inativas há mais de ${days} dias?`)) return;
+
+      try {
+        const data = await App.api('/api/owner/chats/cleanup', {
+          method: 'POST',
+          body: JSON.stringify({ days })
+        });
+        App.showToast(data.message);
+      } catch (err) {
+        App.showToast(err.message, true);
+      }
+    }
+
+    async function truncateMessages() {
+      try {
+        const data = await App.api('/api/owner/chats/truncate', { method: 'POST' });
+        App.showToast(data.message);
+      } catch (err) {
+        App.showToast(err.message, true);
+      }
+    }
+
+    async function deleteAllChats() {
+      const confirmation = prompt('ALERTA MÁXIMO: Isso irá DELETAR TODAS as conversas de todos os alunos da plataforma. Digite "APAGAR TUDO" para confirmar:');
+      if(confirmation !== 'APAGAR TUDO') return;
+
+      try {
+        const data = await App.api('/api/owner/chats', { method: 'DELETE' });
+        App.showToast(data.message);
+      } catch (err) {
+        App.showToast(err.message, true);
+      }
+    }
+
+    checkOwner();
+    loadMetrics();
+    loadStudents();
+  </script>
+</body>
+</html>

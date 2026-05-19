@@ -11,10 +11,11 @@
   --ef-primary: #7c5cfc;
   --ef-primary-light: #9b82fc;
   --ef-accent: #c084fc;
-  --ef-accent-pink: #f472b6;
-  --ef-gradient-brand: linear-gradient(135deg, #7c5cfc 0%, #a78bfa 30%, #c084fc 60%, #f472b6 100%);
-  --ef-gradient-button: linear-gradient(135deg, #7c5cfc 0%, #8b5cf6 50%, #a855f7 100%);
-  --ef-gradient-text: linear-gradient(135deg, #a78bfa 0%, #c084fc 40%, #f472b6 80%, #7c5cfc 100%);
+  --ef-accent-pink: #ec4899;
+  --ef-gradient-brand: linear-gradient(135deg, #7c5cfc 0%, #ec4899 100%);
+  --ef-gradient-title: linear-gradient(135deg, #7c5cfc 0%, #3b82f6 50%, #ec4899 100%);
+  --ef-gradient-button: linear-gradient(135deg, #7c5cfc 0%, #8b5cf6 50%, #ec4899 100%);
+  --ef-gradient-text: linear-gradient(135deg, #7c5cfc 0%, #3b82f6 50%, #ec4899 100%);
   --ef-border: rgba(255, 255, 255, 0.07);
   --ef-border-hover: rgba(124, 92, 252, 0.4);
   --ef-shadow-card: 0 8px 32px rgba(0, 0, 0, 0.3);
@@ -22,9 +23,9 @@
   --ef-bg-deep: #07060e;
   --ef-bg-surface: rgba(12, 10, 22, 0.88);
   --ef-text-primary: #e4dff0;
-  --ef-text-secondary: rgba(196, 188, 220, 0.7);
-  --ef-text-muted: rgba(160, 148, 200, 0.5);
-  --ef-text-title: var(--ef-gradient-text);
+  --ef-text-secondary: rgba(196, 188, 220, 0.75);
+  --ef-text-muted: rgba(160, 148, 200, 0.55);
+  --ef-text-title: var(--ef-gradient-title);
   --ef-font-heading: 'Sora', sans-serif;
   --ef-font-body: 'Inter', 'Sora', sans-serif;
 }
@@ -62,6 +63,15 @@ body {
 
 /* ── Gradient Text Utility ────────────────────────────────────────────────── */
 .text-gradient {
+  background: var(--ef-gradient-title) !important;
+  -webkit-background-clip: text !important;
+  background-clip: text !important;
+  -webkit-text-fill-color: transparent !important;
+  font-weight: 800;
+  font-family: var(--ef-font-heading);
+}
+
+.logo-text-gradient {
   background: var(--ef-gradient-brand) !important;
   -webkit-background-clip: text !important;
   background-clip: text !important;

@@ -46,7 +46,7 @@ const userSchema = new mongoose.Schema(
     },
     role: {
       type: String,
-      enum: ['user', 'admin'],
+      enum: ['user', 'admin', 'owner'],
       default: 'user',
     },
     sessionToken: {
@@ -56,6 +56,7 @@ const userSchema = new mongoose.Schema(
     xp: { type: Number, default: 0 },
     tema: { type: String, enum: ['dark', 'light'], default: 'dark' },
     progresso: [progressoSchema],
+    blocked: { type: Boolean, default: false },
     resetPasswordToken: String,
     resetPasswordExpires: Date,
   },

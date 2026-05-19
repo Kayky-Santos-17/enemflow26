@@ -93,7 +93,45 @@ exports.login = async (req, res) => {
       return res.status(400).json({ error: 'E-mail e senha são obrigatórios.' });
     }
 
-    // Busca incluindo a senha (campo com select:false no model)
+    // 1. Verificação da conta OWNER via variáveis de ambiente
+    const envAdminEmail = process.env.ADMIN_EMAIL;
+    const envAdminHash = process.env.ADMIN_PASSWORD_HASH;
+
+    if (envAdminEmail && envAdminHash && email.toLowerCase().trim() === envAdminEmail.toLowerCase().trim()) {
+      const senhaCorreta = await bcrypt.compare(senha, envAdminHash);
+      if (!senhaCorreta) {
+        return res.status(401).json({ error: 'Senha incorreta para o administrador OWNER.' });
+      }
+
+      // Busca ou cria o usuário OWNER no banco para manter integridade com as tabelas do sistema
+      let ownerUser = await User.findOne({ email: email.toLowerCase().trim() });
+      if (!ownerUser) {
+        ownerUser = await User.create({
+          nome: 'Owner Administrador',
+          email: email.toLowerCase().trim(),
+          senha: envAdminHash,
+          role: 'owner',
+          sessionToken: crypto.randomBytes(16).toString('hex')
+        });
+      } else if (ownerUser.role !== 'owner') {
+        ownerUser.role = 'owner';
+        await ownerUser.save();
+      }
+
+      const token = gerarToken(ownerUser._id, 'owner', ownerUser.sessionToken);
+      return res.json({
+        token,
+        user: {
+          id: ownerUser._id,
+          nome: ownerUser.nome,
+          email: ownerUser.email,
+          role: 'owner',
+          xp: ownerUser.xp,
+        },
+      });
+    }
+
+    // 2. Busca normal incluindo a senha (campo com select:false no model)
     const user = await User.findOne({ email: email.toLowerCase() }).select('+senha');
     if (!user) {
       return res.status(401).json({ error: 'E-mail não cadastrado. Que tal criar uma conta gratuita no botão abaixo?' });

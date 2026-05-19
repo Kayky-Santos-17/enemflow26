@@ -1,0 +1,283 @@
+const User = require('../models/User');
+const Chat = require('../models/Chat');
+const Content = require('../models/Content');
+const StudySession = require('../models/StudySession');
+const bcrypt = require('bcryptjs');
+const fs = require('fs');
+const path = require('path');
+
+// Auxiliar: Calcula tamanho dos uploads
+const getFolderSize = (dirPath) => {
+  let size = 0;
+  try {
+    if (fs.existsSync(dirPath)) {
+      const files = fs.readdirSync(dirPath);
+      for (const file of files) {
+        const filePath = path.join(dirPath, file);
+        const stats = fs.statSync(filePath);
+        if (stats.isFile()) {
+          size += stats.size;
+        }
+      }
+    }
+  } catch (err) {
+    console.error('Erro ao ler pasta de uploads:', err);
+  }
+  return size;
+};
+
+// Auxiliar: Formatação de bytes para KB/MB
+const formatBytes = (bytes) => {
+  if (bytes === 0) return '0 Bytes';
+  const k = 1024;
+  const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+  const i = Math.floor(Math.log(bytes) / Math.log(k));
+  return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+};
+
+// ─── GERENCIAMENTO DE ALUNOS ───────────────────────────────────────────────────
+
+// Listar todos os estudantes
+exports.listStudents = async (req, res) => {
+  try {
+    const students = await User.find({ role: 'user' }).select('-senha -__v');
+    res.json(students);
+  } catch (error) {
+    res.status(500).json({ error: 'Erro ao listar alunos.' });
+  }
+};
+
+// Criar aluno
+exports.createStudent = async (req, res) => {
+  try {
+    const { nome, email, senha } = req.body;
+    if (!nome || !email || !senha) {
+      return res.status(400).json({ error: 'Nome, e-mail e senha são obrigatórios.' });
+    }
+
+    const jaExiste = await User.findOne({ email: email.toLowerCase() });
+    if (jaExiste) {
+      return res.status(400).json({ error: 'Este e-mail já está em uso.' });
+    }
+
+    const hash = await bcrypt.hash(senha, 10);
+    const newStudent = await User.create({
+      nome,
+      email: email.toLowerCase(),
+      senha: hash,
+      role: 'user'
+    });
+
+    res.status(201).json({ message: 'Estudante criado com sucesso.', student: newStudent });
+  } catch (error) {
+    res.status(500).json({ error: 'Erro ao criar estudante.' });
+  }
+};
+
+// Deletar aluno
+exports.deleteStudent = async (req, res) => {
+  try {
+    const { id } = req.params;
+    await User.findByIdAndDelete(id);
+    // Remove dados relacionados
+    await Chat.deleteMany({ usuarioId: id });
+    await StudySession.deleteMany({ usuarioId: id });
+    res.json({ message: 'Estudante e seus dados foram excluídos.' });
+  } catch (error) {
+    res.status(500).json({ error: 'Erro ao excluir estudante.' });
+  }
+};
+
+// Bloquear estudante
+exports.blockStudent = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const user = await User.findById(id);
+    if (!user) return res.status(404).json({ error: 'Aluno não encontrado.' });
+
+    user.blocked = true;
+    user.sessionToken = ''; // Desloga sessões ativas
+    await user.save();
+    res.json({ message: 'Estudante bloqueado com sucesso.' });
+  } catch (error) {
+    res.status(500).json({ error: 'Erro ao bloquear estudante.' });
+  }
+};
+
+// Desbloquear estudante
+exports.unblockStudent = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const user = await User.findById(id);
+    if (!user) return res.status(404).json({ error: 'Aluno não encontrado.' });
+
+    user.blocked = false;
+    await user.save();
+    res.json({ message: 'Estudante desbloqueado com sucesso.' });
+  } catch (error) {
+    res.status(500).json({ error: 'Erro ao desbloquear estudante.' });
+  }
+};
+
+// Alterar senha de estudante
+exports.resetStudentPassword = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { novaSenha } = req.body;
+    if (!novaSenha || novaSenha.length < 6) {
+      return res.status(400).json({ error: 'Nova senha deve ter pelo menos 6 caracteres.' });
+    }
+
+    const hash = await bcrypt.hash(novaSenha, 10);
+    const user = await User.findByIdAndUpdate(id, { senha: hash, sessionToken: '' });
+    if (!user) return res.status(404).json({ error: 'Estudante não encontrado.' });
+
+    res.json({ message: 'Senha do estudante redefinida com sucesso.' });
+  } catch (error) {
+    res.status(500).json({ error: 'Erro ao redefinir senha do aluno.' });
+  }
+};
+
+// Limpar progresso do estudante
+exports.resetStudentProgress = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const user = await User.findById(id);
+    if (!user) return res.status(404).json({ error: 'Estudante não encontrado.' });
+
+    user.progresso = [];
+    await user.save();
+    await StudySession.deleteMany({ usuarioId: id });
+
+    res.json({ message: 'Progresso e sessões de estudo do aluno foram resetados.' });
+  } catch (error) {
+    res.status(500).json({ error: 'Erro ao resetar progresso.' });
+  }
+};
+
+// Resetar XP do estudante
+exports.resetStudentXP = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const user = await User.findByIdAndUpdate(id, { xp: 0 });
+    if (!user) return res.status(404).json({ error: 'Estudante não encontrado.' });
+
+    res.json({ message: 'Pontos de XP do estudante foram zerados.' });
+  } catch (error) {
+    res.status(500).json({ error: 'Erro ao resetar XP do aluno.' });
+  }
+};
+
+// ─── GERENCIAMENTO DE CHATS ───────────────────────────────────────────────────
+
+// Excluir conversa específica
+exports.deleteSpecificChat = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const chat = await Chat.findByIdAndDelete(id);
+    if (!chat) return res.status(404).json({ error: 'Conversa não encontrada.' });
+    res.json({ message: 'Conversa deletada com sucesso.' });
+  } catch (error) {
+    res.status(500).json({ error: 'Erro ao deletar conversa.' });
+  }
+};
+
+// Excluir conversas de um estudante específico
+exports.deleteUserChats = async (req, res) => {
+  try {
+    const { userId } = req.params;
+    await Chat.deleteMany({ usuarioId: userId });
+    res.json({ message: 'Todas as conversas do estudante foram deletadas.' });
+  } catch (error) {
+    res.status(500).json({ error: 'Erro ao deletar conversas do aluno.' });
+  }
+};
+
+// Excluir absolutamente todas as conversas do banco
+exports.deleteAllChats = async (req, res) => {
+  try {
+    await Chat.deleteMany({});
+    res.json({ message: 'Histórico completo de chats da plataforma foi deletado.' });
+  } catch (error) {
+    res.status(500).json({ error: 'Erro ao limpar banco de chats.' });
+  }
+};
+
+// Limpar conversas antigas (inativas há mais de X dias)
+exports.cleanupOldChats = async (req, res) => {
+  try {
+    const { days } = req.body;
+    const diasLimite = parseInt(days) || 30;
+    const limiteData = new Date();
+    limiteData.setDate(limiteData.getDate() - diasLimite);
+
+    const result = await Chat.deleteMany({ updatedAt: { $lt: limiteData } });
+    res.json({ message: `Limpeza concluída. ${result.deletedCount} conversas inativas há mais de ${diasLimite} dias foram excluídas.` });
+  } catch (error) {
+    res.status(500).json({ error: 'Erro ao limpar conversas antigas.' });
+  }
+};
+
+// Limpar mensagens e evitar crescimento do MongoDB (limita a no máximo 30 mensagens por chat ou remove antigas)
+exports.truncateMessageHistory = async (req, res) => {
+  try {
+    const chats = await Chat.find({});
+    let totalTruncated = 0;
+
+    for (const chat of chats) {
+      if (chat.mensagens && chat.mensagens.length > 25) {
+        // Deixa apenas as últimas 20 mensagens para otimizar espaço
+        chat.mensagens = chat.mensagens.slice(-20);
+        await chat.save();
+        totalTruncated++;
+      }
+    }
+
+    res.json({ message: `Banco de mensagens limpo. ${totalTruncated} chats longos foram otimizados.` });
+  } catch (error) {
+    res.status(500).json({ error: 'Erro ao truncar histórico de mensagens.' });
+  }
+};
+
+// ─── VISUALIZAR MÉTRICAS DO SISTEMA ──────────────────────────────────────────
+
+// Métricas de uso da plataforma
+exports.getSystemMetrics = async (req, res) => {
+  try {
+    const totalAlunos = await User.countDocuments({ role: 'user' });
+    const totalVideos = await Content.countDocuments({ tipo: 'video' });
+    const totalPDFs = await Content.countDocuments({ tipo: 'pdf' });
+    const totalMaterial = await Content.countDocuments({});
+
+    // Calcula espaço físico usado na pasta uploads
+    const uploadsDir = path.join(__dirname, '../uploads');
+    const uploadsSizeBytes = getFolderSize(uploadsDir);
+
+    // Estimativa de armazenamento do MongoDB para manter consistência sem depender de DB stats restritos na nuvem
+    const mongoEstimateBytes = (await User.countDocuments() * 1500) + (await Chat.countDocuments() * 4000) + (await Content.countDocuments() * 2000);
+    const espacoTotalBytes = uploadsSizeBytes + mongoEstimateBytes;
+
+    // Lista os PDFs cadastrados no sistema
+    const pdfsList = await Content.find({ tipo: 'pdf' }).select('titulo materia url ativo');
+    
+    // Lista os Vídeos cadastrados
+    const videosList = await Content.find({ tipo: 'video' }).select('titulo materia url ativo');
+
+    res.json({
+      metrics: {
+        totalAlunos,
+        totalVideos,
+        totalPDFs,
+        totalMaterial,
+        espacoUsadoFisico: formatBytes(uploadsSizeBytes),
+        espacoEstimadoBanco: formatBytes(mongoEstimateBytes),
+        espacoTotal: formatBytes(espacoTotalBytes),
+      },
+      pdfs: pdfsList,
+      videos: videosList
+    });
+  } catch (error) {
+    console.error('[owner.getSystemMetrics]', error);
+    res.status(500).json({ error: 'Erro ao compilar métricas do sistema.' });
+  }
+};

@@ -52,7 +52,7 @@ router.post('/', auth, upload.single('file'), (req, res) => {
   res.json({ url });
 });
 
-// POST /upload/analyze — Upload + extração de texto + envio para IA
+// POST /upload/analyze — Upload + extração de texto + envio para IA com contexto priorizado
 router.post('/analyze', auth, aiLimiter, upload.single('file'), async (req, res) => {
   try {
     if (!req.file) {
@@ -82,10 +82,7 @@ router.post('/analyze', auth, aiLimiter, upload.single('file'), async (req, res)
       }
     } else if (['.png', '.jpg', '.jpeg', '.gif'].includes(ext)) {
       // Para imagens, pedimos à IA para descrever
-      const base64 = (req.file.buffer || fs.readFileSync(req.file.path)).toString('base64');
-      const mimeType = req.file.mimetype || 'image/png';
       textoExtraido = `[Imagem enviada pelo aluno em formato ${ext}. Analise o conteúdo educacional desta imagem.]`;
-      // Se o modelo suportar visão, enviamos a imagem
     }
 
     if (!textoExtraido || textoExtraido.trim().length < 10) {
@@ -93,23 +90,55 @@ router.post('/analyze', auth, aiLimiter, upload.single('file'), async (req, res)
     }
 
     const pergunta = req.body.pergunta || 'Analise e resuma este conteúdo para estudo do ENEM.';
+    const chatId = req.body.chatId;
+    const Chat = require('../models/Chat');
 
-    const prompt = `O aluno enviou o seguinte conteúdo extraído de um arquivo (${ext}):
+    let chat;
+    if (chatId && chatId !== 'null') {
+      chat = await Chat.findOne({ _id: chatId, usuarioId: req.userId });
+    }
+    if (!chat) {
+      chat = await Chat.create({
+        usuarioId: req.userId,
+        titulo: `Análise: ${req.file.originalname}`,
+        tipo: 'chat',
+        mensagens: []
+      });
+    }
 
+    // Adiciona o prompt do usuário com contexto anexado
+    const userMsgContent = `[Arquivo Anexado: ${req.file.originalname}]\n\nSolicitação: ${pergunta}`;
+    chat.mensagens.push({ role: 'user', content: userMsgContent });
+
+    // Sistema de Prioridade no Prompt do Sistema: PDF enviado -> Material Plataforma -> ENEM Base
+    const systemOverride = `Você é o EnemFlow AI, tutor acadêmico especialista no ENEM.
+O aluno anexou um arquivo para esta aula. Responda à dúvida dele seguindo estritamente esta ordem de prioridades:
+1. Prioridade Máxima: Use as informações extraídas do arquivo PDF/Texto anexado pelo aluno (abaixo).
+2. Prioridade Secundária: Use os materiais e conteúdos teóricos da plataforma.
+3. Prioridade Geral: Use sua base de dados geral do ENEM.
+
+Nunca invente fatos e evite respostas aleatórias. Se o assunto do arquivo ou a solicitação do aluno for completamente fora de contexto educacional do ENEM, recuse-se a responder usando exatamente a frase:
+"Posso ajudar apenas com conteúdos educacionais e temas relacionados ao ENEM."
+
+Conteúdo extraído do arquivo enviado pelo aluno:
 ---
 ${textoExtraido.substring(0, 6000)}
----
+---`;
 
-Solicitação do aluno: ${pergunta}`;
+    // Envia o histórico mais recente para a IA
+    const historySlice = chat.mensagens.slice(-10).map(m => ({ role: m.role, content: m.content }));
+    const resposta = await chatCompletion(historySlice, systemOverride);
 
-    const resposta = await chatCompletion([{ role: 'user', content: prompt }]);
+    // Salva a resposta no histórico do banco
+    chat.mensagens.push({ role: 'assistant', content: resposta });
+    await chat.save();
 
     // Limpa arquivo do disco (se não for Vercel)
     if (req.file.path && fs.existsSync(req.file.path)) {
       fs.unlinkSync(req.file.path);
     }
 
-    res.json({ resposta, textoExtraido: textoExtraido.substring(0, 500) });
+    res.json({ chatId: chat._id, resposta, textoExtraido: textoExtraido.substring(0, 500) });
   } catch (error) {
     console.error('[upload.analyze]', error.message);
     res.status(500).json({ error: error.message || 'Erro ao analisar arquivo.' });

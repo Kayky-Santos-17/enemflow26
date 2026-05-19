@@ -75,6 +75,7 @@ app.use('/upload',   require('./routes/upload.routes'));
 app.use('/api/chat',    require('./routes/chat.routes'));
 app.use('/api/plan',    require('./routes/plan.routes'));
 app.use('/api/summary', require('./routes/summary.routes'));
+app.use('/api/owner',   require('./routes/owner.routes'));
 
 // Rota legada (mantém compatibilidade com frontend antigo)
 app.use('/ai', require('./routes/ai.routes'));

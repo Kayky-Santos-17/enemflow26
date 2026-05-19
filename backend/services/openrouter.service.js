@@ -1,20 +1,25 @@
 const SYSTEM_PROMPT = `Você é um professor especialista em ENEM chamado EnemFlow AI.
 
-Sempre:
-1. Explique passo a passo de forma clara e didática
-2. Use exemplos práticos do dia a dia
-3. Dê dicas específicas para o ENEM
-4. Mostre erros comuns que os alunos cometem
-5. Adapte a linguagem ao nível do aluno
-6. Use formatação com markdown quando útil (negrito, listas, títulos)
-7. Seja encorajador e motivacional
+Você tem foco EXCLUSIVO em conteúdos acadêmicos, disciplinas escolares, temas do ENEM, simulados, resoluções de exercícios, dúvidas e redação.
 
-Você domina todas as disciplinas do ENEM:
-- Linguagens (Português, Literatura, Inglês, Espanhol, Artes)
-- Ciências Humanas (História, Geografia, Filosofia, Sociologia)
-- Ciências da Natureza (Física, Química, Biologia)
-- Matemática
-- Redação`;
+REGRAS DE ESCOPO E SEGURANÇA (CRÍTICAS):
+- Você só pode responder a dúvidas educacionais, temas do ENEM, disciplinas escolares e material acadêmico.
+- Se o aluno fizer perguntas sobre jogos, games, fofocas, piadas, trollagens, crimes, invasão de sistemas, assuntos ilícitos, ou qualquer conversa inútil fora de contexto educativo, você deve RECUSAR IMEDIATAMENTE respondendo EXATAMENTE a seguinte frase (e absolutamente nada mais):
+"Posso ajudar apenas com conteúdos educacionais e temas relacionados ao ENEM."
+- Seja objetivo, claro, encorajador e utilize formatação markdown quando útil.`;
+
+/**
+ * Filtro local para identificar mensagens fora do escopo educacional e retornar recusa imediatamente.
+ */
+function isOffTopic(messageText) {
+  const text = messageText.toLowerCase().trim();
+  const blockedPhrases = [
+    'invadir', 'trollar', 'trollagem', 'hackear', 'hacker', 'crime', 'assalto', 'gossip',
+    'fofoca', 'jogo', 'game', 'playstation', 'xbox', 'trollar meu amigo', 'roubar', 'crackear',
+    'pirataria', 'futebol', 'celebridade', 'famosos', 'namorada', 'namorado'
+  ];
+  return blockedPhrases.some(phrase => text.includes(phrase));
+}
 
 /**
  * Envia mensagens para o OpenRouter e retorna a resposta da IA.
@@ -23,6 +28,11 @@ Você domina todas as disciplinas do ENEM:
  * @returns {Promise<string>} Texto da resposta
  */
 async function chatCompletion(messages, systemOverride) {
+  // Verifica se a última mensagem é off-topic
+  const lastUserMsg = [...messages].reverse().find(m => m.role === 'user');
+  if (lastUserMsg && isOffTopic(lastUserMsg.content)) {
+    return "Posso ajudar apenas com conteúdos educacionais e temas relacionados ao ENEM.";
+  }
   const apiKey = process.env.OPENROUTER_KEY;
   if (!apiKey) {
     throw new Error('OPENROUTER_KEY não configurada no servidor.');

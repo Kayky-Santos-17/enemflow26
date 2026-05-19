@@ -16,8 +16,8 @@ module.exports = async (req, res, next) => {
       return res.status(401).json({ error: 'Usuário não encontrado.' });
     }
 
-    if (user.role !== 'admin') {
-      return res.status(403).json({ error: 'Acesso negado. Requer permissão de administrador.' });
+    if (user.role !== 'admin' && user.role !== 'owner') {
+      return res.status(403).json({ error: 'Acesso negado. Requer permissão de administrador ou dono do sistema.' });
     }
 
     next();

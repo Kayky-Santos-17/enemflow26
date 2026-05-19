@@ -195,7 +195,7 @@
     async function checkAdmin() {
       try {
         const user = await App.api('/auth/me');
-        if(user.role !== 'admin') {
+        if(user.role !== 'admin' && user.role !== 'owner') {
           App.showToast('Violação de Segurança: Área restrita a administradores.', true);
           setTimeout(() => window.location.href = 'dashboard.html', 1500);
         }
