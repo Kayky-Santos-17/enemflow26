@@ -15,6 +15,22 @@ document.addEventListener('DOMContentLoaded', () => {
   const path = window.location.pathname;
   const page = path.split('/').pop() || 'dashboard.html';
 
+  // If on admin or owner panel, don't show student sidebar navigation
+  if (page === 'admin.html' || page === 'owner.html') {
+    // Clean up any old sidebar elements if they exist
+    ['sidebar', 'dynamic-sidebar', 'ef-sidebar'].forEach(id => {
+      const el = document.getElementById(id);
+      if (el) el.remove();
+    });
+    document.querySelectorAll('.mobile-top-actions, .sidebar, #ef-mobile-header, #ef-overlay').forEach(el => el.remove());
+    const main = document.querySelector('main');
+    if (main) {
+      main.style.marginLeft = '0';
+      main.style.paddingTop = '0';
+    }
+    return;
+  }
+
   // 3. Retrieve collapsed state
   let isCollapsed = localStorage.getItem('sidebar_collapsed') === 'true';
 
@@ -47,6 +63,11 @@ document.addEventListener('DOMContentLoaded', () => {
       }
       #ef-sidebar.collapsed {
         width: var(--sb-collapsed) !important;
+        background: transparent !important;
+        border-right: none !important;
+        box-shadow: none !important;
+        backdrop-filter: none !important;
+        -webkit-backdrop-filter: none !important;
         overflow: hidden !important;
       }
       /* Hide elements completely when collapsed */
@@ -56,9 +77,9 @@ document.addEventListener('DOMContentLoaded', () => {
       #ef-sidebar.collapsed .sb-footer-container {
         display: none !important;
       }
-      /* When collapsed: logo container spans full height/width to hold the centered floating bolt */
+      /* When collapsed: logo container is only 80px high at the top to hold the floating bolt */
       #ef-sidebar.collapsed .sb-header-container {
-        height: 100vh;
+        height: 80px !important;
         border-bottom: none !important;
         display: flex;
         align-items: center;
@@ -144,18 +165,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
     const isActive = page === item.url;
     
-    // Custom lightning bolt for Tutor IA
-    const iconHtml = item.title === 'Tutor IA'
-      ? `<svg class="w-[18px] h-[18px] shrink-0" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-          <defs>
-            <linearGradient id="sbTutorBolt" x1="0%" y1="0%" x2="100%" y2="100%">
-              <stop offset="0%" stop-color="#7c5cfc" />
-              <stop offset="100%" stop-color="#ec4899" />
-            </linearGradient>
-          </defs>
-          <path d="M13 2L5.5 13H11.5L9.5 22L18.5 11H12.5L13 2Z" fill="url(#sbTutorBolt)" />
-        </svg>`
-      : `<i data-feather="${item.icon}" class="w-[18px] h-[18px] shrink-0" ${isActive ? 'style="color:#a78bfa;"' : ''}></i>`;
+    const iconHtml = `<i data-feather="${item.icon}" class="w-[18px] h-[18px] shrink-0" ${isActive ? 'style="color:#a78bfa;"' : ''}></i>`;
 
     menuHtml += `
       <a href="${item.url}" class="sb-nav-item flex items-center gap-3 px-4 py-2.5 rounded-xl font-medium transition-all duration-200 text-sm mx-2 mb-0.5 ${
@@ -400,6 +410,28 @@ document.addEventListener('DOMContentLoaded', () => {
           
           adminSection.innerHTML = htmlContent;
           if (typeof feather !== 'undefined') feather.replace();
+        }
+      }
+
+      // Adiciona botão flutuante de retorno se for admin/owner nas páginas de estudante
+      if (user.role === 'admin' || user.role === 'owner') {
+        const returnUrl = user.role === 'owner' ? 'owner.html' : 'admin.html';
+        
+        // Verifica se o botão já existe
+        if (!document.getElementById('admin-floating-return')) {
+          const floatingBtn = document.createElement('div');
+          floatingBtn.id = 'admin-floating-return';
+          floatingBtn.className = 'fixed bottom-6 right-6 z-[9999]';
+          floatingBtn.innerHTML = `
+            <button onclick="window.location.href='${returnUrl}'" class="px-5 py-3.5 rounded-2xl bg-gradient-to-r from-violet-600 to-pink-600 text-white font-extrabold text-xs shadow-2xl shadow-violet-600/35 hover:scale-105 active:scale-95 transition-all flex items-center gap-2 border border-white/10" style="font-family:'Sora',sans-serif; letter-spacing: 0.5px;">
+              <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
+                <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
+              </svg>
+              Voltar ao Painel Master
+            </button>
+          `;
+          document.body.appendChild(floatingBtn);
         }
       }
     } catch (err) {

@@ -147,14 +147,9 @@
         card.className = `glass-card p-3 cursor-pointer group transition-all duration-300 hover:scale-[1.03] hover:shadow-[0_0_20px_rgba(124,92,252,0.15)] hover:border-violet-500/30`;
         card.onclick = () => selectMateria(m.nome);
         card.innerHTML = `
-          <div class="flex items-center gap-3">
-            <div class="w-9 h-9 rounded-lg flex items-center justify-center text-white shrink-0 group-hover:scale-105 transition-transform" style="background:${m.gradient}; box-shadow:0 3px 8px rgba(0,0,0,0.15);">
-              <i data-feather="${m.icon}" class="w-4.5 h-4.5"></i>
-            </div>
-            <div class="min-w-0 flex-1">
-              <h3 class="text-xs font-bold truncate group-hover:text-[#a78bfa] transition-colors" style="font-family:'Sora',sans-serif; color:#e4dff0;">${m.nome}</h3>
-              <p class="text-[10px]" style="color:rgba(196,188,220,0.4);">${total} conteúdo(s)</p>
-            </div>
+          <div class="min-w-0 flex-1 py-1.5 px-2">
+            <h3 class="text-sm font-bold truncate group-hover:text-[#a78bfa] transition-colors" style="font-family:'Sora',sans-serif; color:#e4dff0;">${m.nome}</h3>
+            <p class="text-[11px] mt-0.5" style="color:rgba(196,188,220,0.5);">${total} conteúdo(s)</p>
           </div>
         `;
         grid.appendChild(card);
@@ -210,52 +205,83 @@
 
       topicos.forEach(t => {
         const card = document.createElement('div');
-        card.className = "glass-card p-5 flex flex-col justify-between gap-3";
         
-        const isPdf = t.url && t.url.startsWith('data:application/pdf') || (t.url && t.url.toLowerCase().endsWith('.pdf'));
-        const isVideo = t.url && (t.url.includes('youtube.com') || t.url.includes('youtu.be') || t.url.toLowerCase().endsWith('.mp4'));
+        const isPdf = t.tipo === 'pdf' || (t.url && t.url.startsWith('data:application/pdf')) || (t.url && t.url.toLowerCase().endsWith('.pdf'));
+        const isVideo = t.tipo === 'video' || (t.url && (t.url.includes('youtube.com') || t.url.includes('youtu.be') || t.url.toLowerCase().endsWith('.mp4')));
+        
+        let type = 'artigo';
+        if (isPdf) type = 'pdf';
+        else if (isVideo) type = 'video';
 
-        let badgeType = 'Artigo';
-        let badgeStyle = 'background:rgba(99,102,241,0.08); color:#818cf8; border:1px solid rgba(99,102,241,0.15);';
-        if (isPdf) {
-          badgeType = 'Material PDF';
-          badgeStyle = 'background:rgba(239,68,68,0.08); color:#f87171; border:1px solid rgba(239,68,68,0.15);';
-        } else if (isVideo) {
-          badgeType = 'Vídeo Aula';
-          badgeStyle = 'background:rgba(245,158,11,0.08); color:#fbbf24; border:1px solid rgba(245,158,11,0.15);';
+        const typeIcons = {
+          pdf: 'file-text',
+          video: 'play',
+          artigo: 'book-open',
+          exercicio: 'check-square'
+        };
+        const typeNames = {
+          pdf: 'Material PDF',
+          video: 'Vídeo Aula',
+          artigo: 'Artigo Teórico',
+          exercicio: 'Exercício / Simulado'
+        };
+        const typeColors = {
+          pdf: 'background: rgba(239, 68, 68, 0.08); color: #f87171; border: 1px solid rgba(239, 68, 68, 0.15);',
+          video: 'background: rgba(245, 158, 11, 0.08); color: #fbbf24; border: 1px solid rgba(245, 158, 11, 0.15);',
+          artigo: 'background: rgba(99, 102, 241, 0.08); color: #818cf8; border: 1px solid rgba(99, 102, 241, 0.15);',
+          exercicio: 'background: rgba(16, 185, 129, 0.08); color: #34d399; border: 1px solid rgba(16, 185, 129, 0.15);'
+        };
+
+        const badgeStyle = typeColors[type] || typeColors.artigo;
+        const badgeName = typeNames[type] || typeNames.artigo;
+        const iconName = typeIcons[type] || 'file-text';
+        
+        let buttonBg = 'linear-gradient(135deg,#7c5cfc,#a855f7)';
+        let buttonShadow = 'rgba(124,92,252,0.25)';
+        let leftBorderClass = 'border-l-indigo-500';
+        
+        if (type === 'pdf') {
+          buttonBg = 'linear-gradient(135deg,#ef4444,#f87171)';
+          buttonShadow = 'rgba(239,68,68,0.25)';
+          leftBorderClass = 'border-l-red-500';
+        } else if (type === 'video') {
+          buttonBg = 'linear-gradient(135deg,#f59e0b,#f97316)';
+          buttonShadow = 'rgba(245,158,11,0.25)';
+          leftBorderClass = 'border-l-amber-500';
         }
 
-        let actionButtonsHtml = '';
-        if (isPdf) {
-          actionButtonsHtml = `
-            <button onclick="startStudy('${t._id}')" class="px-4 py-2 text-white font-bold rounded-xl text-xs shadow-lg transition-all flex items-center justify-center gap-1.5 hover:opacity-90" style="background:linear-gradient(135deg,#7c5cfc,#a855f7); box-shadow:0 4px 15px rgba(124,92,252,0.25);">
-              <i data-feather="file-text" class="w-3.5 h-3.5"></i> Abrir PDF & Cronômetro
-            </button>
-          `;
-        } else if (isVideo) {
-          actionButtonsHtml = `
-            <button onclick="startStudy('${t._id}')" class="px-4 py-2 text-white font-bold rounded-xl text-xs shadow-lg transition-all flex items-center justify-center gap-1.5 hover:opacity-90" style="background:linear-gradient(135deg,#f59e0b,#f97316); box-shadow:0 4px 15px rgba(245,158,11,0.25);">
-              <i data-feather="play" class="w-3.5 h-3.5"></i> Assistir & Cronômetro
-            </button>
-          `;
-        } else if (t.url) {
-          actionButtonsHtml = `
-            <button onclick="startStudy('${t._id}')" class="px-4 py-2 text-white font-bold rounded-xl text-xs shadow-lg transition-all flex items-center justify-center gap-1.5 hover:opacity-90" style="background:linear-gradient(135deg,#7c5cfc,#f472b6); box-shadow:0 4px 15px rgba(124,92,252,0.25);">
-              <i data-feather="external-link" class="w-3.5 h-3.5"></i> Iniciar Estudo
-            </button>
-          `;
-        }
+        const buttonText = type === 'pdf' ? 'Estudar PDF' : type === 'video' ? 'Assistir Vídeo' : 'Ler Artigo';
+
+        card.className = `glass-card p-5 border-l-4 ${leftBorderClass} flex flex-col justify-between gap-4 transition-all duration-300 hover:scale-[1.02] hover:shadow-[0_8px_30px_rgba(124,92,252,0.15)] hover:border-violet-500/30`;
+
+        const formattedDate = t.createdAt ? new Date(t.createdAt).toLocaleDateString('pt-BR') : '';
 
         card.innerHTML = `
-          <div>
-            <div class="flex items-center justify-between mb-2">
-              <span class="px-2 py-0.5 rounded-full font-bold text-[10px] uppercase tracking-wider" style="${badgeStyle}">${badgeType}</span>
-              ${t.subassunto ? `<span class="text-[11px] font-semibold" style="color:rgba(196,188,220,0.4); font-family:'Sora',sans-serif;">${t.subassunto}</span>` : ''}
+          <div class="space-y-3">
+            <div class="flex items-center justify-between">
+              <span class="px-2.5 py-0.5 rounded-full font-bold text-[9px] uppercase tracking-wider" style="${badgeStyle}">
+                ${badgeName}
+              </span>
+              <div class="flex items-center gap-2 text-slate-400">
+                ${t.tempoMedio ? `
+                  <span class="flex items-center gap-1 text-[11px] font-medium" style="color: rgba(196,188,220,0.5);">
+                    <i data-feather="clock" class="w-3 h-3"></i> ${t.tempoMedio} min
+                  </span>` : ''}
+                ${t.subassunto ? `<span class="text-[11px] font-semibold" style="color:rgba(196,188,220,0.4); font-family:'Sora',sans-serif;">${t.subassunto}</span>` : ''}
+              </div>
             </div>
-            <h3 class="text-sm font-bold" style="font-family:'Sora',sans-serif; color:#e4dff0;">${t.titulo}</h3>
+            
+            <div class="space-y-1">
+              <h3 class="text-sm font-bold leading-snug" style="font-family:'Sora',sans-serif; color:#e4dff0;">${t.titulo}</h3>
+              ${t.descricao ? `<p class="text-xs leading-relaxed line-clamp-2" style="color: rgba(196,188,220,0.55);">${t.descricao}</p>` : ''}
+            </div>
           </div>
-          <div class="flex items-center justify-end mt-1">
-            ${actionButtonsHtml}
+          
+          <div class="flex items-center justify-between border-t border-white/5 pt-3 mt-1">
+            <span class="text-[10px]" style="color: rgba(196,188,220,0.35);">${formattedDate ? `Cadastrado em: ${formattedDate}` : ''}</span>
+            <button onclick="startStudy('${t._id}')" class="px-4 py-2 text-white font-bold rounded-xl text-xs shadow-lg transition-all flex items-center justify-center gap-1.5 hover:scale-[1.03] active:scale-95" style="background:${buttonBg}; box-shadow:0 4px 15px ${buttonShadow};">
+              <i data-feather="${iconName}" class="w-3.5 h-3.5"></i> ${buttonText}
+            </button>
           </div>
         `;
         grid.appendChild(card);
