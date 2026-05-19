@@ -54,6 +54,7 @@
           <button onclick="window.location.href='chat.html'" class="px-5 py-2.5 rounded-xl font-semibold shadow-lg transition-all flex items-center gap-2 text-sm text-white" style="background:linear-gradient(135deg,#7c5cfc,#ec4899); box-shadow:0 4px 20px rgba(124,92,252,0.25);">
             <i data-feather="zap" class="w-4 h-4"></i> Tutor IA
           </button>
+          <div id="admin-return-container"></div>
         </div>
       </header>
 
@@ -128,6 +129,15 @@
       try {
         // Load user data for greeting
         const user = await App.api('/auth/me');
+        
+        if (user.role === 'admin' || user.role === 'owner') {
+          const adminContainer = document.getElementById('admin-return-container');
+          if (adminContainer) {
+            const targetPage = user.role === 'owner' ? 'owner.html' : 'admin.html';
+            adminContainer.innerHTML = `<button onclick="window.location.href='${targetPage}'" class="px-5 py-2.5 rounded-xl font-bold shadow-sm transition-all flex items-center gap-2 text-sm text-yellow-500 hover:scale-105" style="background:rgba(234,179,8,0.1); border:1px solid rgba(234,179,8,0.2);"><i data-feather="shield" class="w-4 h-4"></i> Painel Master</button>`;
+          }
+        }
+
         const greetingEl = document.getElementById('greeting-text');
         greetingEl.innerHTML = `<span class="text-gradient">${getGreeting(user.nome)}</span>`;
         

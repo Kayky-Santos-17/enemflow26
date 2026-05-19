@@ -15,8 +15,8 @@ document.addEventListener('DOMContentLoaded', () => {
   const path = window.location.pathname;
   const page = path.split('/').pop() || 'dashboard.html';
 
-  // If on admin or owner panel, don't show student sidebar navigation
-  if (page === 'admin.html' || page === 'owner.html') {
+  // If on admin, owner panel, or chat (immersive tutor), don't show student sidebar navigation
+  if (page === 'admin.html' || page === 'owner.html' || page === 'chat.html') {
     // Clean up any old sidebar elements if they exist
     ['sidebar', 'dynamic-sidebar', 'ef-sidebar'].forEach(id => {
       const el = document.getElementById(id);
@@ -151,6 +151,7 @@ document.addEventListener('DOMContentLoaded', () => {
     { title: 'Tutor IA', icon: 'cpu', url: 'chat.html', cat: 'Menu Principal' },
     { title: 'Plano de Estudos', icon: 'calendar', url: 'plan.html', cat: 'Menu Principal' },
     { title: 'Simulados', icon: 'check-square', url: 'exercises.html', cat: 'Menu Principal' },
+    { title: 'Progresso', icon: 'bar-chart-2', url: 'progress.html', cat: 'Sua Conta' },
     { title: 'Histórico', icon: 'clock', url: 'history.html', cat: 'Sua Conta' },
     { title: 'Perfil', icon: 'user', url: 'perfil.html', cat: 'Sua Conta' },
   ];
@@ -193,7 +194,7 @@ document.addEventListener('DOMContentLoaded', () => {
             <path d="M13 2L5.5 13H11.5L9.5 22L18.5 11H12.5L13 2Z" fill="url(#boltGradExpanded)" />
           </svg>
         </div>
-        <span class="sb-logo-text text-lg font-extrabold tracking-tight logo-text-gradient" style="font-family:'Sora',sans-serif;">EnemFlow</span>
+        <span class="sb-logo-text text-2xl font-extrabold tracking-tight logo-text-gradient" style="font-family:'Sora',sans-serif;">EnemFlow</span>
       </a>
       
       <!-- Collapsed Logo (floating bolt) -->
@@ -262,7 +263,7 @@ document.addEventListener('DOMContentLoaded', () => {
           <path d="M13 2L5.5 13H11.5L9.5 22L18.5 11H12.5L13 2Z" fill="url(#boltGradMobile)" />
         </svg>
       </div>
-      <span class="font-extrabold logo-text-gradient" style="font-family:'Sora',sans-serif;">EnemFlow</span>
+      <span class="text-xl font-extrabold logo-text-gradient" style="font-family:'Sora',sans-serif;">EnemFlow</span>
     </div>
     <button id="ef-mobile-menu-btn" class="p-2 rounded-lg" style="background:rgba(124,92,252,0.08); color:rgba(167,139,250,0.6);">
       <i data-feather="menu" class="w-5 h-5"></i>
