@@ -35,21 +35,29 @@
     <button onclick="window.location.href='dashboard.html'" class="p-2 bg-slate-100 dark:bg-white/5 rounded-lg">
       <i data-feather="arrow-left" class="w-5 h-5"></i>
     </button>
-    <div class="flex items-center gap-2">
-      <i data-feather="message-circle" class="text-indigo-500 w-5 h-5"></i>
-      <span class="font-bold">Tutor <span class="text-gradient">IA</span></span>
+    <div class="flex items-center gap-2 cursor-pointer group" onclick="toggleChatSidebar()">
+      <svg class="w-8 h-8 shrink-0 transition-transform group-hover:scale-110" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <defs>
+          <linearGradient id="chatHeaderBoltMob" x1="0%" y1="0%" x2="100%" y2="100%">
+            <stop offset="0%" stop-color="#7c5cfc" />
+            <stop offset="100%" stop-color="#ec4899" />
+          </linearGradient>
+        </defs>
+        <path d="M13 2L5.5 13H11.5L9.5 22L18.5 11H12.5L13 2Z" fill="url(#chatHeaderBoltMob)" />
+      </svg>
+      <span class="text-2xl font-extrabold tracking-tight text-gradient" style="font-family:'Sora',sans-serif;">Tutor IA</span>
     </div>
     <div class="w-9"></div> <!-- Spacer -->
   </div>
 
   <!-- Sidebar (Desktop Only) -->
-  <aside class="hidden lg:flex flex-col w-64 glass border-r z-50 h-full relative">
-    <div class="p-6 flex items-center gap-3 border-b border-slate-200 dark:border-white/10">
-      <button onclick="window.location.href='dashboard.html'" class="p-2 bg-slate-100 dark:bg-white/5 rounded-lg hover:bg-slate-200 dark:hover:bg-white/10 transition-colors">
+  <aside id="chatSidebar" class="hidden lg:flex flex-col w-72 glass border-r z-50 h-full relative transition-all duration-300">
+    <div class="p-6 flex items-center gap-3 border-b border-slate-200 dark:border-white/10 overflow-hidden">
+      <button onclick="window.location.href='dashboard.html'" class="p-2 bg-slate-100 dark:bg-white/5 rounded-lg hover:bg-slate-200 dark:hover:bg-white/10 transition-colors flex-shrink-0">
         <i data-feather="arrow-left" class="w-4 h-4 text-slate-500"></i>
       </button>
-      <div class="flex items-center gap-2">
-        <svg class="w-5 h-5 shrink-0" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <div class="flex items-center gap-2 cursor-pointer group whitespace-nowrap" onclick="toggleChatSidebar()" title="Recolher/Expandir menu">
+        <svg class="w-8 h-8 shrink-0 transition-transform group-hover:scale-110" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
           <defs>
             <linearGradient id="chatHeaderBolt" x1="0%" y1="0%" x2="100%" y2="100%">
               <stop offset="0%" stop-color="#7c5cfc" />
@@ -58,7 +66,7 @@
           </defs>
           <path d="M13 2L5.5 13H11.5L9.5 22L18.5 11H12.5L13 2Z" fill="url(#chatHeaderBolt)" />
         </svg>
-        <span class="text-lg font-bold tracking-tight">Tutor <span class="text-gradient">IA</span></span>
+        <span class="text-2xl font-extrabold tracking-tight text-gradient sidebar-text" style="font-family:'Sora',sans-serif; transition:opacity 0.2s;">Tutor IA</span>
       </div>
     </div>
 
@@ -169,7 +177,7 @@
       welcomeMessage.style.display = 'none';
       
       const div = document.createElement('div');
-      div.className = `flex w-full animate-fade-in ${role === 'user' ? 'justify-end' : 'justify-start'}`;
+      div.className = `flex w-full animate-fade-in ${role === 'user' ? 'justify-end' : 'justify-start'} max-w-4xl mx-auto`;
       
       if (role === 'user') {
         div.innerHTML = `
@@ -208,7 +216,7 @@
       welcomeMessage.style.display = 'none';
       const div = document.createElement('div');
       div.id = 'typingIndicator';
-      div.className = `flex w-full justify-start animate-fade-in`;
+      div.className = `flex w-full justify-start animate-fade-in max-w-4xl mx-auto`;
       div.innerHTML = `
         <div class="flex gap-4 max-w-[85%]">
           <div class="w-8 h-8 rounded-xl flex items-center justify-center shrink-0 border border-white/5 mt-1" style="background: rgba(15,12,30,0.6);">

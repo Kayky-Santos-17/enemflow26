@@ -152,8 +152,7 @@ document.addEventListener('DOMContentLoaded', () => {
     { title: 'Plano de Estudos', icon: 'calendar', url: 'plan.html', cat: 'Menu Principal' },
     { title: 'Simulados', icon: 'check-square', url: 'exercises.html', cat: 'Menu Principal' },
     { title: 'Progresso', icon: 'bar-chart-2', url: 'progress.html', cat: 'Sua Conta' },
-    { title: 'Histórico', icon: 'clock', url: 'history.html', cat: 'Sua Conta' },
-    { title: 'Perfil', icon: 'user', url: 'perfil.html', cat: 'Sua Conta' },
+    { title: 'Histórico', icon: 'clock', url: 'history.html', cat: 'Sua Conta' }
   ];
 
   let menuHtml = '';
@@ -315,13 +314,15 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 
-  // Click on collapsed floating bolt logo to expand
+  // Click on collapsed floating bolt logo or full logo to toggle
   const headerContainer = sidebar.querySelector('.sb-header-container');
   if (headerContainer) {
-    headerContainer.addEventListener('click', () => {
-      if (sidebar.classList.contains('collapsed')) {
-        toggleSidebar();
-      }
+    headerContainer.style.cursor = 'pointer';
+    headerContainer.addEventListener('click', (e) => {
+      // Don't toggle if they clicked exactly on a link inside it
+      if (e.target.closest('a') && !sidebar.classList.contains('collapsed')) return;
+      e.preventDefault();
+      toggleSidebar();
     });
   }
 

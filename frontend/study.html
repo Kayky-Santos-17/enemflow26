@@ -11,7 +11,9 @@
     body { font-family:'Inter',sans-serif; background:var(--ef-bg-deep,#07060e); color:#e4dff0; overflow:hidden; margin:0; height:100vh; }
     .immersive-container { display:grid; grid-template-columns:1fr 400px; height:100vh; width:100vw; transition:all 0.5s cubic-bezier(0.4,0,0.2,1); position:relative; }
     .immersive-container.no-media { grid-template-columns:0px 1fr; }
-    .immersive-container.no-media .media-panel { transform:translateX(-100%); opacity:0; pointer-events:none; overflow:hidden; }
+    .immersive-container.no-media .media-panel { transform:translateX(-100%); opacity:0; pointer-events:none; overflow:hidden; border:none; }
+    .immersive-container.no-timer { grid-template-columns:1fr 0px; }
+    .immersive-container.no-timer .focus-panel { transform:translateX(100%); opacity:0; pointer-events:none; overflow:hidden; padding:0; }
     .media-panel { background:rgba(10,8,20,0.95); border-right:1px solid rgba(124,92,252,0.08); display:flex; flex-direction:column; height:100%; position:relative; transition:all 0.5s cubic-bezier(0.4,0,0.2,1); z-index:10; }
     .media-header { padding:0.75rem 1.25rem; background:rgba(10,8,20,0.9); backdrop-filter:blur(16px); border-bottom:1px solid rgba(124,92,252,0.08); display:flex; align-items:center; justify-content:space-between; gap:8px; }
     .media-toolbar { display:flex; align-items:center; gap:6px; }
@@ -53,9 +55,14 @@
     <!-- Media Panel (Left) -->
     <div class="media-panel" id="mediaPanel">
       <div class="media-header">
-        <div style="display:flex;flex-direction:column;gap:3px;min-width:0;flex:1;">
-          <span id="materiaBadge" style="display:inline-flex;align-items:center;padding:3px 8px;font-size:0.7rem;font-weight:700;border-radius:6px;background:rgba(124,92,252,0.1);color:#a78bfa;border:1px solid rgba(124,92,252,0.15);width:fit-content;text-transform:uppercase;font-family:'Sora',sans-serif;">Carregando...</span>
-          <h1 id="contentTitle" style="font-size:1rem;font-weight:700;margin:0;color:#e4dff0;font-family:'Sora',sans-serif;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">Carregando...</h1>
+        <div style="display:flex; align-items:center; gap: 12px; flex:1; min-width:0;">
+          <button class="btn-circle" onclick="closeSession()" title="Encerrar Sessão e Salvar" style="color:#f87171; flex-shrink:0;">
+            <i data-feather="x" class="w-4 h-4"></i>
+          </button>
+          <div style="display:flex;flex-direction:column;gap:3px;min-width:0;flex:1;">
+            <span id="materiaBadge" style="display:inline-flex;align-items:center;padding:3px 8px;font-size:0.7rem;font-weight:700;border-radius:6px;background:rgba(124,92,252,0.1);color:#a78bfa;border:1px solid rgba(124,92,252,0.15);width:fit-content;text-transform:uppercase;font-family:'Sora',sans-serif;">Carregando...</span>
+            <h1 id="contentTitle" style="font-size:1rem;font-weight:700;margin:0;color:#e4dff0;font-family:'Sora',sans-serif;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">Carregando...</h1>
+          </div>
         </div>
         
         <!-- Toolbar with Back, Fullscreen, Download, Send to AI, Close -->
@@ -67,10 +74,10 @@
           <button class="btn-circle" id="downloadBtn" onclick="downloadPdf()" title="Download PDF" style="display:none;">
             <i data-feather="download" class="w-4 h-4"></i>
           </button>
-          <button class="btn-circle" id="sendToAiBtn" onclick="sendPdfToAI()" title="Enviar para Tutor IA" style="display:none;">
-            <i data-feather="zap" class="w-4 h-4" style="color:#c084fc;"></i>
+          <button class="btn-circle" id="sendToAiBtn" onclick="sendPdfToAI()" title="Enviar para Tutor IA" style="display:none; background:linear-gradient(135deg,#7c5cfc,#ec4899); border:none; color:white; box-shadow:0 0 10px rgba(124,92,252,0.3);">
+            <i data-feather="zap" class="w-4 h-4"></i>
           </button>
-          <button class="btn-circle" onclick="window.location.href='materias.html'" title="Fechar" style="color:#f87171;">
+          <button class="btn-circle" onclick="closePdf()" title="Recolher PDF" style="color:rgba(167,139,250,0.5);">
             <i data-feather="x" class="w-4 h-4"></i>
           </button>
         </div>
@@ -89,7 +96,7 @@
     <!-- Focus Panel (Right) -->
     <div class="focus-panel" id="focusPanel">
       <div class="focus-header">
-        <button class="btn-circle" onclick="window.location.href='materias.html'" title="Sair">
+        <button class="btn-circle" onclick="closeTimer()" title="Recolher Cronômetro" style="color:rgba(167,139,250,0.5);">
           <i data-feather="x" class="w-4 h-4"></i>
         </button>
         <h3 style="font-size:0.85rem;font-weight:700;margin:0;color:rgba(167,139,250,0.4);font-family:'Sora',sans-serif;letter-spacing:2px;">ZONA DE FOCO</h3>
@@ -201,6 +208,39 @@
         console.error('Error converting base64 to blob url:', e);
         return dataurl;
       }
+    }
+
+    function closePdf() {
+      isTimerFocusMode = true;
+      document.getElementById('immersiveLayout').classList.add('no-media');
+      document.getElementById('immersiveLayout').classList.remove('no-timer');
+      isPdfFullscreen = false;
+    }
+
+    function closeTimer() {
+      isPdfFullscreen = true;
+      document.getElementById('immersiveLayout').classList.add('no-timer');
+      document.getElementById('immersiveLayout').classList.remove('no-media');
+      isTimerFocusMode = false;
+    }
+
+    async function closeSession() {
+      if (isTimerRunning) {
+        clearInterval(timerInterval);
+        isTimerRunning = false;
+        const focusBtn = document.getElementById('focusBtn');
+        if (focusBtn) {
+          focusBtn.innerHTML = 'Salvando...';
+          focusBtn.disabled = true;
+        }
+        try {
+          await App.api('/study/end', { method: 'POST', body: JSON.stringify({ startTime: serverStartTime, contentId }) });
+          localStorage.removeItem('currentContentId');
+        } catch (err) {
+          console.error('Erro ao salvar no fechamento:', err);
+        }
+      }
+      window.location.href = 'materias.html';
     }
 
     async function loadContentDetails() {
@@ -324,15 +364,7 @@
     function togglePdfFullscreen() {
       const layout = document.getElementById('immersiveLayout');
       isPdfFullscreen = !isPdfFullscreen;
-      if (isPdfFullscreen) {
-        layout.style.gridTemplateColumns = "1fr 0px";
-        document.getElementById('focusPanel').style.opacity = "0";
-        document.getElementById('focusPanel').style.pointerEvents = "none";
-      } else {
-        layout.style.gridTemplateColumns = "1fr 400px";
-        document.getElementById('focusPanel').style.opacity = "1";
-        document.getElementById('focusPanel').style.pointerEvents = "all";
-      }
+      layout.classList.toggle('no-timer', isPdfFullscreen);
     }
 
     function downloadPdf() {

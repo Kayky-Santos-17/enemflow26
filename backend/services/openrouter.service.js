@@ -62,7 +62,7 @@ async function getRelevantContentContext(messages) {
     
     relevant.slice(0, 3).forEach(c => {
       contextStr += `Material: "${c.titulo}" (${c.materia} - ${c.tipo})\n`;
-      if (c.url) contextStr += `URL de Referência: ${c.url}\n`;
+      if (c.url && !c.url.startsWith('data:')) contextStr += `URL de Referência: ${c.url}\n`;
       if (c.textoExtraido) {
         contextStr += `Conteúdo do PDF/Artigo:\n${c.textoExtraido.substring(0, 3500)}\n`;
       }
