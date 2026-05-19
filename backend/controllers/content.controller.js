@@ -55,9 +55,10 @@ exports.list = async (req, res) => {
     const filter = { ativo: true };
     if (materia) filter.materia = materia;
 
+    // Remove campos pesados (url com base64 e textoExtraido) para otimizar o carregamento
     const contents = await Content.find(filter)
       .sort({ materia: 1, ordem: 1 })
-      .select('-__v');
+      .select('-__v -textoExtraido -url');
 
     res.json(contents);
   } catch (error) {
