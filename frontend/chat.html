@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>EnemFlow AI - Tutor</title>
   <script src="https://cdn.tailwindcss.com"></script>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Sora:wght@300;400;500;600;700;800&family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="style.css">
   <script src="https://unpkg.com/feather-icons"></script>
   <script src="sidebar.js" defer></script>
@@ -28,7 +28,7 @@
     .prose code { background: rgba(128,128,128,0.2); padding: 0.2em 0.4em; border-radius: 4px; font-family: monospace; font-size: 0.9em; }
   </style>
 </head>
-<body class="flex h-screen overflow-hidden bg-slate-50 dark:bg-[#09090b]">
+<body class="flex h-screen overflow-hidden" style="background:var(--ef-bg-deep,#07060e);font-family:'Inter',sans-serif;">
 
   <!-- Top Bar Mobile -->
   <div class="lg:hidden fixed top-0 w-full glass z-40 px-4 py-3 flex items-center justify-between border-b">
@@ -76,8 +76,8 @@
         <div class="w-20 h-20 rounded-full bg-gradient-primary flex items-center justify-center mb-6 shadow-xl shadow-indigo-500/20">
           <i data-feather="cpu" class="w-10 h-10 text-white"></i>
         </div>
-        <h2 class="text-2xl font-bold mb-2">Como posso ajudar?</h2>
-        <p class="text-center max-w-sm text-sm">Sou seu professor particular. Tire dúvidas, peça resumos ou dicas sobre qualquer assunto do ENEM.</p>
+        <h2 class="text-2xl font-bold mb-2" style="font-family:'Sora',sans-serif;color:#e4dff0;">Como posso ajudar?</h2>
+        <p class="text-center max-w-sm text-sm" style="color:rgba(196,188,220,0.45);">Sou seu professor particular. Tire dúvidas, peça resumos ou dicas sobre qualquer assunto do ENEM.</p>
       </div>
 
     </div>
@@ -261,7 +261,7 @@
         });
 
         // Simula a mensagem do usuário (O que foi extraído)
-        appendMessage('user', `📄 [Arquivo Anexado: ${file.name}]\n\nPor favor, analise este conteúdo.`);
+        appendMessage('user', `[Arquivo Anexado: ${file.name}]\n\nPor favor, analise este conteúdo.`);
         removeTyping();
         
         // Resposta da IA
@@ -313,6 +313,42 @@
 
     loadHistoryList();
     if (currentChatId) loadCurrentChat();
+
+    // Handle PDF context from study.html "Enviar para Tutor IA"
+    (function handlePdfContext() {
+      const params = new URLSearchParams(window.location.search);
+      if (params.get('pdfContext') === 'true') {
+        const pdfTitle = localStorage.getItem('pdfContextTitle') || 'PDF';
+        const pdfUrl = localStorage.getItem('pdfContextUrl') || '';
+        localStorage.removeItem('pdfContextTitle');
+        localStorage.removeItem('pdfContextUrl');
+        window.history.replaceState({}, '', 'chat.html');
+
+        if (pdfTitle) {
+          welcomeMessage.style.display = 'none';
+          appendMessage('user', `Estou estudando o material: "${pdfTitle}". Me ajude com dúvidas sobre este conteúdo.`);
+          showTyping();
+
+          App.api('/api/chat', {
+            method: 'POST',
+            body: JSON.stringify({
+              mensagem: `O aluno está estudando o material "${pdfTitle}" e tem dúvidas sobre o conteúdo. Apresente-se como tutor e pergunte como pode ajudar sobre esse tema específico.`
+            })
+          }).then(data => {
+            removeTyping();
+            appendMessage('assistant', data.resposta);
+            if (!currentChatId && data.chatId) {
+              currentChatId = data.chatId;
+              window.history.replaceState({}, '', `chat.html?id=${currentChatId}`);
+              loadHistoryList();
+            }
+          }).catch(err => {
+            removeTyping();
+            App.showToast(err.message, true);
+          });
+        }
+      }
+    })();
 
   </script>
 </body>

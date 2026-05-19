@@ -7,36 +7,52 @@
   <meta name="description" content="Dashboard principal do EnemFlow AI - Sua plataforma de estudos para o ENEM com IA.">
   <link rel="manifest" href="manifest.json">
   <script src="https://cdn.tailwindcss.com"></script>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Outfit:wght@500;600;700;800&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Sora:wght@300;400;500;600;700;800&family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="style.css">
   <script src="https://unpkg.com/feather-icons"></script>
   <script>
     tailwind.config = {
       darkMode: 'class',
-      theme: { extend: { fontFamily: { sans: ['Inter', 'sans-serif'], outfit: ['Outfit', 'sans-serif'] } } }
+      theme: { extend: { fontFamily: { sans: ['Inter', 'sans-serif'], sora: ['Sora', 'sans-serif'] } } }
     }
   </script>
 </head>
-<body class="min-h-screen bg-[#09090b]">
+<body class="min-h-screen ef-deep-bg" style="font-family:'Inter',sans-serif;">
 
   <!-- Main Content -->
   <main class="flex-1 overflow-y-auto relative min-h-screen">
     <div class="bg-glow" style="top:-10%;right:-5%;"></div>
+    <div class="bg-glow" style="bottom:10%;left:-8%; background: radial-gradient(circle, rgba(168,85,247,0.06) 0%, transparent 60%);"></div>
     
-    <div class="p-6 md:p-10 max-w-6xl mx-auto space-y-8 animate-fade-in">
+    <div class="p-6 md:p-10 max-w-6xl mx-auto space-y-8 animate-fade-in relative z-10">
       
-      <!-- Welcome Header -->
-      <header class="flex flex-col md:flex-row md:items-end justify-between gap-4">
+      <!-- Welcome Header with Dynamic Greeting + XP -->
+      <header class="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
-          <h1 class="text-3xl font-extrabold tracking-tight mb-1 font-outfit" style="color:#fff;">Bem-vindo de volta! 👋</h1>
-          <p style="color:rgba(255,255,255,0.5);">O que vamos estudar hoje?</p>
+          <h1 id="greeting-text" class="text-3xl font-extrabold tracking-tight mb-1" style="font-family:'Sora',sans-serif;">
+            <span class="text-gradient">Carregando...</span>
+          </h1>
+          <p style="color:rgba(196,188,220,0.55);">O que vamos estudar hoje?</p>
         </div>
-        <div class="flex gap-3">
-          <button onclick="window.location.href='materias.html'" class="px-5 py-2.5 rounded-xl font-semibold shadow-sm transition-all flex items-center gap-2 text-sm" style="background:rgba(255,255,255,0.04); border:1px solid rgba(255,255,255,0.08); color:rgba(255,255,255,0.7);">
+        <div class="flex items-center gap-3">
+          <!-- XP Badge -->
+          <div id="xp-badge-area" class="hidden items-center gap-3">
+            <div class="xp-badge">
+              <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="currentColor" style="color:#a78bfa;">
+                <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon>
+              </svg>
+              <span id="dashboard-xp" style="font-family:'Sora',sans-serif;">0 XP</span>
+            </div>
+            <div class="xp-badge" style="background:rgba(16,185,129,0.08); border-color:rgba(16,185,129,0.15); color:#6ee7b7;">
+              <i data-feather="clock" class="w-3 h-3"></i>
+              <span id="dashboard-study-time" style="font-family:'Sora',sans-serif;">0h estudadas</span>
+            </div>
+          </div>
+          <button onclick="window.location.href='materias.html'" class="px-5 py-2.5 rounded-xl font-semibold shadow-sm transition-all flex items-center gap-2 text-sm" style="background:rgba(124,92,252,0.06); border:1px solid rgba(124,92,252,0.12); color:rgba(196,188,220,0.7);">
             <i data-feather="book-open" class="w-4 h-4" style="color:#a78bfa;"></i> Matérias
           </button>
-          <button onclick="window.location.href='chat.html'" class="px-5 py-2.5 rounded-xl font-semibold shadow-lg transition-all flex items-center gap-2 text-sm text-white" style="background:linear-gradient(135deg,#7c5cfc,#a855f7); box-shadow:0 4px 20px rgba(124,92,252,0.3);">
-            <i data-feather="message-circle" class="w-4 h-4"></i> Tutor IA
+          <button onclick="window.location.href='chat.html'" class="px-5 py-2.5 rounded-xl font-semibold shadow-lg transition-all flex items-center gap-2 text-sm text-white" style="background:linear-gradient(135deg,#7c5cfc,#a855f7); box-shadow:0 4px 20px rgba(124,92,252,0.25);">
+            <i data-feather="cpu" class="w-4 h-4"></i> Tutor IA
           </button>
         </div>
       </header>
@@ -45,36 +61,36 @@
       <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
         
         <div onclick="window.location.href='materias.html'" class="glass-card p-6 cursor-pointer group">
-          <div class="w-12 h-12 rounded-2xl flex items-center justify-center mb-4 group-hover:scale-110 transition-transform" style="background:rgba(124,92,252,0.12);">
+          <div class="w-12 h-12 rounded-2xl flex items-center justify-center mb-4 group-hover:scale-110 transition-transform" style="background:rgba(124,92,252,0.1);">
             <i data-feather="book-open" class="w-6 h-6" style="color:#a78bfa;"></i>
           </div>
-          <h3 class="text-lg font-bold mb-2 font-outfit" style="color:#fff;">Matérias & PDFs</h3>
-          <p class="text-sm" style="color:rgba(255,255,255,0.45);">Acesse PDFs, vídeo aulas e materiais organizados por disciplina do ENEM.</p>
+          <h3 class="text-lg font-bold mb-2" style="font-family:'Sora',sans-serif; color:#e4dff0;">Matérias & PDFs</h3>
+          <p class="text-sm" style="color:rgba(196,188,220,0.5);">Acesse PDFs, vídeo aulas e materiais organizados por disciplina do ENEM.</p>
         </div>
 
         <div onclick="window.location.href='chat.html'" class="glass-card p-6 cursor-pointer group">
-          <div class="w-12 h-12 rounded-2xl flex items-center justify-center mb-4 group-hover:scale-110 transition-transform" style="background:rgba(168,85,247,0.12);">
+          <div class="w-12 h-12 rounded-2xl flex items-center justify-center mb-4 group-hover:scale-110 transition-transform" style="background:rgba(168,85,247,0.1);">
             <i data-feather="cpu" class="w-6 h-6" style="color:#c084fc;"></i>
           </div>
-          <h3 class="text-lg font-bold mb-2 font-outfit" style="color:#fff;">Tutor IA</h3>
-          <p class="text-sm" style="color:rgba(255,255,255,0.45);">Tire dúvidas, peça explicações e envie PDFs para análise inteligente.</p>
+          <h3 class="text-lg font-bold mb-2" style="font-family:'Sora',sans-serif; color:#e4dff0;">Tutor IA</h3>
+          <p class="text-sm" style="color:rgba(196,188,220,0.5);">Tire dúvidas, peça explicações e envie PDFs para análise inteligente.</p>
         </div>
 
         <div onclick="window.location.href='exercises.html'" class="glass-card p-6 cursor-pointer group">
-          <div class="w-12 h-12 rounded-2xl flex items-center justify-center mb-4 group-hover:scale-110 transition-transform" style="background:rgba(244,114,182,0.12);">
+          <div class="w-12 h-12 rounded-2xl flex items-center justify-center mb-4 group-hover:scale-110 transition-transform" style="background:rgba(244,114,182,0.1);">
             <i data-feather="edit-3" class="w-6 h-6" style="color:#f472b6;"></i>
           </div>
-          <h3 class="text-lg font-bold mb-2 font-outfit" style="color:#fff;">Simulados ENEM</h3>
-          <p class="text-sm" style="color:rgba(255,255,255,0.45);">Questões geradas pela IA no estilo ENEM com gabarito e explicação.</p>
+          <h3 class="text-lg font-bold mb-2" style="font-family:'Sora',sans-serif; color:#e4dff0;">Simulados ENEM</h3>
+          <p class="text-sm" style="color:rgba(196,188,220,0.5);">Questões geradas pela IA no estilo ENEM com gabarito e explicação.</p>
         </div>
 
       </div>
 
       <!-- Recentes -->
       <div>
-        <div class="flex items-center justify-between mb-6 pb-4" style="border-bottom:1px solid rgba(255,255,255,0.06);">
-          <h2 class="text-xl font-bold flex items-center gap-2 font-outfit" style="color:#fff;">
-            <i data-feather="clock" class="w-5 h-5" style="color:rgba(255,255,255,0.3);"></i> Atividades Recentes
+        <div class="flex items-center justify-between mb-6 pb-4" style="border-bottom:1px solid rgba(124,92,252,0.08);">
+          <h2 class="text-xl font-bold flex items-center gap-2" style="font-family:'Sora',sans-serif; color:#e4dff0;">
+            <i data-feather="clock" class="w-5 h-5" style="color:rgba(167,139,250,0.4);"></i> Atividades Recentes
           </h2>
           <a href="history.html" class="text-sm font-semibold" style="color:#a78bfa;">Ver Histórico</a>
         </div>
@@ -94,19 +110,58 @@
     feather.replace();
     if(!App.getToken()) window.location.href = 'login.html';
 
+    // Dynamic greeting based on time of day
+    function getGreeting(nome) {
+      const hour = new Date().getHours();
+      let greeting = 'Boa noite';
+      if (hour >= 5 && hour < 12) greeting = 'Bom dia';
+      else if (hour >= 12 && hour < 18) greeting = 'Boa tarde';
+      return `${greeting}, ${nome}`;
+    }
+
+    // Calculate XP level
+    function getLevel(xp) {
+      return Math.floor(xp / 100) + 1;
+    }
+
     async function loadDashboard() {
       try {
+        // Load user data for greeting
+        const user = await App.api('/auth/me');
+        const greetingEl = document.getElementById('greeting-text');
+        greetingEl.innerHTML = `<span class="text-gradient">${getGreeting(user.nome)}</span>`;
+        
+        // Show XP badge
+        const xpArea = document.getElementById('xp-badge-area');
+        xpArea.classList.remove('hidden');
+        xpArea.classList.add('flex');
+        document.getElementById('dashboard-xp').textContent = `${user.xp || 0} XP`;
+
+        // Load study time
+        try {
+          const sessions = await App.api(`/study/history/${user._id || ''}`);
+          if (sessions && sessions.length) {
+            const totalSeconds = sessions.reduce((acc, s) => acc + (s.duracao || 0), 0);
+            const hours = Math.floor(totalSeconds / 3600);
+            const mins = Math.floor((totalSeconds % 3600) / 60);
+            document.getElementById('dashboard-study-time').textContent = hours > 0 ? `${hours}h ${mins}m` : `${mins}m estudadas`;
+          }
+        } catch(e) {
+          document.getElementById('dashboard-study-time').textContent = '0h estudadas';
+        }
+
+        // Load recent chats
         const chats = await App.api('/api/chat');
         const list = document.getElementById('recentList');
         
         if (chats.length === 0) {
           list.innerHTML = `
             <div class="glass-card text-center p-10" style="border-style:dashed;">
-              <div class="w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4" style="background:rgba(255,255,255,0.04);">
-                <i data-feather="inbox" class="w-8 h-8" style="color:rgba(255,255,255,0.2);"></i>
+              <div class="w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4" style="background:rgba(124,92,252,0.06);">
+                <i data-feather="inbox" class="w-8 h-8" style="color:rgba(167,139,250,0.3);"></i>
               </div>
-              <h3 class="text-lg font-bold mb-2 font-outfit" style="color:#fff;">Nenhum histórico</h3>
-              <p class="text-sm" style="color:rgba(255,255,255,0.4);">Inicie um chat ou gere um exercício para ver seu progresso aqui.</p>
+              <h3 class="text-lg font-bold mb-2" style="font-family:'Sora',sans-serif; color:#e4dff0;">Nenhum histórico</h3>
+              <p class="text-sm" style="color:rgba(196,188,220,0.45);">Inicie um chat ou gere um exercício para ver seu progresso aqui.</p>
             </div>
           `;
           feather.replace();
@@ -114,10 +169,10 @@
         }
 
         const typeConfig = {
-          exercicio: { color: 'rgba(168,85,247,0.12)', textColor: '#c084fc', icon: 'edit-3' },
-          plano: { color: 'rgba(244,114,182,0.12)', textColor: '#f472b6', icon: 'map' },
-          resumo: { color: 'rgba(16,185,129,0.12)', textColor: '#34d399', icon: 'file-text' },
-          chat: { color: 'rgba(124,92,252,0.12)', textColor: '#a78bfa', icon: 'message-circle' }
+          exercicio: { color: 'rgba(168,85,247,0.1)', textColor: '#c084fc', icon: 'edit-3' },
+          plano: { color: 'rgba(244,114,182,0.1)', textColor: '#f472b6', icon: 'map' },
+          resumo: { color: 'rgba(16,185,129,0.1)', textColor: '#34d399', icon: 'file-text' },
+          chat: { color: 'rgba(124,92,252,0.1)', textColor: '#a78bfa', icon: 'cpu' }
         };
 
         list.innerHTML = chats.slice(0, 5).map(c => {
@@ -128,13 +183,13 @@
               <i data-feather="${cfg.icon}" class="w-5 h-5"></i>
             </div>
             <div class="flex-1 min-w-0">
-              <h4 class="font-bold truncate group-hover:text-[#a78bfa] transition-colors" style="color:#e2e2f0;">${c.titulo}</h4>
-              <p class="text-xs flex items-center gap-2 mt-1" style="color:rgba(255,255,255,0.35);">
-                <span class="capitalize px-2 py-0.5 rounded-full font-medium text-[10px]" style="background:rgba(255,255,255,0.06);">${c.tipo}</span>
+              <h4 class="font-bold truncate group-hover:text-[#a78bfa] transition-colors" style="color:#e4dff0;">${c.titulo}</h4>
+              <p class="text-xs flex items-center gap-2 mt-1" style="color:rgba(196,188,220,0.4);">
+                <span class="capitalize px-2 py-0.5 rounded-full font-medium text-[10px]" style="background:rgba(124,92,252,0.06);">${c.tipo}</span>
                 ${new Date(c.updatedAt).toLocaleDateString('pt-BR', {day:'2-digit', month:'short'})}
               </p>
             </div>
-            <i data-feather="chevron-right" class="w-5 h-5 group-hover:text-[#a78bfa] transition-colors" style="color:rgba(255,255,255,0.15);"></i>
+            <i data-feather="chevron-right" class="w-5 h-5 group-hover:text-[#a78bfa] transition-colors" style="color:rgba(167,139,250,0.2);"></i>
           </a>
         `}).join('');
         feather.replace();
