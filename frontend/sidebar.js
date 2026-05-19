@@ -50,26 +50,11 @@ document.addEventListener('DOMContentLoaded', () => {
         overflow: hidden !important;
       }
       /* Hide elements completely when collapsed */
-      #ef-sidebar.collapsed .sb-logo-text,
+      #ef-sidebar.collapsed .sb-logo-full-wrap,
       #ef-sidebar.collapsed .sb-toggle-area,
       #ef-sidebar.collapsed nav,
       #ef-sidebar.collapsed .sb-footer-container {
-        opacity: 0;
-        visibility: hidden;
-        pointer-events: none;
-        height: 0;
-        padding: 0 !important;
-        margin: 0 !important;
-        overflow: hidden;
-        transition: opacity 0.2s ease, visibility 0.2s ease, height 0.25s ease;
-      }
-      #ef-sidebar:not(.collapsed) .sb-logo-text,
-      #ef-sidebar:not(.collapsed) .sb-toggle-area,
-      #ef-sidebar:not(.collapsed) nav,
-      #ef-sidebar:not(.collapsed) .sb-footer-container {
-        opacity: 1;
-        visibility: visible;
-        transition: opacity 0.4s ease 0.15s, visibility 0.4s ease 0.15s;
+        display: none !important;
       }
       /* When collapsed: logo container spans full height/width to hold the centered floating bolt */
       #ef-sidebar.collapsed .sb-header-container {
@@ -81,9 +66,6 @@ document.addEventListener('DOMContentLoaded', () => {
         padding: 0 !important;
         cursor: pointer;
       }
-      #ef-sidebar.collapsed .sb-logo-full-wrap {
-        display: none !important;
-      }
       #ef-sidebar.collapsed .sb-logo-bolt-wrap {
         display: flex !important;
         align-items: center;
@@ -91,15 +73,16 @@ document.addEventListener('DOMContentLoaded', () => {
         width: 48px;
         height: 48px;
         border-radius: 14px;
-        background: linear-gradient(135deg, #7c5cfc, #ec4899);
-        box-shadow: 0 0 25px rgba(124,92,252,0.4);
+        border: 1px solid rgba(124,92,252,0.25);
+        background: rgba(15, 12, 30, 0.6);
+        box-shadow: 0 0 20px rgba(124,92,252,0.3);
         transform: translateY(0);
         animation: sb-bolt-float 3s ease-in-out infinite;
         transition: transform 0.3s ease, box-shadow 0.3s ease;
       }
       #ef-sidebar.collapsed .sb-logo-bolt-wrap:hover {
         transform: scale(1.08) translateY(-2px);
-        box-shadow: 0 0 30px rgba(124,92,252,0.6);
+        box-shadow: 0 0 30px rgba(124,92,252,0.5);
       }
       #ef-sidebar:not(.collapsed) .sb-logo-bolt-wrap {
         display: none !important;
@@ -160,35 +143,60 @@ document.addEventListener('DOMContentLoaded', () => {
       menuHtml += `<p class="sb-label px-4 text-[10px] font-bold uppercase tracking-widest mb-2 mt-5" style="color: rgba(167,139,250,0.35); font-family:'Sora',sans-serif;">${item.cat}</p>`;
     }
     const isActive = page === item.url;
+    
+    // Custom lightning bolt for Tutor IA
+    const iconHtml = item.title === 'Tutor IA'
+      ? `<svg class="w-[18px] h-[18px] shrink-0" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <defs>
+            <linearGradient id="sbTutorBolt" x1="0%" y1="0%" x2="100%" y2="100%">
+              <stop offset="0%" stop-color="#7c5cfc" />
+              <stop offset="100%" stop-color="#ec4899" />
+            </linearGradient>
+          </defs>
+          <path d="M13 2L5.5 13H11.5L9.5 22L18.5 11H12.5L13 2Z" fill="url(#sbTutorBolt)" />
+        </svg>`
+      : `<i data-feather="${item.icon}" class="w-[18px] h-[18px] shrink-0" ${isActive ? 'style="color:#a78bfa;"' : ''}></i>`;
+
     menuHtml += `
       <a href="${item.url}" class="sb-nav-item flex items-center gap-3 px-4 py-2.5 rounded-xl font-medium transition-all duration-200 text-sm mx-2 mb-0.5 ${
         isActive ? 'text-white' : 'hover:bg-white/5'
       }" style="${isActive 
         ? 'background: rgba(124,92,252,0.15); color: #c4b5fd; border-left: 3px solid #7c5cfc; box-shadow: 0 0 20px rgba(124,92,252,0.08);' 
         : 'color: rgba(196,188,220,0.6);'}; font-family:'Inter',sans-serif;">
-        <i data-feather="${item.icon}" class="w-[18px] h-[18px] shrink-0" ${isActive ? 'style="color:#a78bfa;"' : ''}></i>
+        ${iconHtml}
         <span class="sb-text">${item.title}</span>
       </a>
     `;
   });
 
   sidebar.innerHTML = `
-    <!-- Header Container -->
     <div class="sb-header-container px-5 py-5 flex items-center justify-between transition-all duration-300" style="border-bottom: 1px solid rgba(124,92,252,0.08);">
       <!-- Full Logo (when expanded) -->
       <a href="dashboard.html" class="sb-logo-full-wrap flex items-center gap-2.5" style="text-decoration:none;">
-        <div class="w-8 h-8 rounded-lg flex items-center justify-center shrink-0 shadow-[0_0_15px_rgba(124,92,252,0.35)]" style="background: linear-gradient(135deg, #7c5cfc, #ec4899);">
-          <svg class="w-4.5 h-4.5" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-            <path d="M13 5L6 13H11L10 19L17 11H12L13 5Z" fill="#ffffff" />
+        <div class="w-9 h-9 rounded-xl flex items-center justify-center shrink-0 shadow-[0_0_15px_rgba(124,92,252,0.3)] border border-violet-500/20" style="background: rgba(15,12,30,0.6);">
+          <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <defs>
+              <linearGradient id="boltGradExpanded" x1="0%" y1="0%" x2="100%" y2="100%">
+                <stop offset="0%" stop-color="#7c5cfc" />
+                <stop offset="100%" stop-color="#ec4899" />
+              </linearGradient>
+            </defs>
+            <path d="M13 2L5.5 13H11.5L9.5 22L18.5 11H12.5L13 2Z" fill="url(#boltGradExpanded)" />
           </svg>
         </div>
-        <span class="sb-logo-text text-lg font-bold tracking-tight logo-text-gradient" style="font-family:'Sora',sans-serif;">EnemFlow</span>
+        <span class="sb-logo-text text-lg font-extrabold tracking-tight logo-text-gradient" style="font-family:'Sora',sans-serif;">EnemFlow</span>
       </a>
       
       <!-- Collapsed Logo (floating bolt) -->
       <div class="sb-logo-bolt-wrap cursor-pointer">
         <svg class="w-6 h-6" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-          <path d="M13 5L6 13H11L10 19L17 11H12L13 5Z" fill="#ffffff" />
+          <defs>
+            <linearGradient id="boltGradCollapsed" x1="0%" y1="0%" x2="100%" y2="100%">
+              <stop offset="0%" stop-color="#7c5cfc" />
+              <stop offset="100%" stop-color="#ec4899" />
+            </linearGradient>
+          </defs>
+          <path d="M13 2L5.5 13H11.5L9.5 22L18.5 11H12.5L13 2Z" fill="url(#boltGradCollapsed)" />
         </svg>
       </div>
     </div>
@@ -230,16 +238,22 @@ document.addEventListener('DOMContentLoaded', () => {
   // 7. Mobile header
   const mobileHeader = document.createElement('div');
   mobileHeader.id = 'ef-mobile-header';
-  mobileHeader.className = 'lg:hidden fixed top-0 w-full z-40 px-4 py-3 flex items-center justify-between';
+  mobileHeader.className = 'lg:hidden fixed top-0 w-full z-40 px-4 py-3 flex items-center justify-between' + (page === 'chat.html' ? ' hidden' : '');
   mobileHeader.style.cssText = 'background:rgba(7,6,14,0.9); backdrop-filter:blur(24px); -webkit-backdrop-filter:blur(24px); border-bottom:1px solid rgba(124,92,252,0.08);';
   mobileHeader.innerHTML = `
     <div class="flex items-center gap-2">
-      <div class="w-7 h-7 rounded-lg flex items-center justify-center shrink-0" style="background:linear-gradient(135deg, #7c5cfc, #ec4899);">
-        <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-          <path d="M13 5L6 13H11L10 19L17 11H12L13 5Z" fill="white" />
+      <div class="w-8 h-8 rounded-xl flex items-center justify-center shrink-0 shadow-[0_0_12px_rgba(124,92,252,0.3)] border border-violet-500/20" style="background: rgba(15,12,30,0.6);">
+        <svg class="w-4.5 h-4.5" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <defs>
+            <linearGradient id="boltGradMobile" x1="0%" y1="0%" x2="100%" y2="100%">
+              <stop offset="0%" stop-color="#7c5cfc" />
+              <stop offset="100%" stop-color="#ec4899" />
+            </linearGradient>
+          </defs>
+          <path d="M13 2L5.5 13H11.5L9.5 22L18.5 11H12.5L13 2Z" fill="url(#boltGradMobile)" />
         </svg>
       </div>
-      <span class="font-bold logo-text-gradient" style="font-family:'Sora',sans-serif;">EnemFlow</span>
+      <span class="font-extrabold logo-text-gradient" style="font-family:'Sora',sans-serif;">EnemFlow</span>
     </div>
     <button id="ef-mobile-menu-btn" class="p-2 rounded-lg" style="background:rgba(124,92,252,0.08); color:rgba(167,139,250,0.6);">
       <i data-feather="menu" class="w-5 h-5"></i>

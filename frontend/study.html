@@ -68,7 +68,7 @@
             <i data-feather="download" class="w-4 h-4"></i>
           </button>
           <button class="btn-circle" id="sendToAiBtn" onclick="sendPdfToAI()" title="Enviar para Tutor IA" style="display:none;">
-            <i data-feather="cpu" class="w-4 h-4" style="color:#c084fc;"></i>
+            <i data-feather="zap" class="w-4 h-4" style="color:#c084fc;"></i>
           </button>
           <button class="btn-circle" onclick="window.location.href='materias.html'" title="Fechar" style="color:#f87171;">
             <i data-feather="x" class="w-4 h-4"></i>
@@ -125,8 +125,8 @@
   <!-- Post-Timer Modal: "Possui dúvidas?" -->
   <div class="ef-modal-overlay" id="postTimerModal">
     <div class="ef-modal">
-      <div style="width:56px;height:56px;border-radius:16px;background:linear-gradient(135deg,#7c5cfc,#a855f7);display:flex;align-items:center;justify-content:center;margin:0 auto 1.5rem;box-shadow:0 0 30px rgba(124,92,252,0.3);">
-        <i data-feather="cpu" class="w-7 h-7" style="color:white;"></i>
+      <div style="width:56px;height:56px;border-radius:16px;background:linear-gradient(135deg,#7c5cfc,#ec4899);display:flex;align-items:center;justify-content:center;margin:0 auto 1.5rem;box-shadow:0 0 30px rgba(124,92,252,0.3);">
+        <i data-feather="zap" class="w-7 h-7" style="color:white;"></i>
       </div>
       <h2 style="font-family:'Sora',sans-serif;font-size:1.3rem;font-weight:700;color:#e4dff0;margin-bottom:0.5rem;">Sessão Finalizada!</h2>
       <p style="color:rgba(196,188,220,0.5);font-size:0.85rem;margin-bottom:1.5rem;" id="modalXpText">Você ganhou +0 XP nessa sessão.</p>
@@ -183,6 +183,26 @@
       } catch(e) {}
     };
 
+    let resolvedMediaUrl = '';
+
+    function dataURLtoBlobURL(dataurl) {
+      try {
+        const arr = dataurl.split(',');
+        const mime = arr[0].match(/:(.*?);/)[1];
+        const bstr = atob(arr[1]);
+        let n = bstr.length;
+        const u8arr = new Uint8Array(n);
+        while (n--) {
+          u8arr[n] = bstr.charCodeAt(n);
+        }
+        const blob = new Blob([u8arr], { type: mime });
+        return URL.createObjectURL(blob);
+      } catch (e) {
+        console.error('Error converting base64 to blob url:', e);
+        return dataurl;
+      }
+    }
+
     async function loadContentDetails() {
       try {
         const content = await App.api(`/contents/${contentId}`);
@@ -199,7 +219,15 @@
           }
           const iframe = document.createElement('iframe');
           let finalUrl = content.url;
-          if (content.url.includes('youtube.com/watch?v=')) finalUrl = content.url.replace('watch?v=', 'embed/');
+          if (content.url.startsWith('data:application/pdf')) {
+            resolvedMediaUrl = dataURLtoBlobURL(content.url);
+            finalUrl = resolvedMediaUrl;
+          } else {
+            resolvedMediaUrl = content.url;
+            if (content.url.includes('youtube.com/watch?v=')) {
+              finalUrl = content.url.replace('watch?v=', 'embed/');
+            }
+          }
           iframe.src = finalUrl; iframe.style.width = '100%'; iframe.style.height = '100%'; iframe.style.border = 'none';
           iframe.setAttribute('allowfullscreen', 'true'); iframe.id = 'contentIframe';
           document.getElementById('mediaViewport').appendChild(iframe);
@@ -306,9 +334,9 @@
     }
 
     function downloadPdf() {
-      if (!currentContentUrl) return App.showToast('Nenhum PDF disponível.', true);
+      if (!resolvedMediaUrl) return App.showToast('Nenhum PDF disponível.', true);
       const a = document.createElement('a');
-      a.href = currentContentUrl; a.download = (document.getElementById('contentTitle').textContent || 'enemflow') + '.pdf';
+      a.href = resolvedMediaUrl; a.download = (document.getElementById('contentTitle').textContent || 'enemflow') + '.pdf';
       a.target = '_blank'; document.body.appendChild(a); a.click(); document.body.removeChild(a);
       App.showToast('Download iniciado!');
     }

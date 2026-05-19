@@ -48,12 +48,26 @@
       <button onclick="window.location.href='dashboard.html'" class="p-2 bg-slate-100 dark:bg-white/5 rounded-lg hover:bg-slate-200 dark:hover:bg-white/10 transition-colors">
         <i data-feather="arrow-left" class="w-4 h-4 text-slate-500"></i>
       </button>
-      <span class="text-lg font-bold tracking-tight">Tutor <span class="text-gradient">IA</span></span>
+      <div class="flex items-center gap-2">
+        <svg class="w-5 h-5 shrink-0" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <defs>
+            <linearGradient id="chatHeaderBolt" x1="0%" y1="0%" x2="100%" y2="100%">
+              <stop offset="0%" stop-color="#7c5cfc" />
+              <stop offset="100%" stop-color="#ec4899" />
+            </linearGradient>
+          </defs>
+          <path d="M13 2L5.5 13H11.5L9.5 22L18.5 11H12.5L13 2Z" fill="url(#chatHeaderBolt)" />
+        </svg>
+        <span class="text-lg font-bold tracking-tight">Tutor <span class="text-gradient">IA</span></span>
+      </div>
     </div>
 
-    <div class="p-4">
+    <div class="p-4 space-y-2">
       <button onclick="newChat()" class="w-full py-2.5 px-4 bg-indigo-50 dark:bg-indigo-500/10 hover:bg-indigo-100 dark:hover:bg-indigo-500/20 text-indigo-600 dark:text-indigo-400 rounded-xl font-medium transition-colors flex items-center justify-center gap-2 border border-indigo-200 dark:border-indigo-500/20 text-sm">
         <i data-feather="plus" class="w-4 h-4"></i> Nova Conversa
+      </button>
+      <button onclick="clearAllChats()" class="w-full py-2 px-4 bg-red-500/5 hover:bg-red-500/10 text-red-500 hover:text-red-400 rounded-xl font-semibold transition-colors flex items-center justify-center gap-2 border border-red-500/15 text-xs">
+        <i data-feather="trash-2" class="w-3.5 h-3.5"></i> Limpar Histórico
       </button>
     </div>
 
@@ -73,8 +87,16 @@
       
       <!-- Welcome Message (vazio) -->
       <div id="welcomeMessage" class="flex flex-col items-center justify-center h-full opacity-50 animate-fade-in">
-        <div class="w-20 h-20 rounded-full bg-gradient-primary flex items-center justify-center mb-6 shadow-xl shadow-indigo-500/20">
-          <i data-feather="cpu" class="w-10 h-10 text-white"></i>
+        <div class="w-20 h-20 rounded-2xl flex items-center justify-center mb-6 shadow-xl shadow-indigo-500/30 border border-violet-500/20" style="background: rgba(15,12,30,0.6);">
+          <svg class="w-10 h-10" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <defs>
+              <linearGradient id="welcomeBoltGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+                <stop offset="0%" stop-color="#7c5cfc" />
+                <stop offset="100%" stop-color="#ec4899" />
+              </linearGradient>
+            </defs>
+            <path d="M13 2L5.5 13H11.5L9.5 22L18.5 11H12.5L13 2Z" fill="url(#welcomeBoltGrad)" />
+          </svg>
         </div>
         <h2 class="text-2xl font-bold mb-2" style="font-family:'Sora',sans-serif;color:#e4dff0;">Como posso ajudar?</h2>
         <p class="text-center max-w-sm text-sm" style="color:rgba(196,188,220,0.45);">Sou seu professor particular. Tire dúvidas, peça resumos ou dicas sobre qualquer assunto do ENEM.</p>
@@ -158,8 +180,16 @@
       } else {
         div.innerHTML = `
           <div class="flex gap-4 max-w-[95%] md:max-w-[85%]">
-            <div class="w-8 h-8 rounded-full bg-gradient-primary flex items-center justify-center shrink-0 shadow-lg mt-1">
-              <i data-feather="cpu" class="w-4 h-4 text-white"></i>
+            <div class="w-8 h-8 rounded-xl flex items-center justify-center shrink-0 shadow-lg border border-violet-500/20 mt-1" style="background: rgba(15,12,30,0.8);">
+              <svg class="w-4.5 h-4.5" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <defs>
+                  <linearGradient id="msgTutorBolt" x1="0%" y1="0%" x2="100%" y2="100%">
+                    <stop offset="0%" stop-color="#7c5cfc" />
+                    <stop offset="100%" stop-color="#ec4899" />
+                  </linearGradient>
+                </defs>
+                <path d="M13 2L5.5 13H11.5L9.5 22L18.5 11H12.5L13 2Z" fill="url(#msgTutorBolt)" />
+              </svg>
             </div>
             <div class="glass border border-slate-200 dark:border-white/10 rounded-3xl rounded-tl-sm px-6 py-4 shadow-sm text-slate-800 dark:text-slate-200 prose prose-sm md:prose-base dark:prose-invert">
               ${marked.parse(content)}
@@ -181,8 +211,16 @@
       div.className = `flex w-full justify-start animate-fade-in`;
       div.innerHTML = `
         <div class="flex gap-4 max-w-[85%]">
-          <div class="w-8 h-8 rounded-full bg-slate-200 dark:bg-white/10 flex items-center justify-center shrink-0 mt-1">
-            <i data-feather="cpu" class="w-4 h-4 text-slate-500"></i>
+          <div class="w-8 h-8 rounded-xl flex items-center justify-center shrink-0 border border-white/5 mt-1" style="background: rgba(15,12,30,0.6);">
+            <svg class="w-4.5 h-4.5" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <defs>
+                <linearGradient id="typingTutorBolt" x1="0%" y1="0%" x2="100%" y2="100%">
+                  <stop offset="0%" stop-color="#7c5cfc" />
+                  <stop offset="100%" stop-color="#ec4899" />
+                </linearGradient>
+              </defs>
+              <path d="M13 2L5.5 13H11.5L9.5 22L18.5 11H12.5L13 2Z" fill="url(#typingTutorBolt)" />
+            </svg>
           </div>
           <div class="glass rounded-3xl rounded-tl-sm px-6 py-4 flex items-center gap-1 h-[52px]">
             <div class="w-2 h-2 rounded-full bg-slate-400 typing-dot"></div>
@@ -310,6 +348,20 @@
         newChat();
       }
     }
+
+    // Limpar Todo o Histórico de Conversas
+    async function clearAllChats() {
+      if (!confirm('Deseja realmente apagar todo o seu histórico de conversas com o Tutor? Esta ação é definitiva.')) return;
+      try {
+        await App.api('/api/chat', { method: 'DELETE' });
+        App.showToast('Histórico limpo com sucesso.');
+        newChat();
+        loadHistoryList();
+      } catch (err) {
+        App.showToast(err.message, true);
+      }
+    }
+
 
     loadHistoryList();
     if (currentChatId) loadCurrentChat();

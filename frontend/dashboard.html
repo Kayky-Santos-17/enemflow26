@@ -51,8 +51,8 @@
           <button onclick="window.location.href='materias.html'" class="px-5 py-2.5 rounded-xl font-semibold shadow-sm transition-all flex items-center gap-2 text-sm" style="background:rgba(124,92,252,0.06); border:1px solid rgba(124,92,252,0.12); color:rgba(196,188,220,0.7);">
             <i data-feather="book-open" class="w-4 h-4" style="color:#a78bfa;"></i> Matérias
           </button>
-          <button onclick="window.location.href='chat.html'" class="px-5 py-2.5 rounded-xl font-semibold shadow-lg transition-all flex items-center gap-2 text-sm text-white" style="background:linear-gradient(135deg,#7c5cfc,#a855f7); box-shadow:0 4px 20px rgba(124,92,252,0.25);">
-            <i data-feather="cpu" class="w-4 h-4"></i> Tutor IA
+          <button onclick="window.location.href='chat.html'" class="px-5 py-2.5 rounded-xl font-semibold shadow-lg transition-all flex items-center gap-2 text-sm text-white" style="background:linear-gradient(135deg,#7c5cfc,#ec4899); box-shadow:0 4px 20px rgba(124,92,252,0.25);">
+            <i data-feather="zap" class="w-4 h-4"></i> Tutor IA
           </button>
         </div>
       </header>
@@ -70,7 +70,7 @@
 
         <div onclick="window.location.href='chat.html'" class="glass-card p-6 cursor-pointer group">
           <div class="w-12 h-12 rounded-2xl flex items-center justify-center mb-4 group-hover:scale-110 transition-transform" style="background:rgba(168,85,247,0.1);">
-            <i data-feather="cpu" class="w-6 h-6" style="color:#c084fc;"></i>
+            <i data-feather="zap" class="w-6 h-6" style="color:#c084fc;"></i>
           </div>
           <h3 class="text-lg font-bold mb-2" style="font-family:'Sora',sans-serif; color:#e4dff0;">Tutor IA</h3>
           <p class="text-sm" style="color:rgba(196,188,220,0.5);">Tire dúvidas, peça explicações e envie PDFs para análise inteligente.</p>
@@ -172,7 +172,7 @@
           exercicio: { color: 'rgba(168,85,247,0.1)', textColor: '#c084fc', icon: 'edit-3' },
           plano: { color: 'rgba(244,114,182,0.1)', textColor: '#f472b6', icon: 'map' },
           resumo: { color: 'rgba(16,185,129,0.1)', textColor: '#34d399', icon: 'file-text' },
-          chat: { color: 'rgba(124,92,252,0.1)', textColor: '#a78bfa', icon: 'cpu' }
+          chat: { color: 'rgba(124,92,252,0.1)', textColor: '#a78bfa', icon: 'zap' }
         };
 
         list.innerHTML = chats.slice(0, 5).map(c => {

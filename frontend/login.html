@@ -37,9 +37,15 @@
     <!-- Hero Section (Desktop Only) -->
     <div class="hidden lg:flex flex-col justify-center px-12 animate-fade-in" style="animation-delay: 0.1s;">
       <div class="flex items-center gap-3 mb-8">
-        <div class="w-10 h-10 rounded-2xl flex items-center justify-center shrink-0 shadow-[0_0_20px_rgba(124,92,252,0.4)]" style="background: linear-gradient(135deg, #7c5cfc, #ec4899);">
-          <svg class="w-5.5 h-5.5" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-            <path d="M13 5L6 13H11L10 19L17 11H12L13 5Z" fill="#ffffff" />
+        <div class="w-11 h-11 rounded-2xl flex items-center justify-center shrink-0 shadow-[0_0_20px_rgba(124,92,252,0.3)] border border-violet-500/20" style="background: rgba(15,12,30,0.6);">
+          <svg class="w-6 h-6" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <defs>
+              <linearGradient id="boltGradLogin1" x1="0%" y1="0%" x2="100%" y2="100%">
+                <stop offset="0%" stop-color="#7c5cfc" />
+                <stop offset="100%" stop-color="#ec4899" />
+              </linearGradient>
+            </defs>
+            <path d="M13 2L5.5 13H11.5L9.5 22L18.5 11H12.5L13 2Z" fill="url(#boltGradLogin1)" />
           </svg>
         </div>
         <span class="text-3xl font-extrabold tracking-tight logo-text-gradient" style="font-family:'Sora',sans-serif;">EnemFlow</span>
@@ -67,9 +73,15 @@
         
         <!-- Mobile Logo -->
         <div class="flex lg:hidden items-center justify-center gap-2 mb-8">
-          <div class="w-8 h-8 rounded-xl flex items-center justify-center shrink-0 shadow-[0_0_15px_rgba(124,92,252,0.35)]" style="background: linear-gradient(135deg, #7c5cfc, #ec4899);">
-            <svg class="w-4.5 h-4.5" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-              <path d="M13 5L6 13H11L10 19L17 11H12L13 5Z" fill="#ffffff" />
+          <div class="w-9 h-9 rounded-xl flex items-center justify-center shrink-0 shadow-[0_0_15px_rgba(124,92,252,0.3)] border border-violet-500/20" style="background: rgba(15,12,30,0.6);">
+            <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <defs>
+                <linearGradient id="boltGradLogin2" x1="0%" y1="0%" x2="100%" y2="100%">
+                  <stop offset="0%" stop-color="#7c5cfc" />
+                  <stop offset="100%" stop-color="#ec4899" />
+                </linearGradient>
+              </defs>
+              <path d="M13 2L5.5 13H11.5L9.5 22L18.5 11H12.5L13 2Z" fill="url(#boltGradLogin2)" />
             </svg>
           </div>
           <span class="text-2xl font-bold tracking-tight logo-text-gradient" style="font-family:'Sora',sans-serif;">EnemFlow</span>
@@ -133,9 +145,15 @@
     
     <div class="relative flex flex-col items-center justify-center text-center p-8 space-y-6 max-w-md z-10 animate-fade-in">
       <!-- Lightning Bolt Pulse Icon -->
-      <div class="relative w-24 h-24 rounded-3xl flex items-center justify-center text-white animate-bounce duration-1000" style="background:linear-gradient(135deg,#7c5cfc,#a855f7); box-shadow:0 0 50px rgba(124,92,252,0.3);">
-        <svg class="w-12 h-12 text-white animate-pulse" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5">
-          <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon>
+      <div class="relative w-24 h-24 rounded-3xl flex items-center justify-center animate-bounce duration-1000 border border-violet-500/20 shadow-xl shadow-indigo-500/30" style="background: rgba(15,12,30,0.7);">
+        <svg class="w-12 h-12 animate-pulse" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <defs>
+            <linearGradient id="boltGradSplash" x1="0%" y1="0%" x2="100%" y2="100%">
+              <stop offset="0%" stop-color="#7c5cfc" />
+              <stop offset="100%" stop-color="#ec4899" />
+            </linearGradient>
+          </defs>
+          <path d="M13 2L5.5 13H11.5L9.5 22L18.5 11H12.5L13 2Z" fill="url(#boltGradSplash)" />
         </svg>
       </div>
       
@@ -153,7 +171,23 @@
 
   <script src="app.js"></script>
   <script>
-    if(App.getToken()) window.location.href = 'dashboard.html';
+    async function checkAuthAndRedirect() {
+      if (App.getToken()) {
+        try {
+          const user = await App.api('/auth/me');
+          if (user.role === 'owner') {
+            window.location.href = 'owner.html';
+          } else if (user.role === 'admin') {
+            window.location.href = 'admin.html';
+          } else {
+            window.location.href = 'dashboard.html';
+          }
+        } catch (err) {
+          sessionStorage.removeItem('token');
+        }
+      }
+    }
+    checkAuthAndRedirect();
     
     let isLogin = true;
 
@@ -215,9 +249,20 @@
             document.getElementById('splash-status').innerText = 'Sincronizando Conexão Neural...';
           }, 100);
 
-          // Redireciona após concluir
-          setTimeout(() => {
-            window.location.href = 'dashboard.html';
+          // Redireciona após concluir com verificação de tipo de usuário
+          setTimeout(async () => {
+            try {
+              const user = await App.api('/auth/me');
+              if (user.role === 'owner') {
+                window.location.href = 'owner.html';
+              } else if (user.role === 'admin') {
+                window.location.href = 'admin.html';
+              } else {
+                window.location.href = 'dashboard.html';
+              }
+            } catch (err) {
+              window.location.href = 'dashboard.html';
+            }
           }, 1600);
         }, 300);
 

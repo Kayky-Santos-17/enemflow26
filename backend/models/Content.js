@@ -62,6 +62,10 @@ const contentSchema = new mongoose.Schema(
       type: Boolean,
       default: true,
     },
+    textoExtraido: {
+      type: String,
+      default: '',
+    },
     criadoPor: {
       type: mongoose.Schema.Types.ObjectId,
       ref: 'User',

@@ -136,3 +136,15 @@ A questão DEVE seguir este formato EXATO:
     res.status(500).json({ error: error.message || 'Erro ao gerar exercício.' });
   }
 };
+
+// DELETE /api/chat — Limpa todo o histórico de conversas do próprio estudante
+exports.clearAllChats = async (req, res) => {
+  try {
+    await Chat.deleteMany({ usuarioId: req.userId });
+    res.json({ message: 'Todas as suas conversas foram excluídas com sucesso.' });
+  } catch (error) {
+    console.error('[chat.clearAllChats]', error);
+    res.status(500).json({ error: 'Erro ao excluir todas as conversas.' });
+  }
+};
+

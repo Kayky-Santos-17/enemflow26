@@ -12,7 +12,7 @@
   --ef-primary-light: #9b82fc;
   --ef-accent: #c084fc;
   --ef-accent-pink: #ec4899;
-  --ef-gradient-brand: linear-gradient(135deg, #7c5cfc 0%, #ec4899 100%);
+  --ef-gradient-brand: linear-gradient(90deg, #7c5cfc 0%, #ec4899 100%);
   --ef-gradient-title: linear-gradient(135deg, #7c5cfc 0%, #3b82f6 50%, #ec4899 100%);
   --ef-gradient-button: linear-gradient(135deg, #7c5cfc 0%, #8b5cf6 50%, #ec4899 100%);
   --ef-gradient-text: linear-gradient(135deg, #7c5cfc 0%, #3b82f6 50%, #ec4899 100%);

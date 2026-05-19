@@ -1,4 +1,46 @@
 const Content = require('../models/Content');
+const pdfParse = require('pdf-parse');
+const fs = require('fs');
+const path = require('path');
+const axios = require('axios');
+
+/**
+ * Helper para extrair conteúdo textual de PDF ou de artigo.
+ */
+async function extractTextFromContent(tipo, url, titulo, descricao) {
+  if (tipo === 'artigo') {
+    return `${titulo}\n\n${descricao}`;
+  }
+
+  if (tipo === 'pdf' && url) {
+    try {
+      let buffer;
+      if (url.includes('/uploads/')) {
+        // Arquivo local
+        const filename = url.split('/uploads/')[1];
+        const filepath = path.join(__dirname, '../uploads', filename);
+        if (fs.existsSync(filepath)) {
+          buffer = fs.readFileSync(filepath);
+        }
+      }
+
+      if (!buffer) {
+        // Se for link externo, tenta fazer download
+        const response = await axios.get(url, { responseType: 'arraybuffer' });
+        buffer = Buffer.from(response.data);
+      }
+
+      if (buffer) {
+        const data = await pdfParse(buffer);
+        return data.text;
+      }
+    } catch (err) {
+      console.error('[extractTextFromContent] Erro ao extrair PDF:', err.message);
+    }
+  }
+
+  return '';
+}
 
 /**
  * Controller: content
@@ -42,6 +84,8 @@ exports.create = async (req, res) => {
   try {
     const { titulo, descricao, materia, assunto, subassunto, tipo, url, tempoMedio, ordem } = req.body;
 
+    const textoExtraido = await extractTextFromContent(tipo, url, titulo, descricao);
+
     const content = await Content.create({
       titulo,
       descricao,
@@ -52,6 +96,7 @@ exports.create = async (req, res) => {
       url,
       tempoMedio,
       ordem,
+      textoExtraido,
       criadoPor: req.userId,
     });
 
@@ -68,6 +113,21 @@ exports.create = async (req, res) => {
 // PUT /contents/:id — atualiza conteúdo (admin)
 exports.update = async (req, res) => {
   try {
+    const { tipo, url, titulo, descricao } = req.body;
+    
+    // Se o tipo ou URL mudaram, atualiza o texto extraído
+    if (tipo !== undefined || url !== undefined || titulo !== undefined || descricao !== undefined) {
+      const current = await Content.findById(req.params.id);
+      if (current) {
+        req.body.textoExtraido = await extractTextFromContent(
+          tipo !== undefined ? tipo : current.tipo,
+          url !== undefined ? url : current.url,
+          titulo !== undefined ? titulo : current.titulo,
+          descricao !== undefined ? descricao : current.descricao
+        );
+      }
+    }
+
     const content = await Content.findByIdAndUpdate(
       req.params.id,
       req.body,

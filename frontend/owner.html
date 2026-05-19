@@ -36,137 +36,273 @@
             <p class="text-sm text-slate-400">Administração de alunos, gerenciamento de conversas do Tutor IA e métricas do sistema.</p>
           </div>
         </div>
+        <div class="flex items-center gap-2.5">
+          <button onclick="window.location.href='dashboard.html'" class="px-4 py-2 rounded-xl text-xs font-bold border border-violet-500/20 bg-violet-500/5 text-violet-400 hover:bg-violet-500/10 transition-colors flex items-center gap-2">
+            <i data-feather="eye" class="w-4 h-4"></i> Visão do Aluno
+          </button>
+        </div>
       </header>
 
-      <!-- Grid de Métricas -->
-      <div class="grid grid-cols-1 md:grid-cols-4 gap-6">
-        <div class="glass-card p-6 border border-white/5 relative overflow-hidden group">
-          <div class="absolute right-4 top-4 opacity-10 group-hover:opacity-20 transition-opacity">
-            <i data-feather="users" class="w-12 h-12 text-violet-500"></i>
+      <!-- Tabs Navigation -->
+      <div class="flex border-b border-white/5 pb-0.5 gap-4">
+        <button id="tab-btn-students" onclick="switchTab('students')" class="pb-3 text-sm font-bold border-b-2 border-violet-500 text-violet-400 px-2 transition-all">
+          <i data-feather="users" class="w-4 h-4 inline mr-1.5"></i> Alunos & Sistema
+        </button>
+        <button id="tab-btn-contents" onclick="switchTab('contents')" class="pb-3 text-sm font-semibold border-b-2 border-transparent text-slate-400 hover:text-white px-2 transition-all">
+          <i data-feather="file-text" class="w-4 h-4 inline mr-1.5"></i> Publicar & Gerenciar Conteúdos
+        </button>
+      </div>
+
+      <!-- Tab 1: Alunos & Sistema -->
+      <div id="tab-content-students" class="space-y-8">
+        
+        <!-- Grid de Métricas -->
+        <div class="grid grid-cols-1 md:grid-cols-4 gap-6">
+          <div class="glass-card p-6 border border-white/5 relative overflow-hidden group">
+            <div class="absolute right-4 top-4 opacity-10 group-hover:opacity-20 transition-opacity">
+              <i data-feather="users" class="w-12 h-12 text-violet-500"></i>
+            </div>
+            <span class="text-xs font-semibold text-slate-400">Total de Alunos</span>
+            <h3 id="metric-students" class="text-3xl font-extrabold mt-1 text-white">...</h3>
           </div>
-          <span class="text-xs font-semibold text-slate-400">Total de Alunos</span>
-          <h3 id="metric-students" class="text-3xl font-extrabold mt-1 text-white">...</h3>
+          <div class="glass-card p-6 border border-white/5 relative overflow-hidden group">
+            <div class="absolute right-4 top-4 opacity-10 group-hover:opacity-20 transition-opacity">
+              <i data-feather="file" class="w-12 h-12 text-pink-500"></i>
+            </div>
+            <span class="text-xs font-semibold text-slate-400">Materiais & PDFs</span>
+            <h3 id="metric-pdfs" class="text-3xl font-extrabold mt-1 text-white">...</h3>
+          </div>
+          <div class="glass-card p-6 border border-white/5 relative overflow-hidden group">
+            <div class="absolute right-4 top-4 opacity-10 group-hover:opacity-20 transition-opacity">
+              <i data-feather="database" class="w-12 h-12 text-blue-500"></i>
+            </div>
+            <span class="text-xs font-semibold text-slate-400">Espaço Físico (Uploads)</span>
+            <h3 id="metric-space-phys" class="text-3xl font-extrabold mt-1 text-white">...</h3>
+          </div>
+          <div class="glass-card p-6 border border-white/5 relative overflow-hidden group">
+            <div class="absolute right-4 top-4 opacity-10 group-hover:opacity-20 transition-opacity">
+              <i data-feather="server" class="w-12 h-12 text-violet-500"></i>
+            </div>
+            <span class="text-xs font-semibold text-slate-400">Espaço Estimado Total</span>
+            <h3 id="metric-space-total" class="text-3xl font-extrabold mt-1 text-white">...</h3>
+          </div>
         </div>
-        <div class="glass-card p-6 border border-white/5 relative overflow-hidden group">
-          <div class="absolute right-4 top-4 opacity-10 group-hover:opacity-20 transition-opacity">
-            <i data-feather="file" class="w-12 h-12 text-pink-500"></i>
+
+        <!-- Main Layout Grid -->
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-8">
+          
+          <!-- Coluna Esquerda: Gerenciar Conversas e Cadastro -->
+          <div class="lg:col-span-4 space-y-8">
+            
+            <!-- Cadastrar Aluno -->
+            <div class="space-y-4">
+              <h3 class="text-lg font-bold flex items-center gap-2">
+                <i data-feather="user-plus" class="text-violet-500 w-5 h-5"></i> Cadastrar Novo Aluno
+              </h3>
+              <div class="glass-card p-6 space-y-4">
+                <form id="create-student-form" class="space-y-3">
+                  <input type="text" id="create-nome" placeholder="Nome Completo" required class="w-full px-4 py-2.5 rounded-xl bg-black/40 border border-white/10 text-sm focus:ring-2 focus:ring-violet-500 outline-none transition-all placeholder:text-slate-600">
+                  <input type="email" id="create-email" placeholder="E-mail" required class="w-full px-4 py-2.5 rounded-xl bg-black/40 border border-white/10 text-sm focus:ring-2 focus:ring-violet-500 outline-none transition-all placeholder:text-slate-600">
+                  <input type="password" id="create-senha" placeholder="Senha Temporária" required class="w-full px-4 py-2.5 rounded-xl bg-black/40 border border-white/10 text-sm focus:ring-2 focus:ring-violet-500 outline-none transition-all placeholder:text-slate-600">
+                  <button type="submit" class="w-full py-2.5 bg-gradient-primary hover:opacity-90 font-bold rounded-xl text-xs transition-colors flex items-center justify-center gap-1.5 shadow-lg shadow-violet-500/10">
+                    <i data-feather="check" class="w-4 h-4"></i> Criar Estudante
+                  </button>
+                </form>
+              </div>
+            </div>
+
+            <!-- Gerenciador de Conversas -->
+            <div class="space-y-4">
+              <h3 class="text-lg font-bold flex items-center gap-2">
+                <i data-feather="message-circle" class="text-pink-500 w-5 h-5"></i> Gerenciador de Conversas
+              </h3>
+              <div class="glass-card p-6 space-y-4">
+                
+                <!-- Cleanup por dias -->
+                <div class="space-y-2 border-b border-white/5 pb-4">
+                  <label class="text-xs font-semibold text-slate-400">Limpar conversas antigas</label>
+                  <div class="flex gap-2">
+                    <input type="number" id="cleanup-days" value="30" min="1" class="w-20 px-3 py-1.5 rounded-xl bg-black/40 border border-white/10 text-center text-sm focus:ring-2 focus:ring-pink-500 outline-none transition-all">
+                    <button onclick="cleanupOldChats()" class="flex-1 py-1.5 px-3 bg-pink-500/10 hover:bg-pink-500 text-pink-500 hover:text-white border border-pink-500/20 font-semibold rounded-xl text-xs transition-colors">
+                      Excluir inativas
+                    </button>
+                  </div>
+                </div>
+
+                <!-- Truncar mensagens (Otimizar banco) -->
+                <div class="space-y-2 border-b border-white/5 pb-4">
+                  <div class="flex justify-between items-center">
+                    <span class="text-xs font-semibold text-slate-400">Otimizar Tamanho Mensagens</span>
+                    <span class="text-[9px] bg-blue-500/20 text-blue-300 px-1.5 py-0.5 rounded-full font-bold">MongoDB</span>
+                  </div>
+                  <p class="text-[10px] text-slate-500 leading-normal">Limita chats longos a no máximo 20 mensagens mais recentes, reduzindo tamanho ocupado pelo banco.</p>
+                  <button onclick="truncateMessages()" class="w-full py-2 bg-blue-500/10 hover:bg-blue-500 text-blue-400 hover:text-white border border-blue-500/20 font-bold rounded-xl text-xs transition-colors">
+                    Otimizar banco de dados
+                  </button>
+                </div>
+
+                <!-- Danger: Delete all chats -->
+                <div class="space-y-2">
+                  <label class="text-xs font-semibold text-red-400">Zona Vermelha</label>
+                  <button onclick="deleteAllChats()" class="w-full py-2 bg-red-500/10 hover:bg-red-500 text-red-500 hover:text-white border border-red-500/20 font-bold rounded-xl text-xs transition-colors flex items-center justify-center gap-1.5">
+                    <i data-feather="trash-2" class="w-3.5 h-3.5"></i> Apagar Todos os Chats
+                  </button>
+                </div>
+
+              </div>
+            </div>
+
           </div>
-          <span class="text-xs font-semibold text-slate-400">Materiais & PDFs</span>
-          <h3 id="metric-pdfs" class="text-3xl font-extrabold mt-1 text-white">...</h3>
-        </div>
-        <div class="glass-card p-6 border border-white/5 relative overflow-hidden group">
-          <div class="absolute right-4 top-4 opacity-10 group-hover:opacity-20 transition-opacity">
-            <i data-feather="database" class="w-12 h-12 text-blue-500"></i>
+
+          <!-- Coluna Direita: Lista de Estudantes -->
+          <div class="lg:col-span-8 space-y-4">
+            <h3 class="text-lg font-bold flex items-center gap-2">
+              <i data-feather="users" class="text-violet-500 w-5 h-5"></i> Estudantes Cadastrados
+            </h3>
+            
+            <div class="glass-card overflow-hidden border border-white/5">
+              <div class="overflow-x-auto">
+                <table class="w-full text-left text-sm">
+                  <thead>
+                    <tr class="border-b border-white/5 text-slate-400 text-xs uppercase tracking-wider bg-white/2">
+                      <th class="px-6 py-4 font-semibold">Nome / E-mail</th>
+                      <th class="px-6 py-4 font-semibold text-center">XP</th>
+                      <th class="px-6 py-4 font-semibold text-center">Status</th>
+                      <th class="px-6 py-4 font-semibold text-right">Ações de Controle</th>
+                    </tr>
+                  </thead>
+                  <tbody id="students-table-body" class="divide-y divide-white/5">
+                    <!-- Renderizado dinamicamente -->
+                    <tr>
+                      <td colspan="4" class="text-center py-8 text-slate-500">
+                        <i data-feather="loader" class="w-6 h-6 animate-spin mx-auto mb-2 text-violet-500"></i>
+                        Carregando dados dos alunos...
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
           </div>
-          <span class="text-xs font-semibold text-slate-400">Espaço Físico (Uploads)</span>
-          <h3 id="metric-space-phys" class="text-3xl font-extrabold mt-1 text-white">...</h3>
-        </div>
-        <div class="glass-card p-6 border border-white/5 relative overflow-hidden group">
-          <div class="absolute right-4 top-4 opacity-10 group-hover:opacity-20 transition-opacity">
-            <i data-feather="server" class="w-12 h-12 text-violet-500"></i>
-          </div>
-          <span class="text-xs font-semibold text-slate-400">Espaço Estimado Total</span>
-          <h3 id="metric-space-total" class="text-3xl font-extrabold mt-1 text-white">...</h3>
+
         </div>
       </div>
 
-      <!-- Main Layout Grid -->
-      <div class="grid grid-cols-1 lg:grid-cols-12 gap-8">
-        
-        <!-- Coluna Esquerda: Gerenciar Conversas e Cadastro -->
-        <div class="lg:col-span-4 space-y-8">
+      <!-- Tab 2: Publicar & Gerenciar Conteúdos -->
+      <div id="tab-content-contents" class="hidden space-y-8">
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-8">
           
-          <!-- Cadastrar Aluno -->
-          <div class="space-y-4">
+          <!-- Coluna Esquerda: Publicação -->
+          <div class="lg:col-span-5 space-y-4">
             <h3 class="text-lg font-bold flex items-center gap-2">
-              <i data-feather="user-plus" class="text-violet-500 w-5 h-5"></i> Cadastrar Novo Aluno
+              <i data-feather="plus-circle" class="text-violet-500 w-5 h-5"></i> Publicar Novo Material
             </h3>
-            <div class="glass-card p-6 space-y-4">
-              <form id="create-student-form" class="space-y-3">
-                <input type="text" id="create-nome" placeholder="Nome Completo" required class="w-full px-4 py-2.5 rounded-xl bg-black/40 border border-white/10 text-sm focus:ring-2 focus:ring-violet-500 outline-none transition-all placeholder:text-slate-600">
-                <input type="email" id="create-email" placeholder="E-mail" required class="w-full px-4 py-2.5 rounded-xl bg-black/40 border border-white/10 text-sm focus:ring-2 focus:ring-violet-500 outline-none transition-all placeholder:text-slate-600">
-                <input type="password" id="create-senha" placeholder="Senha Temporária" required class="w-full px-4 py-2.5 rounded-xl bg-black/40 border border-white/10 text-sm focus:ring-2 focus:ring-violet-500 outline-none transition-all placeholder:text-slate-600">
-                <button type="submit" class="w-full py-2.5 bg-gradient-primary hover:opacity-90 font-bold rounded-xl text-xs transition-colors flex items-center justify-center gap-1.5 shadow-lg shadow-violet-500/10">
-                  <i data-feather="check" class="w-4 h-4"></i> Criar Estudante
+            
+            <div class="glass-card p-6">
+              <form id="create-content-form" class="space-y-4">
+                <div>
+                  <label class="block text-xs font-semibold text-slate-400 mb-1.5">Título do Material</label>
+                  <input type="text" id="content-titulo" placeholder="Ex: Logaritmos no ENEM" required class="w-full px-4 py-2.5 rounded-xl bg-black/40 border border-white/10 text-sm focus:ring-2 focus:ring-violet-500 outline-none transition-all placeholder:text-slate-600">
+                </div>
+                
+                <div>
+                  <label class="block text-xs font-semibold text-slate-400 mb-1.5">Descrição</label>
+                  <textarea id="content-descricao" placeholder="Ex: Resumo completo com foco nas questões recorrentes do ENEM." rows="2" class="w-full px-4 py-2.5 rounded-xl bg-black/40 border border-white/10 text-sm focus:ring-2 focus:ring-violet-500 outline-none transition-all placeholder:text-slate-600 resize-none"></textarea>
+                </div>
+
+                <div class="grid grid-cols-2 gap-4">
+                  <div>
+                    <label class="block text-xs font-semibold text-slate-400 mb-1.5">Matéria</label>
+                    <select id="content-materia" required class="w-full px-4 py-2.5 rounded-xl bg-black/40 border border-white/10 text-sm focus:ring-2 focus:ring-violet-500 outline-none transition-all text-slate-300">
+                      <option value="Matemática">Matemática</option>
+                      <option value="Ciências da Natureza">Ciências da Natureza</option>
+                      <option value="Ciências Humanas">Ciências Humanas</option>
+                      <option value="Linguagens">Linguagens</option>
+                      <option value="Redação">Redação</option>
+                    </select>
+                  </div>
+                  <div>
+                    <label class="block text-xs font-semibold text-slate-400 mb-1.5">Assunto</label>
+                    <input type="text" id="content-assunto" placeholder="Ex: Álgebra" required class="w-full px-4 py-2.5 rounded-xl bg-black/40 border border-white/10 text-sm focus:ring-2 focus:ring-violet-500 outline-none transition-all placeholder:text-slate-600">
+                  </div>
+                </div>
+
+                <div class="grid grid-cols-2 gap-4">
+                  <div>
+                    <label class="block text-xs font-semibold text-slate-400 mb-1.5">Tipo</label>
+                    <select id="content-tipo" required class="w-full px-4 py-2.5 rounded-xl bg-black/40 border border-white/10 text-sm focus:ring-2 focus:ring-violet-500 outline-none transition-all text-slate-300">
+                      <option value="pdf">Arquivo PDF</option>
+                      <option value="video">Vídeo/Aula (YouTube/Link)</option>
+                      <option value="artigo">Artigo Escrito</option>
+                      <option value="exercicio">Exercício Prático</option>
+                    </select>
+                  </div>
+                  <div>
+                    <label class="block text-xs font-semibold text-slate-400 mb-1.5">Tempo de Estudo (Minutos)</label>
+                    <input type="number" id="content-tempoMedio" value="30" min="1" required class="w-full px-4 py-2.5 rounded-xl bg-black/40 border border-white/10 text-sm focus:ring-2 focus:ring-violet-500 outline-none transition-all text-slate-300">
+                  </div>
+                </div>
+
+                <div class="space-y-3">
+                  <label class="block text-xs font-semibold text-slate-400">Origem do Arquivo/Link</label>
+                  
+                  <!-- File Upload (Local) -->
+                  <div class="space-y-2">
+                    <input type="file" id="content-file-input" class="hidden" accept=".pdf,.png,.jpg,.jpeg,.txt" onchange="uploadMaterialFile(event)">
+                    <button type="button" onclick="document.getElementById('content-file-input').click()" class="w-full py-3 bg-violet-500/10 hover:bg-violet-500/20 text-violet-400 rounded-xl border border-violet-500/20 font-semibold text-xs transition-all flex items-center justify-center gap-2">
+                      <i data-feather="upload-cloud" class="w-4 h-4"></i> Upload de Arquivo Local
+                    </button>
+                    <div id="upload-status" class="text-[11px] text-violet-400 text-center font-medium hidden"></div>
+                  </div>
+
+                  <div class="flex items-center gap-2 my-2">
+                    <div class="h-px bg-white/5 flex-1"></div>
+                    <span class="text-[9px] text-slate-500 font-bold">OU ADICIONE ENDEREÇO / URL</span>
+                    <div class="h-px bg-white/5 flex-1"></div>
+                  </div>
+
+                  <!-- External URL -->
+                  <input type="url" id="content-url" placeholder="https://exemplo.com/material.pdf" class="w-full px-4 py-2.5 rounded-xl bg-black/40 border border-white/10 text-sm focus:ring-2 focus:ring-violet-500 outline-none transition-all placeholder:text-slate-600">
+                </div>
+
+                <button type="submit" class="w-full py-3 bg-gradient-primary hover:opacity-90 font-bold rounded-xl text-xs transition-colors flex items-center justify-center gap-1.5 shadow-lg shadow-violet-500/10">
+                  <i data-feather="check-circle" class="w-4 h-4"></i> Publicar Conteúdo
                 </button>
               </form>
             </div>
           </div>
 
-          <!-- Gerenciador de Conversas -->
-          <div class="space-y-4">
+          <!-- Coluna Direita: Gerenciamento -->
+          <div class="lg:col-span-7 space-y-4">
             <h3 class="text-lg font-bold flex items-center gap-2">
-              <i data-feather="message-circle" class="text-pink-500 w-5 h-5"></i> Gerenciador de Conversas
+              <i data-feather="folder" class="text-violet-500 w-5 h-5"></i> Materiais Publicados
             </h3>
-            <div class="glass-card p-6 space-y-4">
-              
-              <!-- Cleanup por dias -->
-              <div class="space-y-2 border-b border-white/5 pb-4">
-                <label class="text-xs font-semibold text-slate-400">Limpar conversas antigas</label>
-                <div class="flex gap-2">
-                  <input type="number" id="cleanup-days" value="30" min="1" class="w-20 px-3 py-1.5 rounded-xl bg-black/40 border border-white/10 text-center text-sm focus:ring-2 focus:ring-pink-500 outline-none transition-all">
-                  <button onclick="cleanupOldChats()" class="flex-1 py-1.5 px-3 bg-pink-500/10 hover:bg-pink-500 text-pink-500 hover:text-white border border-pink-500/20 font-semibold rounded-xl text-xs transition-colors">
-                    Excluir inativas
-                  </button>
-                </div>
+            
+            <div class="glass-card overflow-hidden border border-white/5">
+              <div class="overflow-x-auto">
+                <table class="w-full text-left text-sm">
+                  <thead>
+                    <tr class="border-b border-white/5 text-slate-400 text-xs uppercase tracking-wider bg-white/2">
+                      <th class="px-6 py-4 font-semibold">Material / Assunto</th>
+                      <th class="px-6 py-4 font-semibold text-center">Matéria</th>
+                      <th class="px-6 py-4 font-semibold text-center">Tipo</th>
+                      <th class="px-6 py-4 font-semibold text-right">Ação</th>
+                    </tr>
+                  </thead>
+                  <tbody id="contents-table-body" class="divide-y divide-white/5">
+                    <tr>
+                      <td colspan="4" class="text-center py-8 text-slate-500">
+                        <i data-feather="loader" class="w-6 h-6 animate-spin mx-auto mb-2 text-violet-500"></i>
+                        Carregando materiais...
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
               </div>
-
-              <!-- Truncar mensagens (Otimizar banco) -->
-              <div class="space-y-2 border-b border-white/5 pb-4">
-                <div class="flex justify-between items-center">
-                  <span class="text-xs font-semibold text-slate-400">Otimizar Tamanho Mensagens</span>
-                  <span class="text-[9px] bg-blue-500/20 text-blue-300 px-1.5 py-0.5 rounded-full font-bold">MongoDB</span>
-                </div>
-                <p class="text-[10px] text-slate-500 leading-normal">Limita chats longos a no máximo 20 mensagens mais recentes, reduzindo tamanho ocupado pelo banco.</p>
-                <button onclick="truncateMessages()" class="w-full py-2 bg-blue-500/10 hover:bg-blue-500 text-blue-400 hover:text-white border border-blue-500/20 font-bold rounded-xl text-xs transition-colors">
-                  Otimizar banco de dados
-                </button>
-              </div>
-
-              <!-- Danger: Delete all chats -->
-              <div class="space-y-2">
-                <label class="text-xs font-semibold text-red-400">Zona Vermelha</label>
-                <button onclick="deleteAllChats()" class="w-full py-2 bg-red-500/10 hover:bg-red-500 text-red-500 hover:text-white border border-red-500/20 font-bold rounded-xl text-xs transition-colors flex items-center justify-center gap-1.5">
-                  <i data-feather="trash-2" class="w-3.5 h-3.5"></i> Apagar Todos os Chats
-                </button>
-              </div>
-
             </div>
           </div>
 
         </div>
-
-        <!-- Coluna Direita: Lista de Estudantes -->
-        <div class="lg:col-span-8 space-y-4">
-          <h3 class="text-lg font-bold flex items-center gap-2">
-            <i data-feather="users" class="text-violet-500 w-5 h-5"></i> Estudantes Cadastrados
-          </h3>
-          
-          <div class="glass-card overflow-hidden border border-white/5">
-            <div class="overflow-x-auto">
-              <table class="w-full text-left text-sm">
-                <thead>
-                  <tr class="border-b border-white/5 text-slate-400 text-xs uppercase tracking-wider bg-white/2">
-                    <th class="px-6 py-4 font-semibold">Nome / E-mail</th>
-                    <th class="px-6 py-4 font-semibold text-center">XP</th>
-                    <th class="px-6 py-4 font-semibold text-center">Status</th>
-                    <th class="px-6 py-4 font-semibold text-right">Ações de Controle</th>
-                  </tr>
-                </thead>
-                <tbody id="students-table-body" class="divide-y divide-white/5">
-                  <!-- Renderizado dinamicamente -->
-                  <tr>
-                    <td colspan="4" class="text-center py-8 text-slate-500">
-                      <i data-feather="loader" class="w-6 h-6 animate-spin mx-auto mb-2 text-violet-500"></i>
-                      Carregando dados dos alunos...
-                    </td>
-                  </tr>
-                </tbody>
-              </table>
-            </div>
-          </div>
-        </div>
-
       </div>
 
     </div>
@@ -413,6 +549,139 @@
         App.showToast(err.message, true);
       }
     }
+
+    // Alternar entre abas
+    function switchTab(tab) {
+      const btnStudents = document.getElementById('tab-btn-students');
+      const btnContents = document.getElementById('tab-btn-contents');
+      const contentStudents = document.getElementById('tab-content-students');
+      const contentContents = document.getElementById('tab-content-contents');
+
+      if (tab === 'students') {
+        btnStudents.classList.add('border-violet-500', 'text-violet-400', 'font-bold');
+        btnStudents.classList.remove('border-transparent', 'text-slate-400');
+        btnContents.classList.remove('border-violet-500', 'text-violet-400', 'font-bold');
+        btnContents.classList.add('border-transparent', 'text-slate-400');
+
+        contentStudents.classList.remove('hidden');
+        contentContents.classList.add('hidden');
+        loadStudents();
+      } else if (tab === 'contents') {
+        btnContents.classList.add('border-violet-500', 'text-violet-400', 'font-bold');
+        btnContents.classList.remove('border-transparent', 'text-slate-400');
+        btnStudents.classList.remove('border-violet-500', 'text-violet-400', 'font-bold');
+        btnStudents.classList.add('border-transparent', 'text-slate-400');
+
+        contentContents.classList.remove('hidden');
+        contentStudents.classList.add('hidden');
+        loadContents();
+      }
+      feather.replace();
+    }
+
+    // Carrega materiais publicados
+    async function loadContents() {
+      try {
+        const tbody = document.getElementById('contents-table-body');
+        const contents = await App.api('/contents');
+
+        if (contents.length === 0) {
+          tbody.innerHTML = `
+            <tr>
+              <td colspan="4" class="text-center py-8 text-slate-500 font-semibold">Nenhum material publicado no momento.</td>
+            </tr>
+          `;
+          return;
+        }
+
+        tbody.innerHTML = contents.map(c => `
+          <tr class="hover:bg-white/2 transition-colors">
+            <td class="px-6 py-4">
+              <div class="font-bold text-slate-200">${c.titulo}</div>
+              <div class="text-xs text-slate-500 mt-0.5">${c.assunto || 'Geral'}</div>
+            </td>
+            <td class="px-6 py-4 text-center text-slate-300 font-medium text-xs">${c.materia}</td>
+            <td class="px-6 py-4 text-center">
+              <span class="px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider bg-violet-500/10 text-violet-400 border border-violet-500/10">${c.tipo}</span>
+            </td>
+            <td class="px-6 py-4 text-right">
+              <button onclick="deleteContent('${c._id}')" class="p-2 bg-red-500/10 hover:bg-red-500 text-red-500 hover:text-white rounded-lg transition-colors border border-red-500/10" title="Excluir Material">
+                <i data-feather="trash-2" class="w-3.5 h-3.5"></i>
+              </button>
+            </td>
+          </tr>
+        `).join('');
+        feather.replace();
+      } catch (err) {
+        App.showToast('Erro ao carregar materiais.', true);
+      }
+    }
+
+    // Upload de arquivo local para material
+    async function uploadMaterialFile(event) {
+      const file = event.target.files[0];
+      if (!file) return;
+
+      const statusDiv = document.getElementById('upload-status');
+      statusDiv.innerText = 'Enviando arquivo...';
+      statusDiv.classList.remove('hidden');
+
+      const formData = new FormData();
+      formData.append('file', file);
+
+      try {
+        const data = await App.api('/upload', {
+          method: 'POST',
+          body: formData
+        });
+        
+        document.getElementById('content-url').value = data.url;
+        statusDiv.innerText = `Arquivo enviado com sucesso: ${file.name}`;
+        App.showToast('Arquivo carregado com sucesso!');
+      } catch (err) {
+        statusDiv.innerText = `Erro: ${err.message}`;
+        App.showToast(err.message, true);
+      }
+    }
+
+    // Deletar (desativar) material
+    async function deleteContent(id) {
+      if (!confirm('Deseja realmente excluir este material de estudo?')) return;
+      try {
+        await App.api(`/contents/${id}`, { method: 'DELETE' });
+        App.showToast('Material removido com sucesso.');
+        loadContents();
+        loadMetrics();
+      } catch (err) {
+        App.showToast(err.message, true);
+      }
+    }
+
+    // Formulário de Criação de Material
+    document.getElementById('create-content-form').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const titulo = document.getElementById('content-titulo').value;
+      const descricao = document.getElementById('content-descricao').value;
+      const materia = document.getElementById('content-materia').value;
+      const assunto = document.getElementById('content-assunto').value;
+      const tipo = document.getElementById('content-tipo').value;
+      const tempoMedio = parseInt(document.getElementById('content-tempoMedio').value) || 30;
+      const url = document.getElementById('content-url').value;
+
+      try {
+        await App.api('/contents', {
+          method: 'POST',
+          body: JSON.stringify({ titulo, descricao, materia, assunto, tipo, tempoMedio, url })
+        });
+        App.showToast('Material publicado com sucesso!');
+        e.target.reset();
+        document.getElementById('upload-status').classList.add('hidden');
+        loadContents();
+        loadMetrics();
+      } catch (err) {
+        App.showToast(err.message, true);
+      }
+    });
 
     checkOwner();
     loadMetrics();
