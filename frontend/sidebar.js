@@ -1,5 +1,5 @@
 // =========================================================================
-// ENEMFLOW AI — Dynamic, Collapsible & Persistent Sidebar v3.0
+// ENEMFLOW AI — Dynamic, Collapsible & Persistent Sidebar v4.0
 // Premium sidebar: ⚡ bolt icon only when collapsed, smooth animations,
 // Sora font, gradient brand, Lucide-style icons via Feather, no emojis.
 // =========================================================================
@@ -32,75 +32,89 @@ document.addEventListener('DOMContentLoaded', () => {
   if (oldMobile) oldMobile.remove();
 
   // 5. Inject sidebar styles
-  if (!document.getElementById('sidebar-styles-v3')) {
+  if (!document.getElementById('sidebar-styles-v4')) {
     const styleEl = document.createElement('style');
-    styleEl.id = 'sidebar-styles-v3';
+    styleEl.id = 'sidebar-styles-v4';
     styleEl.textContent = `
       :root {
         --sb-width: 260px;
-        --sb-collapsed: 68px;
+        --sb-collapsed: 72px;
       }
       #ef-sidebar {
         width: var(--sb-width);
-        transition: width 0.35s cubic-bezier(0.4, 0, 0.2, 1), transform 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+        transition: width 0.4s cubic-bezier(0.25, 0.8, 0.25, 1);
+        overflow-x: hidden;
       }
       #ef-sidebar.collapsed {
         width: var(--sb-collapsed) !important;
+        overflow: hidden !important;
       }
-      /* When collapsed: hide all text, labels, user info */
-      #ef-sidebar.collapsed .sb-text,
-      #ef-sidebar.collapsed .sb-label,
-      #ef-sidebar.collapsed .sb-user-info,
-      #ef-sidebar.collapsed .sb-collapse-btn-text,
-      #ef-sidebar.collapsed .sb-header-brand,
-      #ef-sidebar.collapsed .sb-toggle-area-text {
+      /* Hide elements completely when collapsed */
+      #ef-sidebar.collapsed .sb-logo-text,
+      #ef-sidebar.collapsed .sb-toggle-area,
+      #ef-sidebar.collapsed nav,
+      #ef-sidebar.collapsed .sb-footer-container {
         opacity: 0;
-        width: 0;
-        overflow: hidden;
-        white-space: nowrap;
+        visibility: hidden;
         pointer-events: none;
-        transition: opacity 0.2s ease, width 0.2s ease;
+        height: 0;
+        padding: 0 !important;
+        margin: 0 !important;
+        overflow: hidden;
+        transition: opacity 0.2s ease, visibility 0.2s ease, height 0.25s ease;
       }
-      #ef-sidebar:not(.collapsed) .sb-text,
-      #ef-sidebar:not(.collapsed) .sb-label,
-      #ef-sidebar:not(.collapsed) .sb-user-info,
-      #ef-sidebar:not(.collapsed) .sb-header-brand {
+      #ef-sidebar:not(.collapsed) .sb-logo-text,
+      #ef-sidebar:not(.collapsed) .sb-toggle-area,
+      #ef-sidebar:not(.collapsed) nav,
+      #ef-sidebar:not(.collapsed) .sb-footer-container {
         opacity: 1;
-        width: auto;
-        transition: opacity 0.3s ease 0.15s, width 0.3s ease;
+        visibility: visible;
+        transition: opacity 0.4s ease 0.15s, visibility 0.4s ease 0.15s;
       }
-      /* Show only the bolt icon when collapsed */
-      #ef-sidebar.collapsed .sb-logo-full { display: none !important; }
-      #ef-sidebar.collapsed .sb-logo-bolt { display: flex !important; }
-      #ef-sidebar .sb-logo-bolt { display: none; }
-      /* Center nav items when collapsed */
-      #ef-sidebar.collapsed .sb-nav-item {
-        justify-content: center !important;
-        padding-left: 0 !important;
-        padding-right: 0 !important;
-      }
-      #ef-sidebar.collapsed .sb-nav-item svg {
-        margin: 0 auto;
-      }
-      /* Footer adjustments */
-      #ef-sidebar.collapsed .sb-footer-user {
-        flex-direction: column;
+      /* When collapsed: logo container spans full height/width to hold the centered floating bolt */
+      #ef-sidebar.collapsed .sb-header-container {
+        height: 100vh;
+        border-bottom: none !important;
+        display: flex;
         align-items: center;
-        padding: 0.5rem !important;
+        justify-content: center;
+        padding: 0 !important;
+        cursor: pointer;
       }
-      #ef-sidebar.collapsed .sb-logout-btn span { display: none !important; }
-      #ef-sidebar.collapsed .sb-logout-btn {
-        justify-content: center !important;
-        padding: 0.625rem !important;
+      #ef-sidebar.collapsed .sb-logo-full-wrap {
+        display: none !important;
       }
-      #ef-sidebar.collapsed .sb-toggle-area {
-        justify-content: center !important;
+      #ef-sidebar.collapsed .sb-logo-bolt-wrap {
+        display: flex !important;
+        align-items: center;
+        justify-content: center;
+        width: 48px;
+        height: 48px;
+        border-radius: 14px;
+        background: linear-gradient(135deg, #7c5cfc, #ec4899, #3b82f6);
+        box-shadow: 0 0 25px rgba(124,92,252,0.4);
+        transform: translateY(0);
+        animation: sb-bolt-float 3s ease-in-out infinite;
+        transition: transform 0.3s ease, box-shadow 0.3s ease;
       }
+      #ef-sidebar.collapsed .sb-logo-bolt-wrap:hover {
+        transform: scale(1.08) translateY(-2px);
+        box-shadow: 0 0 30px rgba(124,92,252,0.6);
+      }
+      #ef-sidebar:not(.collapsed) .sb-logo-bolt-wrap {
+        display: none !important;
+      }
+      
+      @keyframes sb-bolt-float {
+        0%, 100% { transform: translateY(0); }
+        50% { transform: translateY(-5px); }
+      }
+
       /* Main content offset */
       @media (min-width: 1024px) {
         body:has(#ef-sidebar) main {
           margin-left: var(--sb-width);
-          transition: margin-left 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+          transition: margin-left 0.4s cubic-bezier(0.25, 0.8, 0.25, 1);
         }
         body:has(#ef-sidebar.collapsed) main {
           margin-left: var(--sb-collapsed);
@@ -124,7 +138,7 @@ document.addEventListener('DOMContentLoaded', () => {
   const sidebar = document.createElement('aside');
   sidebar.id = 'ef-sidebar';
   sidebar.className = `fixed top-0 left-0 h-screen flex flex-col border-r z-50 ${isCollapsed ? 'collapsed' : ''}`;
-  sidebar.style.cssText = `background: rgba(10,8,20,0.95); backdrop-filter: blur(30px) saturate(1.4); -webkit-backdrop-filter: blur(30px) saturate(1.4); border-color: rgba(124,92,252,0.08);`;
+  sidebar.style.cssText = `background: rgba(10,8,20,0.96); backdrop-filter: blur(35px) saturate(1.5); -webkit-backdrop-filter: blur(35px) saturate(1.5); border-color: rgba(124,92,252,0.08);`;
 
   // Menu items — NO emojis, only feather icons
   const menuItems = [
@@ -158,41 +172,42 @@ document.addEventListener('DOMContentLoaded', () => {
     `;
   });
 
-  // Bolt SVG for collapsed state (inline, no emoji)
-  const boltSVG = `<svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="url(#boltGrad)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-    <defs><linearGradient id="boltGrad" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" style="stop-color:#a78bfa"/><stop offset="100%" style="stop-color:#f472b6"/></linearGradient></defs>
-    <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon>
-  </svg>`;
-
   sidebar.innerHTML = `
-    <!-- Header -->
-    <div class="px-5 py-5 flex items-center justify-between" style="border-bottom: 1px solid rgba(124,92,252,0.08);">
-      <a href="dashboard.html" class="sb-logo-full flex items-center gap-2.5" style="text-decoration:none;">
-        <div class="w-8 h-8 rounded-lg flex items-center justify-center text-white shrink-0" style="background: linear-gradient(135deg, #7c5cfc, #a855f7); box-shadow: 0 0 15px rgba(124,92,252,0.3);">
-          <i data-feather="zap" class="w-[18px] h-[18px]"></i>
+    <!-- Header Container -->
+    <div class="sb-header-container px-5 py-5 flex items-center justify-between transition-all duration-300" style="border-bottom: 1px solid rgba(124,92,252,0.08);">
+      <!-- Full Logo (when expanded) -->
+      <a href="dashboard.html" class="sb-logo-full-wrap flex items-center gap-2.5" style="text-decoration:none;">
+        <div class="w-8 h-8 rounded-lg flex items-center justify-center shrink-0 shadow-[0_0_15px_rgba(124,92,252,0.35)]" style="background: linear-gradient(135deg, #7c5cfc, #ec4899, #3b82f6);">
+          <svg class="w-4.5 h-4.5" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M13 5L6 13H11L10 19L17 11H12L13 5Z" fill="#ffffff" />
+          </svg>
         </div>
-        <span class="sb-header-brand text-lg font-bold tracking-tight" style="color:#e4dff0; font-family:'Sora',sans-serif;">EnemFlow <span style="background:linear-gradient(135deg,#a78bfa,#f472b6);-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;">AI</span></span>
+        <span class="sb-logo-text text-lg font-bold tracking-tight" style="color:#e4dff0; font-family:'Sora',sans-serif;">EnemFlow <span style="background:linear-gradient(135deg,#a78bfa,#f472b6);-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;">AI</span></span>
       </a>
-      <a href="dashboard.html" class="sb-logo-bolt w-9 h-9 rounded-lg flex items-center justify-center shrink-0" style="background: linear-gradient(135deg, #7c5cfc, #a855f7); text-decoration:none; box-shadow: 0 0 20px rgba(124,92,252,0.3);">
-        ${boltSVG}
-      </a>
+      
+      <!-- Collapsed Logo (floating bolt) -->
+      <div class="sb-logo-bolt-wrap cursor-pointer">
+        <svg class="w-6 h-6" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <path d="M13 5L6 13H11L10 19L17 11H12L13 5Z" fill="#ffffff" />
+        </svg>
+      </div>
     </div>
 
-    <!-- Toggle -->
+    <!-- Toggle Button Area (Desktop only) -->
     <div class="sb-toggle-area hidden lg:flex px-4 py-2 justify-end">
       <button id="sb-toggle-btn" class="p-1.5 rounded-lg transition-all duration-300" style="background:rgba(124,92,252,0.06); color:rgba(167,139,250,0.5);" title="Expandir/Recolher">
         <i data-feather="${isCollapsed ? 'chevrons-right' : 'chevrons-left'}" class="w-4 h-4"></i>
       </button>
     </div>
 
-    <!-- Navigation -->
-    <nav class="flex-1 overflow-y-auto py-2" style="scrollbar-width:thin;">
+    <!-- Navigation List -->
+    <nav class="flex-1 overflow-y-auto py-2" style="scrollbar-width:none;-ms-overflow-style:none;">
       ${menuHtml}
       <div id="sb-admin-section"></div>
     </nav>
 
-    <!-- Footer -->
-    <div class="px-3 py-4" style="border-top: 1px solid rgba(124,92,252,0.08);">
+    <!-- Footer Container -->
+    <div class="sb-footer-container px-3 py-4" style="border-top: 1px solid rgba(124,92,252,0.08);">
       <div class="sb-footer-user flex items-center gap-3 px-3 py-2 rounded-xl cursor-pointer transition-colors mb-3 hover:bg-white/5" style="color:rgba(196,188,220,0.7);" onclick="window.location.href='perfil.html'">
         <div id="sb-avatar" class="w-9 h-9 rounded-full flex items-center justify-center font-bold text-sm shrink-0 bg-cover bg-center" style="background-color:rgba(124,92,252,0.2);color:#a78bfa;font-family:'Sora',sans-serif;">?</div>
         <div class="sb-user-info overflow-hidden">
@@ -219,8 +234,10 @@ document.addEventListener('DOMContentLoaded', () => {
   mobileHeader.style.cssText = 'background:rgba(7,6,14,0.9); backdrop-filter:blur(24px); -webkit-backdrop-filter:blur(24px); border-bottom:1px solid rgba(124,92,252,0.08);';
   mobileHeader.innerHTML = `
     <div class="flex items-center gap-2">
-      <div class="w-7 h-7 rounded-lg flex items-center justify-center" style="background:linear-gradient(135deg,#7c5cfc,#a855f7);">
-        <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon></svg>
+      <div class="w-7 h-7 rounded-lg flex items-center justify-center shrink-0" style="background:linear-gradient(135deg, #7c5cfc, #ec4899, #3b82f6);">
+        <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <path d="M13 5L6 13H11L10 19L17 11H12L13 5Z" fill="white" />
+        </svg>
       </div>
       <span class="font-bold" style="color:#e4dff0;font-family:'Sora',sans-serif;">EnemFlow <span style="background:linear-gradient(135deg,#a78bfa,#f472b6);-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;">AI</span></span>
     </div>
@@ -240,32 +257,51 @@ document.addEventListener('DOMContentLoaded', () => {
   document.body.insertBefore(sidebar, document.body.firstChild);
   document.body.insertBefore(mobileHeader, document.body.firstChild);
 
-  // 10. Adjust main content
+  // 10. Adjust main content offset
   const main = document.querySelector('main');
   if (main) {
     main.classList.add('pt-16', 'lg:pt-0');
     if (window.innerWidth >= 1024) {
       main.style.marginLeft = isCollapsed ? 'var(--sb-collapsed)' : 'var(--sb-width)';
-      main.style.transition = 'margin-left 0.35s cubic-bezier(0.4, 0, 0.2, 1)';
+      main.style.transition = 'margin-left 0.4s cubic-bezier(0.25, 0.8, 0.25, 1)';
     }
   }
 
-  // 11. Toggle collapse
+  // Helper toggle collapse function
+  function toggleSidebar() {
+    isCollapsed = !isCollapsed;
+    localStorage.setItem('sidebar_collapsed', isCollapsed);
+    sidebar.classList.toggle('collapsed', isCollapsed);
+    const btn = document.getElementById('sb-toggle-btn');
+    if (btn) {
+      btn.innerHTML = `<i data-feather="${isCollapsed ? 'chevrons-right' : 'chevrons-left'}" class="w-4 h-4"></i>`;
+    }
+    if (main && window.innerWidth >= 1024) {
+      main.style.marginLeft = isCollapsed ? 'var(--sb-collapsed)' : 'var(--sb-width)';
+    }
+    if (typeof feather !== 'undefined') feather.replace();
+  }
+
+  // Click on toggle button
   const toggleBtn = document.getElementById('sb-toggle-btn');
   if (toggleBtn) {
-    toggleBtn.addEventListener('click', () => {
-      isCollapsed = !isCollapsed;
-      localStorage.setItem('sidebar_collapsed', isCollapsed);
-      sidebar.classList.toggle('collapsed', isCollapsed);
-      toggleBtn.innerHTML = `<i data-feather="${isCollapsed ? 'chevrons-right' : 'chevrons-left'}" class="w-4 h-4"></i>`;
-      if (main && window.innerWidth >= 1024) {
-        main.style.marginLeft = isCollapsed ? 'var(--sb-collapsed)' : 'var(--sb-width)';
-      }
-      if (typeof feather !== 'undefined') feather.replace();
+    toggleBtn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      toggleSidebar();
     });
   }
 
-  // 12. Mobile menu
+  // Click on collapsed floating bolt logo to expand
+  const headerContainer = sidebar.querySelector('.sb-header-container');
+  if (headerContainer) {
+    headerContainer.addEventListener('click', () => {
+      if (sidebar.classList.contains('collapsed')) {
+        toggleSidebar();
+      }
+    });
+  }
+
+  // 12. Mobile menu button actions
   const mobileBtn = document.getElementById('ef-mobile-menu-btn');
   if (mobileBtn) {
     mobileBtn.addEventListener('click', () => {
