@@ -22,31 +22,32 @@
     }
   </script>
 </head>
-<body class="min-h-screen flex items-center justify-center relative overflow-hidden bg-[#070709] text-slate-100">
+<body class="min-h-screen flex items-center justify-center relative overflow-hidden text-slate-100" style="background: radial-gradient(circle at 10% 20%, #0d0b21 0%, #05040e 100%);">
   
-  <!-- Ambient Grid Glows (Digno de IA!) -->
-  <div class="absolute top-[-10%] left-[-10%] w-[500px] h-[500px] bg-violet-500/15 rounded-full blur-[100px] pointer-events-none animate-pulse"></div>
-  <div class="absolute bottom-[-10%] right-[-10%] w-[500px] h-[500px] bg-purple-500/15 rounded-full blur-[100px] pointer-events-none animate-pulse"></div>
+  <!-- Ambient Grid Glows & Lateral Lights -->
+  <div class="absolute top-[-10%] left-[-10%] w-[600px] h-[600px] rounded-full blur-[140px] pointer-events-none animate-pulse" style="background: radial-gradient(circle, rgba(124,92,252,0.18) 0%, transparent 70%);"></div>
+  <div class="absolute bottom-[-10%] right-[-10%] w-[600px] h-[600px] rounded-full blur-[140px] pointer-events-none animate-pulse" style="background: radial-gradient(circle, rgba(236,72,153,0.12) 0%, transparent 70%);"></div>
+  <div class="absolute top-[30%] right-[15%] w-[450px] h-[450px] rounded-full blur-[130px] pointer-events-none" style="background: radial-gradient(circle, rgba(59,130,246,0.15) 0%, transparent 70%);"></div>
 
   <!-- Background Decorative Grid -->
-  <div class="absolute inset-0 bg-[linear-gradient(to_right,#8080800a_1px,transparent_1px),linear-gradient(to_bottom,#8080800a_1px,transparent_1px)] bg-[size:14px_24px] pointer-events-none"></div>
+  <div class="absolute inset-0 bg-[linear-gradient(to_right,#80808008_1px,transparent_1px),linear-gradient(to_bottom,#80808008_1px,transparent_1px)] bg-[size:16px_28px] pointer-events-none"></div>
 
   <div class="w-full max-w-6xl grid grid-cols-1 lg:grid-cols-2 gap-12 p-6 z-10">
     
     <!-- Hero Section (Desktop Only) -->
     <div class="hidden lg:flex flex-col justify-center px-12 animate-fade-in" style="animation-delay: 0.1s;">
       <div class="flex items-center gap-3 mb-8">
-        <div class="w-10 h-10 rounded-2xl bg-violet-500/10 flex items-center justify-center border border-violet-500/30 shadow-[0_0_20px_rgba(124,92,252,0.2)]">
-          <svg class="w-6 h-6 text-violet-400" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5">
-            <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon>
+        <div class="w-10 h-10 rounded-2xl flex items-center justify-center shrink-0 shadow-[0_0_20px_rgba(124,92,252,0.4)]" style="background: linear-gradient(135deg, #7c5cfc, #ec4899, #3b82f6);">
+          <svg class="w-5.5 h-5.5" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M13 5L6 13H11L10 19L17 11H12L13 5Z" fill="#ffffff" />
           </svg>
         </div>
-        <span class="text-3xl font-extrabold tracking-tight text-white" style="font-family:'Sora',sans-serif;">EnemFlow <span class="bg-clip-text text-transparent bg-gradient-to-r from-violet-400 to-purple-400">AI</span></span>
+        <span class="text-3xl font-extrabold tracking-tight text-white" style="font-family:'Sora',sans-serif;">EnemFlow <span style="background:linear-gradient(135deg,#a78bfa,#f472b6);-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;">AI</span></span>
       </div>
       <h1 class="text-5xl font-extrabold leading-tight mb-6 text-white" style="font-family:'Sora',sans-serif;">
         O seu tutor particular com <span class="bg-clip-text text-transparent bg-gradient-to-r from-violet-400 via-purple-400 to-fuchsia-400">Superpoderes de IA</span>.
       </h1>
-      <p class="text-base mb-8 max-w-md leading-relaxed" style="color:rgba(255,255,255,0.55);">
+      <p class="text-base mb-8 max-w-md leading-relaxed" style="color:rgba(196,188,220,0.55);">
         Domine o ENEM com resumos inteligentes, banco de materiais unificado, cronômetro de estudos e uma inteligência artificial adaptada a você.
       </p>
       
@@ -62,21 +63,21 @@
 
     <!-- Auth Card -->
     <div class="flex items-center justify-center animate-fade-in" style="animation-delay: 0.2s;">
-      <div class="glass-card w-full max-w-md p-8 md:p-10 relative bg-[#0c0c0f]/90 border border-white/10 rounded-3xl shadow-2xl">
+      <div class="glass-card w-full max-w-md p-8 md:p-10 relative rounded-3xl shadow-2xl" style="background: rgba(13, 10, 30, 0.45); backdrop-filter: blur(25px); -webkit-backdrop-filter: blur(25px); border: 1px solid rgba(124,92,252,0.12);">
         
         <!-- Mobile Logo -->
         <div class="flex lg:hidden items-center justify-center gap-2 mb-8">
-          <div class="w-8 h-8 rounded-xl bg-indigo-500/10 flex items-center justify-center border border-indigo-500/30">
-            <svg class="w-5 h-5 text-indigo-400" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5">
-              <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon>
+          <div class="w-8 h-8 rounded-xl flex items-center justify-center shrink-0 shadow-[0_0_15px_rgba(124,92,252,0.35)]" style="background: linear-gradient(135deg, #7c5cfc, #ec4899, #3b82f6);">
+            <svg class="w-4.5 h-4.5" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <path d="M13 5L6 13H11L10 19L17 11H12L13 5Z" fill="#ffffff" />
             </svg>
           </div>
-          <span class="text-2xl font-bold tracking-tight text-white" style="font-family:'Sora',sans-serif;">EnemFlow <span class="bg-clip-text text-transparent bg-gradient-to-r from-violet-400 to-purple-400">AI</span></span>
+          <span class="text-2xl font-bold tracking-tight text-white" style="font-family:'Sora',sans-serif;">EnemFlow <span style="background:linear-gradient(135deg,#a78bfa,#f472b6);-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;">AI</span></span>
         </div>
 
         <div class="text-center mb-8">
           <h2 id="formTitle" class="text-2xl font-extrabold text-white mb-2 tracking-tight" style="font-family:'Sora',sans-serif;">Bem-vindo de volta</h2>
-          <p id="formSubtitle" class="text-xs font-medium" style="color:rgba(255,255,255,0.45);">Insira suas credenciais para acessar sua jornada.</p>
+          <p id="formSubtitle" class="text-xs font-medium" style="color:rgba(196,188,220,0.5);">Insira suas credenciais para acessar sua jornada.</p>
           
           <!-- Caixa de Alerta Inline Premium (Fixo na Tela, sem Flutuação) -->
           <div id="authAlert" class="hidden mt-4 p-3.5 rounded-2xl text-xs font-semibold border text-left flex items-start gap-2.5 animate-fade-in transition-all">

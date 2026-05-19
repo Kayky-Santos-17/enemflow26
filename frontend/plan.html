@@ -16,6 +16,33 @@
       theme: { extend: { fontFamily: { sans: ['Inter', 'sans-serif'] } } }
     }
   </script>
+  <style>
+    .selected-tag {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 4px 10px;
+      border-radius: 8px;
+      font-size: 0.8rem;
+      font-weight: 600;
+      background: rgba(236, 72, 153, 0.15);
+      color: #f472b6;
+      border: 1px solid rgba(236, 72, 153, 0.25);
+      animation: tag-pop 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    }
+    .selected-tag .remove-btn {
+      cursor: pointer;
+      opacity: 0.7;
+      transition: opacity 0.2s;
+    }
+    .selected-tag .remove-btn:hover {
+      opacity: 1;
+    }
+    @keyframes tag-pop {
+      0% { transform: scale(0.8); opacity: 0; }
+      100% { transform: scale(1); opacity: 1; }
+    }
+  </style>
 </head>
 <body class="flex h-screen overflow-hidden ef-deep-bg" style="font-family:'Inter',sans-serif;">
 
@@ -31,11 +58,7 @@
     <div class="w-9"></div>
   </div>
 
-  <div class="hidden lg:flex fixed top-0 left-0 p-6 z-50">
-    <button onclick="window.location.href='dashboard.html'" class="flex items-center gap-2 px-4 py-2 bg-white/50 dark:bg-white/5 hover:bg-white dark:hover:bg-white/10 border border-slate-200 dark:border-white/10 rounded-xl font-medium transition-colors backdrop-blur-md">
-      <i data-feather="arrow-left" class="w-4 h-4"></i> Voltar ao Dashboard
-    </button>
-  </div>
+
 
   <main class="flex-1 overflow-y-auto relative pt-16 lg:pt-8 pb-20 lg:pl-8">
     <div class="bg-glow top-[10%] right-[30%] bg-pink-500/20"></div>
@@ -54,41 +77,15 @@
         <form id="planForm" class="space-y-6">
           
           <div>
-            <label class="text-sm font-medium text-slate-700 dark:text-slate-300 block mb-3">Selecione as Matérias (foco)</label>
-            <div class="grid grid-cols-2 md:grid-cols-4 gap-3">
-              <!-- Checkboxes estilizados -->
-              <label class="flex items-center gap-2 p-3 border border-slate-200 dark:border-white/10 rounded-xl cursor-pointer hover:bg-slate-50 dark:hover:bg-white/5 transition-colors">
-                <input type="checkbox" name="materias" value="Matemática" class="w-4 h-4 text-pink-500 rounded focus:ring-pink-500">
-                <span class="text-sm font-medium">Matemática</span>
-              </label>
-              <label class="flex items-center gap-2 p-3 border border-slate-200 dark:border-white/10 rounded-xl cursor-pointer hover:bg-slate-50 dark:hover:bg-white/5 transition-colors">
-                <input type="checkbox" name="materias" value="Física" class="w-4 h-4 text-pink-500 rounded focus:ring-pink-500">
-                <span class="text-sm font-medium">Física</span>
-              </label>
-              <label class="flex items-center gap-2 p-3 border border-slate-200 dark:border-white/10 rounded-xl cursor-pointer hover:bg-slate-50 dark:hover:bg-white/5 transition-colors">
-                <input type="checkbox" name="materias" value="Química" class="w-4 h-4 text-pink-500 rounded focus:ring-pink-500">
-                <span class="text-sm font-medium">Química</span>
-              </label>
-              <label class="flex items-center gap-2 p-3 border border-slate-200 dark:border-white/10 rounded-xl cursor-pointer hover:bg-slate-50 dark:hover:bg-white/5 transition-colors">
-                <input type="checkbox" name="materias" value="Biologia" class="w-4 h-4 text-pink-500 rounded focus:ring-pink-500">
-                <span class="text-sm font-medium">Biologia</span>
-              </label>
-              <label class="flex items-center gap-2 p-3 border border-slate-200 dark:border-white/10 rounded-xl cursor-pointer hover:bg-slate-50 dark:hover:bg-white/5 transition-colors">
-                <input type="checkbox" name="materias" value="História" class="w-4 h-4 text-pink-500 rounded focus:ring-pink-500">
-                <span class="text-sm font-medium">História</span>
-              </label>
-              <label class="flex items-center gap-2 p-3 border border-slate-200 dark:border-white/10 rounded-xl cursor-pointer hover:bg-slate-50 dark:hover:bg-white/5 transition-colors">
-                <input type="checkbox" name="materias" value="Geografia" class="w-4 h-4 text-pink-500 rounded focus:ring-pink-500">
-                <span class="text-sm font-medium">Geografia</span>
-              </label>
-              <label class="flex items-center gap-2 p-3 border border-slate-200 dark:border-white/10 rounded-xl cursor-pointer hover:bg-slate-50 dark:hover:bg-white/5 transition-colors">
-                <input type="checkbox" name="materias" value="Linguagens" class="w-4 h-4 text-pink-500 rounded focus:ring-pink-500">
-                <span class="text-sm font-medium">Linguagens</span>
-              </label>
-              <label class="flex items-center gap-2 p-3 border border-slate-200 dark:border-white/10 rounded-xl cursor-pointer hover:bg-slate-50 dark:hover:bg-white/5 transition-colors">
-                <input type="checkbox" name="materias" value="Redação" class="w-4 h-4 text-pink-500 rounded focus:ring-pink-500">
-                <span class="text-sm font-medium">Redação</span>
-              </label>
+            <label class="text-sm font-semibold text-slate-300 block mb-2 font-sora">Selecione as Matérias (foco)</label>
+            <div class="relative">
+              <div id="multiSelectTrigger" class="min-h-[46px] w-full px-4 py-2.5 rounded-xl bg-slate-50 dark:bg-black/20 border border-slate-200 dark:border-white/10 outline-none focus-within:ring-2 focus-within:ring-pink-500 flex flex-wrap gap-2 items-center cursor-pointer transition-all">
+                <div id="selectedTagsContainer" class="flex flex-wrap gap-1.5"></div>
+                <span id="placeholderText" class="text-sm text-slate-400 select-none">Escolha uma ou mais matérias...</span>
+                <i data-feather="chevron-down" class="w-4 h-4 ml-auto text-slate-400 shrink-0"></i>
+              </div>
+              <div id="multiSelectDropdown" class="hidden absolute left-0 w-full mt-2 rounded-2xl bg-[#0c0a1b]/98 border border-white/10 shadow-2xl z-50 max-h-60 overflow-y-auto py-2 backdrop-blur-xl animate-fade-in">
+              </div>
             </div>
           </div>
 
@@ -131,17 +128,88 @@
 
     </div>
   </main>
-
   <script src="app.js"></script>
   <script>
     feather.replace();
     if(!App.getToken()) window.location.href = 'login.html';
 
+    // Modern Multi-Select Dropdown Logic
+    const materiasList = [
+      "Matemática", "Português", "Física", "Química", "Biologia", 
+      "História", "Geografia", "Sociologia", "Filosofia", "Artes", 
+      "Literatura", "Inglês", "Espanhol", "Redação"
+    ];
+    let selectedMaterias = [];
+
+    const trigger = document.getElementById('multiSelectTrigger');
+    const dropdown = document.getElementById('multiSelectDropdown');
+    const selectedTagsContainer = document.getElementById('selectedTagsContainer');
+    const placeholderText = document.getElementById('placeholderText');
+
+    trigger.addEventListener('click', (e) => {
+      dropdown.classList.toggle('hidden');
+    });
+
+    document.addEventListener('click', (e) => {
+      if (!trigger.contains(e.target) && !dropdown.contains(e.target)) {
+        dropdown.classList.add('hidden');
+      }
+    });
+
+    function renderDropdownItems() {
+      dropdown.innerHTML = '';
+      materiasList.forEach(m => {
+        const isSelected = selectedMaterias.includes(m);
+        const item = document.createElement('div');
+        item.className = "px-4 py-2.5 hover:bg-white/5 cursor-pointer text-sm font-medium flex items-center justify-between transition-colors";
+        item.style.color = isSelected ? '#f472b6' : 'rgba(196,188,220,0.7)';
+        item.innerHTML = `
+          <span>${m}</span>
+          <i data-feather="check" class="w-4 h-4 text-pink-500 ${isSelected ? '' : 'hidden'}"></i>
+        `;
+        item.onclick = () => toggleSelectMateria(m);
+        dropdown.appendChild(item);
+      });
+      if (typeof feather !== 'undefined') feather.replace();
+    }
+
+    function toggleSelectMateria(materia) {
+      if (selectedMaterias.includes(materia)) {
+        selectedMaterias = selectedMaterias.filter(x => x !== materia);
+      } else {
+        selectedMaterias.push(materia);
+      }
+      updateTags();
+      renderDropdownItems();
+    }
+
+    function updateTags() {
+      selectedTagsContainer.innerHTML = '';
+      if (selectedMaterias.length > 0) {
+        placeholderText.classList.add('hidden');
+        selectedMaterias.forEach(m => {
+          const tag = document.createElement('span');
+          tag.className = 'selected-tag';
+          tag.innerHTML = `${m} <span class="remove-btn font-bold ml-1" onclick="event.stopPropagation(); removeMateria('${m}')">✕</span>`;
+          selectedTagsContainer.appendChild(tag);
+        });
+      } else {
+        placeholderText.classList.remove('hidden');
+      }
+    }
+
+    window.removeMateria = function(materia) {
+      selectedMaterias = selectedMaterias.filter(x => x !== materia);
+      updateTags();
+      renderDropdownItems();
+    }
+
+    renderDropdownItems();
+
     document.getElementById('planForm').addEventListener('submit', async (e) => {
       e.preventDefault();
       
-      const materiasChecked = Array.from(document.querySelectorAll('input[name="materias"]:checked')).map(cb => cb.value);
-      if (materiasChecked.length === 0) return App.showToast('Selecione ao menos uma matéria.', true);
+      if (selectedMaterias.length === 0) return App.showToast('Selecione ao menos uma matéria.', true);
 
       const tempoDisponivel = document.getElementById('tempo').value;
       const dificuldade = document.getElementById('dificuldade').value;
@@ -156,7 +224,7 @@
       try {
         const data = await App.api('/api/plan', {
           method: 'POST',
-          body: JSON.stringify({ materias: materiasChecked, tempoDisponivel, dificuldade })
+          body: JSON.stringify({ materias: selectedMaterias, tempoDisponivel, dificuldade })
         });
 
         contentDiv.innerHTML = marked.parse(data.cronograma);

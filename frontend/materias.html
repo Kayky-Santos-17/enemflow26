@@ -29,7 +29,7 @@
     <div class="bg-glow" style="top:5%;right:5%;"></div>
     <div class="bg-glow" style="bottom:15%;left:0%; background:radial-gradient(circle,rgba(168,85,247,0.05) 0%,transparent 60%);"></div>
 
-    <div class="p-6 md:p-10 max-w-5xl mx-auto space-y-6 animate-fade-in relative z-10">
+    <div class="p-6 md:p-10 max-w-4xl mx-auto space-y-6 animate-fade-in relative z-10">
 
       <header class="pb-5" style="border-bottom:1px solid rgba(124,92,252,0.08);">
         <h1 class="text-2xl font-extrabold tracking-tight mb-1" style="font-family:'Sora',sans-serif;">
@@ -43,7 +43,7 @@
         <h2 class="text-base font-bold mb-4 flex items-center gap-2" style="font-family:'Sora',sans-serif; color:#e4dff0;">
           <i data-feather="grid" class="w-4 h-4" style="color:#a78bfa;"></i> Escolha uma Disciplina
         </h2>
-        <div id="materias-grid" class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
+        <div id="materias-grid" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3.5">
           <div class="skeleton h-24 rounded-2xl"></div>
           <div class="skeleton h-24 rounded-2xl"></div>
           <div class="skeleton h-24 rounded-2xl"></div>
@@ -61,7 +61,7 @@
             <i data-feather="arrow-left" class="w-3.5 h-3.5"></i> Voltar
           </button>
         </div>
-        <div id="assuntos-grid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4"></div>
+        <div id="assuntos-grid" class="grid grid-cols-2 sm:grid-cols-3 gap-3.5"></div>
       </section>
 
       <!-- Nível 3: Tópicos & Materiais -->
@@ -144,16 +144,16 @@
       materiasAtivas.forEach(m => {
         const total = counts[m.nome] || 0;
         const card = document.createElement('div');
-        card.className = `glass-card p-4 cursor-pointer group transition-all duration-300`;
+        card.className = `glass-card p-3 cursor-pointer group transition-all duration-300 hover:scale-[1.03] hover:shadow-[0_0_20px_rgba(124,92,252,0.15)] hover:border-violet-500/30`;
         card.onclick = () => selectMateria(m.nome);
         card.innerHTML = `
-          <div class="flex items-center gap-3 mb-2">
-            <div class="w-10 h-10 rounded-xl flex items-center justify-center text-white shrink-0 group-hover:scale-110 transition-transform" style="background:${m.gradient}; box-shadow:0 4px 12px rgba(0,0,0,0.2);">
-              <i data-feather="${m.icon}" class="w-5 h-5"></i>
+          <div class="flex items-center gap-3">
+            <div class="w-9 h-9 rounded-lg flex items-center justify-center text-white shrink-0 group-hover:scale-105 transition-transform" style="background:${m.gradient}; box-shadow:0 3px 8px rgba(0,0,0,0.15);">
+              <i data-feather="${m.icon}" class="w-4.5 h-4.5"></i>
             </div>
-            <div class="min-w-0">
-              <h3 class="text-sm font-bold truncate group-hover:text-[#a78bfa] transition-colors" style="font-family:'Sora',sans-serif; color:#e4dff0;">${m.nome}</h3>
-              <p class="text-[11px]" style="color:rgba(196,188,220,0.4);">${total} conteúdo(s)</p>
+            <div class="min-w-0 flex-1">
+              <h3 class="text-xs font-bold truncate group-hover:text-[#a78bfa] transition-colors" style="font-family:'Sora',sans-serif; color:#e4dff0;">${m.nome}</h3>
+              <p class="text-[10px]" style="color:rgba(196,188,220,0.4);">${total} conteúdo(s)</p>
             </div>
           </div>
         `;
@@ -181,17 +181,16 @@
       Object.keys(assuntosMap).forEach(assunto => {
         const list = assuntosMap[assunto];
         const card = document.createElement('div');
-        card.className = "glass-card p-4 cursor-pointer group transition-all";
+        card.className = "glass-card p-3 cursor-pointer group transition-all duration-300 hover:scale-[1.03] hover:shadow-[0_0_20px_rgba(244,114,182,0.12)] hover:border-pink-500/30";
         card.onclick = () => selectAssunto(assunto, list);
         card.innerHTML = `
-          <div class="flex items-center justify-between mb-3">
-            <div class="w-9 h-9 rounded-lg flex items-center justify-center" style="background:rgba(244,114,182,0.08);">
-              <i data-feather="book-open" class="w-4 h-4" style="color:#f472b6;"></i>
+          <div class="flex items-center justify-between mb-2">
+            <div class="w-8 h-8 rounded-lg flex items-center justify-center" style="background:rgba(244,114,182,0.08);">
+              <i data-feather="book-open" class="w-3.5 h-3.5" style="color:#f472b6;"></i>
             </div>
-            <span class="px-2 py-0.5 rounded-full font-semibold text-[10px]" style="background:rgba(124,92,252,0.06); color:rgba(196,188,220,0.5);">${list.length} tópicos</span>
+            <span class="px-2 py-0.5 rounded-full font-semibold text-[9px]" style="background:rgba(124,92,252,0.06); color:rgba(196,188,220,0.5);">${list.length} tópicos</span>
           </div>
-          <h3 class="text-sm font-bold truncate group-hover:text-[#f472b6] transition-colors" style="font-family:'Sora',sans-serif; color:#e4dff0;">${assunto}</h3>
-          <p class="text-[11px] mt-1" style="color:rgba(196,188,220,0.4);">Clique para abrir os tópicos.</p>
+          <h3 class="text-xs font-bold truncate group-hover:text-[#f472b6] transition-colors" style="font-family:'Sora',sans-serif; color:#e4dff0;">${assunto}</h3>
         `;
         grid.appendChild(card);
       });
