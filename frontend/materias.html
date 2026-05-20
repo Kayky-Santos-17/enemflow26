@@ -147,13 +147,28 @@
         const baseColorMatch = m.gradient.match(/#[a-f0-9]{6}/i);
         const baseColor = baseColorMatch ? baseColorMatch[0] : '#7c5cfc';
         
-        card.className = `glass-card p-4 cursor-pointer flex flex-col justify-center group transition-all duration-300 hover:scale-[1.03] hover:shadow-[0_10px_30px_rgba(0,0,0,0.2)]`;
-        card.style.borderLeft = `4px solid ${baseColor}`;
+        card.className = `relative overflow-hidden p-5 cursor-pointer flex flex-col justify-between group transition-all duration-300 hover:-translate-y-1 hover:shadow-2xl rounded-2xl border border-white/10`;
+        card.style.background = `rgba(15, 12, 30, 0.7)`;
+        card.style.backdropFilter = `blur(12px)`;
         card.onclick = () => selectMateria(m.nome);
         card.innerHTML = `
-          <div class="min-w-0 flex-1 px-1">
-            <h3 class="text-base font-extrabold truncate transition-colors" style="font-family:'Sora',sans-serif; color:${baseColor}; letter-spacing:0.5px;">${m.nome}</h3>
-            <p class="text-[11px] mt-1 font-semibold" style="color:rgba(196,188,220,0.5);">${total} conteúdo(s)</p>
+          <!-- Glowing background on hover -->
+          <div class="absolute inset-0 opacity-0 group-hover:opacity-20 transition-opacity duration-500" style="background: ${m.gradient};"></div>
+          
+          <!-- Top Icon & Counter -->
+          <div class="flex items-center justify-between mb-4 relative z-10">
+            <div class="w-10 h-10 rounded-xl flex items-center justify-center shadow-lg shadow-black/20" style="background: ${m.gradient};">
+              <i data-feather="${m.icon}" class="w-5 h-5 text-white"></i>
+            </div>
+            <span class="px-2.5 py-1 rounded-full font-bold text-[10px] tracking-wide" style="background: rgba(255,255,255,0.05); color: rgba(255,255,255,0.6); border: 1px solid rgba(255,255,255,0.1);">
+              ${total} aula(s)
+            </span>
+          </div>
+
+          <!-- Title -->
+          <div class="relative z-10 mt-2">
+            <h3 class="text-xl font-extrabold tracking-tight transition-colors group-hover:text-white" style="font-family:'Sora',sans-serif; color: ${baseColor};">${m.nome}</h3>
+            <div class="h-1 w-8 mt-3 rounded-full opacity-50 group-hover:w-full transition-all duration-500" style="background: ${m.gradient};"></div>
           </div>
         `;
         grid.appendChild(card);

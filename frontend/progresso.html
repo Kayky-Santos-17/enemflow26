@@ -128,7 +128,18 @@
         const listContainer = document.getElementById('progresso-list');
         
         if(!user.progresso || user.progresso.length === 0) {
-          listContainer.innerHTML = '<p class="text-muted">Você ainda não completou nenhuma sessão de estudos. Volte para a Home e inicie o Foco!</p>';
+          listContainer.innerHTML = `
+            <div style="text-align: center; padding: 3rem 1rem;">
+              <div style="width: 80px; height: 80px; background: rgba(99, 102, 241, 0.1); border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 1.5rem;">
+                <svg viewBox="0 0 24 24" width="40" height="40" fill="none" stroke="#6366f1" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M12 20v-6M6 20V10M18 20V4"></path>
+                </svg>
+              </div>
+              <h3 style="font-size: 1.25rem; font-weight: 700; color: #e4dff0; margin-bottom: 0.5rem; font-family: 'Sora', sans-serif;">Nenhum Progresso Registrado</h3>
+              <p style="color: rgba(196, 188, 220, 0.6); max-width: 400px; margin: 0 auto 2rem; font-size: 0.9rem;">Você ainda não completou nenhuma sessão de estudos em nossa plataforma. Volte para a Home, escolha um material e inicie o Modo Foco!</p>
+              <button onclick="window.location.href='dashboard.html'" class="btn btn-primary" style="padding: 12px 24px; border-radius: 12px; font-weight: bold; background: linear-gradient(135deg, #6366f1, #ec4899); color: white; border: none; cursor: pointer; transition: all 0.2s;">Ir para o Dashboard</button>
+            </div>
+          `;
           return;
         }
 

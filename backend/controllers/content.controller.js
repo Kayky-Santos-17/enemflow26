@@ -22,9 +22,13 @@ async function extractTextFromContent(tipo, url, titulo, descricao) {
         if (fs.existsSync(filepath)) {
           buffer = fs.readFileSync(filepath);
         }
+      } else if (url.startsWith('data:application/pdf;base64,')) {
+        // Arquivo Base64 (Comum em serverless como Vercel)
+        const base64Data = url.split(',')[1];
+        buffer = Buffer.from(base64Data, 'base64');
       }
 
-      if (!buffer) {
+      if (!buffer && url.startsWith('http')) {
         // Se for link externo, tenta fazer download
         const response = await axios.get(url, { responseType: 'arraybuffer' });
         buffer = Buffer.from(response.data);
