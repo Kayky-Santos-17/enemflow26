@@ -132,7 +132,7 @@
     function renderMaterias() {
       const grid = document.getElementById('materias-grid');
       grid.innerHTML = '';
-      grid.className = "grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6";
+      grid.className = "grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-3 gap-6";
 
       // Descobre TODAS as matérias que existem no banco de dados
       const counts = {};
@@ -164,8 +164,8 @@
           background: #08060f;
           border: 1px solid rgba(255, 255, 255, 0.03);
           border-radius: 16px;
-          padding: 28px;
-          min-height: 150px;
+          padding: 28px 32px;
+          min-height: 140px;
           transition: all 0.5s cubic-bezier(0.2, 0.8, 0.2, 1);
           animation: fadeSlideIn 0.6s ease-out forwards;
           animation-delay: ${idx * 0.05}s;
@@ -181,7 +181,7 @@
           card.style.background = '#0c0918';
           
           const h3 = card.querySelector('h3');
-          if(h3) h3.style.textShadow = `0 0 20px ${color}70`;
+          if(h3) h3.style.filter = `drop-shadow(0 0 12px ${color}80)`;
 
           const line = card.querySelector('.materia-line');
           if(line) line.style.width = '100%';
@@ -207,7 +207,7 @@
           card.style.background = '#08060f';
           
           const h3 = card.querySelector('h3');
-          if(h3) h3.style.textShadow = 'none';
+          if(h3) h3.style.filter = 'none';
 
           const line = card.querySelector('.materia-line');
           if(line) line.style.width = '24px';
@@ -236,7 +236,7 @@
                style="background: linear-gradient(120deg, transparent, rgba(255,255,255,0.03), transparent); transform: skewX(-20deg); animation: shimmer 2s infinite; transition: opacity 0.5s;"></div>
           
           <div class="flex flex-col gap-1 relative z-10 w-full">
-            <h3 style="color: ${color} !important; font-size: 1.4rem; font-weight: 800; font-family: 'Sora', sans-serif; letter-spacing: -0.03em; margin: 0; transition: text-shadow 0.4s;">
+            <h3 style="background: linear-gradient(135deg, ${color} 15%, #f3f0ff 90%); -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent; color: transparent !important; font-size: 1.5rem; font-weight: 800; font-family: 'Sora', sans-serif; letter-spacing: -0.03em; margin: 0; padding-bottom: 2px; transition: filter 0.4s;">
               ${nome}
             </h3>
             
