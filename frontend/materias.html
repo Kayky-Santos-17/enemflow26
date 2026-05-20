@@ -44,7 +44,7 @@
         <h2 class="text-base font-bold mb-4 flex items-center gap-2" style="font-family:'Sora',sans-serif; color:#e4dff0;">
           <i data-feather="grid" class="w-4 h-4" style="color:#a78bfa;"></i> Escolha uma Disciplina
         </h2>
-        <div id="materias-grid" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3.5">
+        <div id="materias-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
           <div class="skeleton h-24 rounded-2xl"></div>
           <div class="skeleton h-24 rounded-2xl"></div>
           <div class="skeleton h-24 rounded-2xl"></div>
@@ -84,23 +84,37 @@
   <script src="app.js"></script>
   <script src="sidebar.js" defer></script>
   <script>
-    // Subject colors using brand gradients (purple/pink/blue — NO emojis)
-    const todasMaterias = [
-      { nome: "Matemática", color: "#a855f7" },
-      { nome: "Física", color: "#f43f5e" },
-      { nome: "Química", color: "#0ea5e9" },
-      { nome: "Biologia", color: "#10b981" },
-      { nome: "História", color: "#f59e0b" },
-      { nome: "Geografia", color: "#3b82f6" },
-      { nome: "Sociologia", color: "#ec4899" },
-      { nome: "Filosofia", color: "#c084fc" },
-      { nome: "Literatura", color: "#ef4444" },
-      { nome: "Português", color: "#8b5cf6" },
-      { nome: "Redação", color: "#d946ef" },
-      { nome: "Artes", color: "#eab308" },
-      { nome: "Inglês", color: "#06b6d4" },
-      { nome: "Espanhol", color: "#f97316" }
-    ];
+    // Cores predefinidas para matérias conhecidas
+    const coresMaterias = {
+      "Matemática": "#8c52ff",
+      "Física": "#ff66c4",
+      "Química": "#00e5ff",
+      "Biologia": "#00ffaa",
+      "História": "#ff914d",
+      "Geografia": "#38b6ff",
+      "Sociologia": "#ff57a0",
+      "Filosofia": "#cb6ce6",
+      "Artes": "#ff00ff",
+      "Literatura": "#b388ff",
+      "Inglês": "#0080ff",
+      "Redação": "#ff007f",
+      "Português": "#8b5cf6",
+      "Espanhol": "#f97316"
+    };
+
+    // Gera uma cor vibrante baseada no nome da matéria (para matérias novas)
+    function gerarCor(nome) {
+      let hash = 0;
+      for (let i = 0; i < nome.length; i++) {
+        hash = nome.charCodeAt(i) + ((hash << 5) - hash);
+      }
+      const h = Math.abs(hash) % 360;
+      return `hsl(${h}, 70%, 55%)`;
+    }
+
+    function getCorMateria(nome) {
+      return coresMaterias[nome] || gerarCor(nome);
+    }
 
     let dbContents = [];
     let materiaSelecionada = '';
@@ -118,7 +132,9 @@
     function renderMaterias() {
       const grid = document.getElementById('materias-grid');
       grid.innerHTML = '';
+      grid.className = "grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6";
 
+      // Descobre TODAS as matérias que existem no banco de dados
       const counts = {};
       dbContents.forEach(c => {
         if (c.materia) {
@@ -126,77 +142,74 @@
         }
       });
 
-      const materiasAtivas = todasMaterias.filter(m => counts[m.nome] && counts[m.nome] > 0);
+      const materiasAtivas = Object.keys(counts).sort();
 
       if (materiasAtivas.length === 0) {
         grid.innerHTML = `
           <div class="col-span-full glass-card p-8 text-center space-y-3">
-            <div class="w-14 h-14 rounded-full flex items-center justify-center mx-auto" style="background:rgba(251,191,36,0.08);">
-              <i data-feather="alert-circle" class="w-7 h-7" style="color:rgba(251,191,36,0.6);"></i>
-            </div>
-            <h3 class="text-lg font-bold" style="font-family:'Sora',sans-serif; color:#e4dff0;">Nenhum conteúdo publicado</h3>
+            <h3 class="text-lg font-bold" style="font-family:'Inter',sans-serif; color:#e4dff0;">Nenhum conteúdo publicado</h3>
             <p class="text-sm" style="color:rgba(196,188,220,0.45); max-width:360px; margin:0 auto;">Peça para um administrador cadastrar PDFs, vídeos ou artigos no painel.</p>
           </div>
         `;
-        feather.replace();
         return;
       }
 
-      materiasAtivas.forEach((m, idx) => {
-        const total = counts[m.nome] || 0;
+      materiasAtivas.forEach((nome, idx) => {
+        const total = counts[nome];
+        const color = getCorMateria(nome);
         const card = document.createElement('div');
         
+        card.className = "group relative overflow-hidden flex items-center justify-between cursor-pointer";
         card.style.cssText = `
-          background: ${m.color}0a;
-          border: 1px solid rgba(255,255,255,0.03);
-          border-radius: 14px;
+          background: #0b0914;
+          border: 1px solid rgba(255, 255, 255, 0.05);
+          border-radius: 12px;
           padding: 24px;
-          display: flex;
-          align-items: center;
-          justify-content: space-between;
-          cursor: pointer;
-          transition: all 0.3s ease;
+          transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
         `;
-        card.onclick = () => selectMateria(m.nome);
+        
+        card.onclick = () => selectMateria(nome);
+        
         card.addEventListener('mouseenter', () => {
-          card.style.background = `${m.color}1a`;
-          card.style.borderColor = `${m.color}40`;
-          card.style.transform = 'translateY(-2px) scale(1.02)';
-          card.style.boxShadow = `0 8px 24px -8px ${m.color}60`;
+          card.style.transform = 'translateY(-8px) scale(1.02)';
+          card.style.boxShadow = \`0 0 35px \${color}40\`;
+          card.style.borderColor = \`\${color}50\`;
         });
+        
         card.addEventListener('mouseleave', () => {
-          card.style.background = `${m.color}0a`;
-          card.style.borderColor = 'rgba(255,255,255,0.03)';
           card.style.transform = 'translateY(0) scale(1)';
           card.style.boxShadow = 'none';
+          card.style.borderColor = 'rgba(255, 255, 255, 0.05)';
         });
 
-        card.innerHTML = `
-          <div style="display: flex; flex-direction: column; gap: 8px;">
-            <h3 class="text-gradient" style="font-size: 1.25rem; font-weight: 700; margin: 0; font-family: 'Inter', sans-serif;">${m.nome}</h3>
-            <div style="width: 20px; height: 3px; background-color: ${m.color}; border-radius: 2px;"></div>
-            <span style="color: rgba(255,255,255,0.5); font-size: 0.85rem; margin-top: 4px;">${total} conteúdos</span>
+        card.innerHTML = \`
+          <div class="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none" style="background: linear-gradient(90deg, transparent, rgba(255,255,255,0.03), transparent); transform: skewX(-20deg); animation: shimmer 2s infinite;"></div>
+          
+          <div class="flex flex-col gap-[6px] relative z-10 w-full">
+            <h3 style="color: \${color}; font-size: 1.15rem; font-weight: 600; font-family: 'Inter', sans-serif; letter-spacing: -0.01em; margin: 0;">\${nome}</h3>
+            <div class="transition-all duration-500 rounded-full group-hover:w-8" style="background-color: \${color}; width: 14px; height: 2px;"></div>
+            <span style="color: rgba(196,188,220,0.6); font-size: 0.75rem; font-weight: 400; margin-top: 2px;">\${total} conteúdos</span>
           </div>
-          <i data-feather="chevron-right" style="color: ${m.color}; opacity: 0.7; width: 20px; height: 20px;"></i>
-        `;
+          
+          <svg class="relative z-10 transition-transform duration-500 group-hover:translate-x-1.5" style="color: rgba(255,255,255,0.7); width: 18px; height: 18px;" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+          </svg>
+        \`;
 
         grid.appendChild(card);
       });
 
-      // Inject keyframes if not already there
-      if (!document.getElementById('card-keyframes')) {
+      if (!document.getElementById('card-shimmer')) {
         const style = document.createElement('style');
-        style.id = 'card-keyframes';
-        style.textContent = `
-          @keyframes fadeSlideIn {
-            from { opacity:0; transform:translateY(20px) scale(0.97); }
-            to   { opacity:1; transform:translateY(0) scale(1); }
+        style.id = 'card-shimmer';
+        style.textContent = \`
+          @keyframes shimmer {
+            0% { transform: translateX(-150%) skewX(-20deg); }
+            100% { transform: translateX(200%) skewX(-20deg); }
           }
-        `;
+        \`;
         document.head.appendChild(style);
       }
-
-      feather.replace();
     }
 
 

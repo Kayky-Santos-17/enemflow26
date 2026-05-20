@@ -74,8 +74,8 @@
             <form id="add-content-form" class="space-y-4">
               
               <div class="space-y-1">
-                <label class="text-xs font-semibold text-slate-500 dark:text-slate-400">Selecione a Matéria Oficial</label>
-                <select id="materia" required class="w-full px-4 py-3 rounded-xl bg-white dark:bg-[#0f0f12] border border-slate-200 dark:border-white/10 text-slate-800 dark:text-slate-200 focus:ring-2 focus:ring-indigo-500 outline-none transition-all text-sm">
+                <label class="text-xs font-semibold text-slate-500 dark:text-slate-400">Selecione a Matéria</label>
+                <select id="materia" required class="w-full px-4 py-3 rounded-xl bg-white dark:bg-[#0f0f12] border border-slate-200 dark:border-white/10 text-slate-800 dark:text-slate-200 focus:ring-2 focus:ring-indigo-500 outline-none transition-all text-sm" onchange="toggleMateriaCustom()">
                   <option value="" disabled selected>Escolher Matéria...</option>
                   <option value="Matemática">Matemática</option>
                   <option value="Física">Física</option>
@@ -91,7 +91,9 @@
                   <option value="Artes">Artes</option>
                   <option value="Inglês">Inglês</option>
                   <option value="Espanhol">Espanhol</option>
+                  <option value="__custom__">➕ Outra (personalizada)...</option>
                 </select>
+                <input type="text" id="materia-custom" placeholder="Digite o nome da nova matéria..." class="w-full px-4 py-3 rounded-xl bg-white dark:bg-[#0f0f12] border border-slate-200 dark:border-white/10 text-slate-800 dark:text-slate-200 focus:ring-2 focus:ring-indigo-500 outline-none transition-all text-sm placeholder:text-slate-600 mt-2 hidden">
               </div>
 
               <div class="space-y-1">
@@ -195,6 +197,28 @@
   <script>
     feather.replace();
     if(!App.getToken()) window.location.href = 'login.html';
+
+    function toggleMateriaCustom() {
+      const select = document.getElementById('materia');
+      const customInput = document.getElementById('materia-custom');
+      if (select.value === '__custom__') {
+        customInput.classList.remove('hidden');
+        customInput.required = true;
+        customInput.focus();
+      } else {
+        customInput.classList.add('hidden');
+        customInput.required = false;
+        customInput.value = '';
+      }
+    }
+
+    function getMateriaValue() {
+      const select = document.getElementById('materia');
+      if (select.value === '__custom__') {
+        return document.getElementById('materia-custom').value.trim();
+      }
+      return select.value;
+    }
 
     async function checkAdmin() {
       try {
@@ -367,7 +391,7 @@
         const payload = {
           titulo: subassuntoValue || assuntoValue,
           descricao: '',
-          materia: document.getElementById('materia').value,
+          materia: getMateriaValue(),
           assunto: assuntoValue,
           subassunto: subassuntoValue,
           tipo: document.getElementById('tipo').value,
