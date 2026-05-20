@@ -147,50 +147,33 @@
         const card = document.createElement('div');
         
         card.style.cssText = `
-          background: linear-gradient(135deg, ${m.color}15 0%, rgba(18, 16, 26, 0.95) 40%);
-          border: 1px solid rgba(255,255,255,0.04);
-          border-radius: 16px;
+          background: rgba(18, 16, 26, 0.8);
+          border: 1px solid rgba(255,255,255,0.03);
+          border-radius: 14px;
           padding: 24px;
           display: flex;
-          flex-direction: column;
+          align-items: center;
           justify-content: space-between;
-          min-height: 150px;
           cursor: pointer;
-          transition: transform 0.3s, border-color 0.3s, box-shadow 0.3s;
+          transition: transform 0.2s, background 0.2s;
         `;
         card.onclick = () => selectMateria(m.nome);
         card.addEventListener('mouseenter', () => {
+          card.style.background = 'rgba(25, 23, 35, 0.9)';
           card.style.transform = 'scale(1.02)';
-          card.style.borderColor = `${m.color}40`;
-          card.style.boxShadow = `0 10px 30px -10px ${m.color}30`;
         });
         card.addEventListener('mouseleave', () => {
+          card.style.background = 'rgba(18, 16, 26, 0.8)';
           card.style.transform = 'scale(1)';
-          card.style.borderColor = 'rgba(255,255,255,0.04)';
-          card.style.boxShadow = 'none';
         });
 
-        const labelAulas = total === 1 ? '1 AULA' : `${total} AULAS`;
-
         card.innerHTML = `
-          <div style="display: flex; justify-content: flex-end;">
-            <span style="
-              background: ${m.color}15; 
-              border: 1px solid ${m.color}30; 
-              color: ${m.color}; 
-              padding: 4px 12px; 
-              border-radius: 20px; 
-              font-size: 0.7rem; 
-              font-weight: 800; 
-              font-family: 'Inter', sans-serif;
-              letter-spacing: 0.05em;
-              text-transform: uppercase;
-            ">${labelAulas}</span>
-          </div>
           <div style="display: flex; flex-direction: column; gap: 8px;">
-            <h3 style="color: #ffffff; font-size: 1.4rem; font-weight: 800; margin: 0; font-family: 'Inter', sans-serif; letter-spacing: -0.03em;">${m.nome}</h3>
-            <div style="width: 24px; height: 3px; background-color: ${m.color}; border-radius: 2px;"></div>
+            <h3 style="color: ${m.color}; font-size: 1.25rem; font-weight: 700; margin: 0; font-family: 'Inter', sans-serif;">${m.nome}</h3>
+            <div style="width: 20px; height: 3px; background-color: ${m.color}; border-radius: 2px;"></div>
+            <span style="color: rgba(255,255,255,0.5); font-size: 0.85rem; margin-top: 4px;">${total} conteúdos</span>
           </div>
+          <i data-feather="chevron-right" style="color: rgba(255,255,255,0.4); width: 20px; height: 20px;"></i>
         `;
 
         grid.appendChild(card);
