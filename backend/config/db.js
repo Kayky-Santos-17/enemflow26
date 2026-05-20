@@ -25,10 +25,13 @@ const connectDB = async () => {
     
     if (uri) {
       uri = uri.replace(/["']/g, "").trim();
+      // Corrige a senha caso a variável de ambiente (Vercel ou local) esteja com a antiga
+      if (uri.includes('enemfl%40w20266034!%238%23')) {
+        uri = uri.replace('enemfl%40w20266034!%238%23', 'enemflow20266034');
+      }
     } else {
-      // 2. Fallback caso a variável de ambiente não esteja configurada ou dê erro.
-      // Usamos a string de conexão padrão (non-SRV) com a senha correta (enemfl%40w20266034!%238%23)
-      uri = 'mongodb://enem_flow:enemfl%40w20266034!%238%23@ac-rqbu7rt-shard-00-00.awsypn2.mongodb.net:27017,ac-rqbu7rt-shard-00-01.awsypn2.mongodb.net:27017,ac-rqbu7rt-shard-00-02.awsypn2.mongodb.net:27017/enemflow?ssl=true&replicaSet=atlas-143j8a-shard-0&authSource=admin&retryWrites=true&w=majority';
+      // 2. Fallback usando a connection string correta
+      uri = 'mongodb+srv://enem_flow:enemflow20266034@cluster0.awsypn2.mongodb.net/enemflow?retryWrites=true&w=majority';
     }
     
     const conn = await mongoose.connect(uri, {
