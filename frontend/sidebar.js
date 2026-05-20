@@ -68,7 +68,8 @@ document.addEventListener('DOMContentLoaded', () => {
         box-shadow: none !important;
         backdrop-filter: none !important;
         -webkit-backdrop-filter: none !important;
-        overflow: hidden !important;
+        /* IMPORTANT: overflow must be visible so the bolt button is NOT clipped */
+        overflow: visible !important;
       }
       /* Hide elements completely when collapsed */
       #ef-sidebar.collapsed .sb-logo-full-wrap,
@@ -77,13 +78,14 @@ document.addEventListener('DOMContentLoaded', () => {
       #ef-sidebar.collapsed .sb-footer-container {
         display: none !important;
       }
-      /* When collapsed: logo container is only 80px high at the top to hold the floating bolt */
+      /* When collapsed: header is just a centered column holding the bolt */
       #ef-sidebar.collapsed .sb-header-container {
+        width: var(--sb-collapsed) !important;
         height: 80px !important;
         border-bottom: none !important;
-        display: flex;
-        align-items: center;
-        justify-content: center;
+        display: flex !important;
+        align-items: center !important;
+        justify-content: center !important;
         padding: 0 !important;
         cursor: pointer;
       }
@@ -95,23 +97,25 @@ document.addEventListener('DOMContentLoaded', () => {
         height: 48px;
         border-radius: 14px;
         border: 1px solid rgba(124,92,252,0.25);
-        background: rgba(15, 12, 30, 0.6);
-        box-shadow: 0 0 20px rgba(124,92,252,0.3);
-        transform: translateY(0);
+        background: rgba(15, 12, 30, 0.85);
+        box-shadow: 0 0 24px rgba(124,92,252,0.35), inset 0 1px 0 rgba(255,255,255,0.05);
         animation: sb-bolt-float 3s ease-in-out infinite;
-        transition: transform 0.3s ease, box-shadow 0.3s ease;
+        transition: box-shadow 0.3s ease, transform 0.3s ease;
+        /* Prevent the button itself from being clipped by parent overflow */
+        position: relative;
+        z-index: 10;
       }
       #ef-sidebar.collapsed .sb-logo-bolt-wrap:hover {
-        transform: scale(1.08) translateY(-2px);
-        box-shadow: 0 0 30px rgba(124,92,252,0.5);
+        transform: scale(1.1);
+        box-shadow: 0 0 36px rgba(124,92,252,0.55), inset 0 1px 0 rgba(255,255,255,0.08);
       }
       #ef-sidebar:not(.collapsed) .sb-logo-bolt-wrap {
         display: none !important;
       }
       
       @keyframes sb-bolt-float {
-        0%, 100% { transform: translateY(0); }
-        50% { transform: translateY(-5px); }
+        0%, 100% { transform: translateY(0) scale(1); }
+        50% { transform: translateY(-4px) scale(1.03); }
       }
 
       /* Main content offset */
