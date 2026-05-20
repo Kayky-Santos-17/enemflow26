@@ -147,7 +147,7 @@
         const card = document.createElement('div');
         
         card.style.cssText = `
-          background: rgba(18, 16, 26, 0.8);
+          background: ${m.color}0a;
           border: 1px solid rgba(255,255,255,0.03);
           border-radius: 14px;
           padding: 24px;
@@ -155,16 +155,20 @@
           align-items: center;
           justify-content: space-between;
           cursor: pointer;
-          transition: transform 0.2s, background 0.2s;
+          transition: all 0.3s ease;
         `;
         card.onclick = () => selectMateria(m.nome);
         card.addEventListener('mouseenter', () => {
-          card.style.background = 'rgba(25, 23, 35, 0.9)';
-          card.style.transform = 'scale(1.02)';
+          card.style.background = \`\${m.color}1a\`;
+          card.style.borderColor = \`\${m.color}40\`;
+          card.style.transform = 'translateY(-2px) scale(1.02)';
+          card.style.boxShadow = \`0 8px 24px -8px \${m.color}60\`;
         });
         card.addEventListener('mouseleave', () => {
-          card.style.background = 'rgba(18, 16, 26, 0.8)';
-          card.style.transform = 'scale(1)';
+          card.style.background = \`\${m.color}0a\`;
+          card.style.borderColor = 'rgba(255,255,255,0.03)';
+          card.style.transform = 'translateY(0) scale(1)';
+          card.style.boxShadow = 'none';
         });
 
         card.innerHTML = `
@@ -173,7 +177,7 @@
             <div style="width: 20px; height: 3px; background-color: ${m.color}; border-radius: 2px;"></div>
             <span style="color: rgba(255,255,255,0.5); font-size: 0.85rem; margin-top: 4px;">${total} conteúdos</span>
           </div>
-          <i data-feather="chevron-right" style="color: rgba(255,255,255,0.4); width: 20px; height: 20px;"></i>
+          <i data-feather="chevron-right" style="color: ${m.color}; opacity: 0.7; width: 20px; height: 20px;"></i>
         `;
 
         grid.appendChild(card);
