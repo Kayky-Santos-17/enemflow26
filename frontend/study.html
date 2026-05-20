@@ -74,8 +74,16 @@
           <button class="btn-circle" id="downloadBtn" onclick="downloadPdf()" title="Download PDF" style="display:none;">
             <i data-feather="download" class="w-4 h-4"></i>
           </button>
-          <button class="btn-circle" id="sendToAiBtn" onclick="sendPdfToAI()" title="Enviar para Tutor IA" style="display:none; background:linear-gradient(135deg,#7c5cfc,#ec4899); border:none; color:white; box-shadow:0 0 10px rgba(124,92,252,0.3);">
-            <i data-feather="zap" class="w-4 h-4"></i>
+          <button class="btn-circle" id="sendToAiBtn" onclick="sendPdfToAI()" title="Enviar para Tutor IA" style="display:none; background: rgba(15,12,30,0.6); border:1px solid rgba(139,92,252,0.2); box-shadow:0 0 15px rgba(124,92,252,0.25);">
+            <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <defs>
+                <linearGradient id="boltGradChat" x1="0%" y1="0%" x2="100%" y2="100%">
+                  <stop offset="0%" stop-color="#7c5cfc" />
+                  <stop offset="100%" stop-color="#ec4899" />
+                </linearGradient>
+              </defs>
+              <path d="M13 2L5.5 13H11.5L9.5 22L18.5 11H12.5L13 2Z" fill="url(#boltGradChat)" />
+            </svg>
           </button>
           <button class="btn-circle" onclick="closePdf()" title="Recolher PDF" style="color:rgba(167,139,250,0.5);">
             <i data-feather="x" class="w-4 h-4"></i>

@@ -137,12 +137,15 @@ const App = {
 document.addEventListener('DOMContentLoaded', () => {
   App.initTheme();
 
-  // Registrar Service Worker para PWA
+  // Desativar Service Worker para evitar cache de versão antiga
   if ('serviceWorker' in navigator) {
-    window.addEventListener('load', () => {
-      navigator.serviceWorker.register('/service-worker.js').catch(err => {
-        console.warn('PWA Service Worker falhou:', err);
-      });
+    navigator.serviceWorker.getRegistrations().then(function(registrations) {
+      for(let registration of registrations) {
+        registration.unregister();
+      }
+    });
+    caches.keys().then(function(names) {
+      for (let name of names) caches.delete(name);
     });
   }
 

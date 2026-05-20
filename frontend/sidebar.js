@@ -181,9 +181,9 @@ document.addEventListener('DOMContentLoaded', () => {
   sidebar.innerHTML = `
     <div class="sb-header-container px-5 py-5 flex items-center justify-between transition-all duration-300" style="border-bottom: 1px solid rgba(124,92,252,0.08);">
       <!-- Full Logo (when expanded) -->
-      <div class="sb-logo-full-wrap flex items-center gap-2.5">
+      <div class="sb-logo-full-wrap flex items-center gap-2.5" style="padding-left: 2px; padding-top: 2px; padding-bottom: 2px;">
         <!-- O raio agora é o botão para encolher -->
-        <div class="cursor-pointer w-9 h-9 rounded-xl flex items-center justify-center shrink-0 shadow-[0_0_15px_rgba(124,92,252,0.3)] border border-violet-500/20 hover:scale-105 transition-transform" style="background: rgba(15,12,30,0.6);">
+        <div class="cursor-pointer w-9 h-9 rounded-xl flex items-center justify-center shrink-0 shadow-[0_0_15px_rgba(124,92,252,0.4)] border border-violet-500/20 hover:scale-105 transition-transform" style="background: rgba(15,12,30,0.6); margin: 2px;">
           <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
             <defs>
               <linearGradient id="boltGradExpanded" x1="0%" y1="0%" x2="100%" y2="100%">
