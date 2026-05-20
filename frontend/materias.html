@@ -21,6 +21,7 @@
       }
     }
   </script>
+  <link rel="icon" type="image/png" href="favicon.png?v=2">
 </head>
 <body class="min-h-screen ef-deep-bg" style="font-family:'Inter',sans-serif;">
 
@@ -85,20 +86,20 @@
   <script>
     // Subject colors using brand gradients (purple/pink/blue — NO emojis)
     const todasMaterias = [
-      { nome: "Matemática", icon: "plus-circle", gradient: "linear-gradient(135deg,#6366f1,#818cf8)" },
-      { nome: "Física", icon: "zap", gradient: "linear-gradient(135deg,#f59e0b,#f97316)" },
-      { nome: "Química", icon: "activity", gradient: "linear-gradient(135deg,#10b981,#14b8a6)" },
-      { nome: "Biologia", icon: "heart", gradient: "linear-gradient(135deg,#22c55e,#10b981)" },
-      { nome: "História", icon: "globe", gradient: "linear-gradient(135deg,#d97706,#b45309)" },
-      { nome: "Geografia", icon: "compass", gradient: "linear-gradient(135deg,#06b6d4,#3b82f6)" },
-      { nome: "Filosofia", icon: "help-circle", gradient: "linear-gradient(135deg,#8b5cf6,#6366f1)" },
-      { nome: "Sociologia", icon: "users", gradient: "linear-gradient(135deg,#ec4899,#f43f5e)" },
-      { nome: "Literatura", icon: "feather", gradient: "linear-gradient(135deg,#f43f5e,#ec4899)" },
-      { nome: "Português", icon: "edit-3", gradient: "linear-gradient(135deg,#7c5cfc,#a855f7)" },
-      { nome: "Redação", icon: "file-text", gradient: "linear-gradient(135deg,#a855f7,#d946ef)" },
-      { nome: "Artes", icon: "image", gradient: "linear-gradient(135deg,#eab308,#f97316)" },
-      { nome: "Inglês", icon: "type", gradient: "linear-gradient(135deg,#0ea5e9,#3b82f6)" },
-      { nome: "Espanhol", icon: "message-square", gradient: "linear-gradient(135deg,#f97316,#ef4444)" }
+      { nome: "Matemática", color: "#a855f7" },
+      { nome: "Física", color: "#f43f5e" },
+      { nome: "Química", color: "#0ea5e9" },
+      { nome: "Biologia", color: "#10b981" },
+      { nome: "História", color: "#f59e0b" },
+      { nome: "Geografia", color: "#3b82f6" },
+      { nome: "Sociologia", color: "#ec4899" },
+      { nome: "Filosofia", color: "#c084fc" },
+      { nome: "Literatura", color: "#ef4444" },
+      { nome: "Português", color: "#8b5cf6" },
+      { nome: "Redação", color: "#d946ef" },
+      { nome: "Artes", color: "#eab308" },
+      { nome: "Inglês", color: "#06b6d4" },
+      { nome: "Espanhol", color: "#f97316" }
     ];
 
     let dbContents = [];
@@ -144,105 +145,51 @@
       materiasAtivas.forEach((m, idx) => {
         const total = counts[m.nome] || 0;
         const card = document.createElement('div');
-        const baseColorMatch = m.gradient.match(/#[a-f0-9]{6}/i);
-        const baseColor = baseColorMatch ? baseColorMatch[0] : '#7c5cfc';
-        // Extract both gradient colors for the animated border
-        const colorMatches = m.gradient.match(/#[a-f0-9]{6}/gi);
-        const c1 = colorMatches?.[0] || '#7c5cfc';
-        const c2 = colorMatches?.[1] || '#ec4899';
-
+        
         card.style.cssText = `
-          position: relative;
-          overflow: hidden;
-          padding: 1.4rem 1.2rem 1.1rem 1.2rem;
-          cursor: pointer;
+          background: linear-gradient(135deg, ${m.color}15 0%, rgba(18, 16, 26, 0.95) 40%);
+          border: 1px solid rgba(255,255,255,0.04);
+          border-radius: 16px;
+          padding: 24px;
           display: flex;
           flex-direction: column;
           justify-content: space-between;
-          border-radius: 20px;
-          border: 1px solid rgba(255,255,255,0.06);
-          background: linear-gradient(145deg, rgba(14,11,28,0.95) 0%, rgba(8,6,18,0.98) 100%);
-          backdrop-filter: blur(20px);
-          box-shadow: 0 8px 32px -8px rgba(0,0,0,0.6), inset 0 1px 0 rgba(255,255,255,0.04);
-          transition: transform 0.4s cubic-bezier(0.34,1.56,0.64,1), box-shadow 0.4s ease, border-color 0.4s ease;
-          min-height: 140px;
-          animation: fadeSlideIn 0.5s cubic-bezier(0.16,1,0.3,1) both;
-          animation-delay: ${idx * 60}ms;
+          min-height: 150px;
+          cursor: pointer;
+          transition: transform 0.3s, border-color 0.3s, box-shadow 0.3s;
         `;
         card.onclick = () => selectMateria(m.nome);
-
         card.addEventListener('mouseenter', () => {
-          card.style.transform = 'translateY(-6px) scale(1.02)';
-          card.style.boxShadow = `0 20px 50px -12px rgba(0,0,0,0.7), 0 0 0 1px ${c1}55, 0 0 30px -5px ${c1}40`;
-          card.style.borderColor = `${c1}55`;
-          card.querySelector('.card-title').style.background = m.gradient;
-          card.querySelector('.card-title').style.webkitBackgroundClip = 'text';
-          card.querySelector('.card-title').style.webkitTextFillColor = 'transparent';
-          card.querySelector('.card-title').style.backgroundClip = 'text';
-          card.querySelector('.accent-bar').style.width = '52px';
-          card.querySelector('.accent-bar').style.boxShadow = `0 0 12px 2px ${c1}80`;
-          card.querySelector('.orb').style.opacity = '0.55';
-          card.querySelector('.orb').style.transform = 'scale(1.7)';
+          card.style.transform = 'scale(1.02)';
+          card.style.borderColor = `${m.color}40`;
+          card.style.boxShadow = `0 10px 30px -10px ${m.color}30`;
         });
         card.addEventListener('mouseleave', () => {
-          card.style.transform = 'translateY(0) scale(1)';
-          card.style.boxShadow = '0 8px 32px -8px rgba(0,0,0,0.6), inset 0 1px 0 rgba(255,255,255,0.04)';
-          card.style.borderColor = 'rgba(255,255,255,0.06)';
-          card.querySelector('.card-title').style.background = 'none';
-          card.querySelector('.card-title').style.webkitTextFillColor = 'rgba(255,255,255,0.9)';
-          card.querySelector('.card-title').style.backgroundClip = 'initial';
-          card.querySelector('.accent-bar').style.width = '28px';
-          card.querySelector('.accent-bar').style.boxShadow = 'none';
-          card.querySelector('.orb').style.opacity = '0.2';
-          card.querySelector('.orb').style.transform = 'scale(1)';
+          card.style.transform = 'scale(1)';
+          card.style.borderColor = 'rgba(255,255,255,0.04)';
+          card.style.boxShadow = 'none';
         });
 
+        const labelAulas = total === 1 ? '1 AULA' : `${total} AULAS`;
+
         card.innerHTML = `
-          <!-- Glowing orb -->
-          <div class="orb" style="
-            position:absolute; right:-20px; top:-20px;
-            width:100px; height:100px; border-radius:50%;
-            background: ${m.gradient};
-            filter: blur(28px);
-            opacity: 0.2;
-            transition: opacity 0.6s ease, transform 0.6s ease;
-            pointer-events:none;
-          "></div>
-
-          <!-- Shimmer top line -->
-          <div style="
-            position:absolute; top:0; left:10%; right:10%; height:1px;
-            background: linear-gradient(90deg, transparent, ${c1}60, ${c2}60, transparent);
-            border-radius:100%;
-          "></div>
-
-          <!-- Count badge -->
-          <div style="display:flex; justify-content:flex-end; position:relative; z-index:2; margin-bottom:0.75rem;">
+          <div style="display: flex; justify-content: flex-end;">
             <span style="
-              font-size:9px; font-weight:800; letter-spacing:0.12em; text-transform:uppercase;
-              padding:4px 10px; border-radius:50px;
-              background: ${c1}18; color:${c1}; border:1px solid ${c1}35;
-              font-family:'Sora',sans-serif;
-            ">${total} aula${total !== 1 ? 's' : ''}</span>
+              background: ${m.color}15; 
+              border: 1px solid ${m.color}30; 
+              color: ${m.color}; 
+              padding: 4px 12px; 
+              border-radius: 20px; 
+              font-size: 0.7rem; 
+              font-weight: 800; 
+              font-family: 'Inter', sans-serif;
+              letter-spacing: 0.05em;
+              text-transform: uppercase;
+            ">${labelAulas}</span>
           </div>
-
-          <!-- Title block -->
-          <div style="position:relative; z-index:2; margin-top:auto;">
-            <h3 class="card-title" style="
-              font-family:'Sora',sans-serif;
-              font-size:1.25rem; font-weight:800; letter-spacing:-0.02em;
-              color:rgba(255,255,255,0.9);
-              transition: all 0.3s ease;
-              margin-bottom:0.75rem;
-              line-height:1.2;
-            ">${m.nome}</h3>
-
-            <!-- Animated accent bar -->
-            <div class="accent-bar" style="
-              height:3px; width:28px; border-radius:100px;
-              background:${m.gradient};
-              transition: width 0.4s cubic-bezier(0.34,1.56,0.64,1), box-shadow 0.4s ease;
-            "></div>
+          <div style="display: flex; flex-direction: column; gap: 8px;">
+            <h3 style="color: #ffffff; font-size: 1.4rem; font-weight: 800; margin: 0; font-family: 'Inter', sans-serif; letter-spacing: -0.03em;">${m.nome}</h3>
+            <div style="width: 24px; height: 3px; background-color: ${m.color}; border-radius: 2px;"></div>
           </div>
         `;
 
