@@ -141,52 +141,130 @@
         return;
       }
 
-      materiasAtivas.forEach(m => {
+      materiasAtivas.forEach((m, idx) => {
         const total = counts[m.nome] || 0;
         const card = document.createElement('div');
         const baseColorMatch = m.gradient.match(/#[a-f0-9]{6}/i);
         const baseColor = baseColorMatch ? baseColorMatch[0] : '#7c5cfc';
-        const watermark = m.nome.substring(0, 2).toUpperCase();
+        // Extract both gradient colors for the animated border
+        const colorMatches = m.gradient.match(/#[a-f0-9]{6}/gi);
+        const c1 = colorMatches?.[0] || '#7c5cfc';
+        const c2 = colorMatches?.[1] || '#ec4899';
 
-        card.className = `relative overflow-hidden p-6 cursor-pointer flex flex-col justify-between group transition-all duration-500 hover:-translate-y-2 rounded-3xl border border-white/5`;
-        // Glassmorphism escuro
-        card.style.background = `rgba(10, 8, 20, 0.7)`;
-        card.style.backdropFilter = `blur(24px)`;
-        card.style.boxShadow = `0 10px 40px -10px rgba(0,0,0,0.5)`;
+        card.style.cssText = `
+          position: relative;
+          overflow: hidden;
+          padding: 1.4rem 1.2rem 1.1rem 1.2rem;
+          cursor: pointer;
+          display: flex;
+          flex-direction: column;
+          justify-content: space-between;
+          border-radius: 20px;
+          border: 1px solid rgba(255,255,255,0.06);
+          background: linear-gradient(145deg, rgba(14,11,28,0.95) 0%, rgba(8,6,18,0.98) 100%);
+          backdrop-filter: blur(20px);
+          box-shadow: 0 8px 32px -8px rgba(0,0,0,0.6), inset 0 1px 0 rgba(255,255,255,0.04);
+          transition: transform 0.4s cubic-bezier(0.34,1.56,0.64,1), box-shadow 0.4s ease, border-color 0.4s ease;
+          min-height: 140px;
+          animation: fadeSlideIn 0.5s cubic-bezier(0.16,1,0.3,1) both;
+          animation-delay: ${idx * 60}ms;
+        `;
         card.onclick = () => selectMateria(m.nome);
-        
+
+        card.addEventListener('mouseenter', () => {
+          card.style.transform = 'translateY(-6px) scale(1.02)';
+          card.style.boxShadow = `0 20px 50px -12px rgba(0,0,0,0.7), 0 0 0 1px ${c1}55, 0 0 30px -5px ${c1}40`;
+          card.style.borderColor = `${c1}55`;
+          card.querySelector('.card-title').style.background = m.gradient;
+          card.querySelector('.card-title').style.webkitBackgroundClip = 'text';
+          card.querySelector('.card-title').style.webkitTextFillColor = 'transparent';
+          card.querySelector('.card-title').style.backgroundClip = 'text';
+          card.querySelector('.accent-bar').style.width = '52px';
+          card.querySelector('.accent-bar').style.boxShadow = `0 0 12px 2px ${c1}80`;
+          card.querySelector('.orb').style.opacity = '0.55';
+          card.querySelector('.orb').style.transform = 'scale(1.7)';
+        });
+        card.addEventListener('mouseleave', () => {
+          card.style.transform = 'translateY(0) scale(1)';
+          card.style.boxShadow = '0 8px 32px -8px rgba(0,0,0,0.6), inset 0 1px 0 rgba(255,255,255,0.04)';
+          card.style.borderColor = 'rgba(255,255,255,0.06)';
+          card.querySelector('.card-title').style.background = 'none';
+          card.querySelector('.card-title').style.webkitTextFillColor = 'rgba(255,255,255,0.9)';
+          card.querySelector('.card-title').style.backgroundClip = 'initial';
+          card.querySelector('.accent-bar').style.width = '28px';
+          card.querySelector('.accent-bar').style.boxShadow = 'none';
+          card.querySelector('.orb').style.opacity = '0.2';
+          card.querySelector('.orb').style.transform = 'scale(1)';
+        });
+
         card.innerHTML = `
-          <!-- Colored Glowing Orb in background -->
-          <div class="absolute -right-8 -top-8 w-32 h-32 rounded-full opacity-30 group-hover:opacity-70 group-hover:scale-[1.8] transition-all duration-700 blur-[30px]" style="background: ${m.gradient};"></div>
-          
-          <!-- Large faint watermark letter -->
-          <div class="absolute -right-2 bottom-2 text-8xl font-black opacity-[0.02] group-hover:opacity-[0.06] transition-opacity duration-500 pointer-events-none select-none" style="font-family:'Sora',sans-serif; color: ${baseColor}; transform: rotate(-10deg);">
-            ${watermark}
+          <!-- Glowing orb -->
+          <div class="orb" style="
+            position:absolute; right:-20px; top:-20px;
+            width:100px; height:100px; border-radius:50%;
+            background: ${m.gradient};
+            filter: blur(28px);
+            opacity: 0.2;
+            transition: opacity 0.6s ease, transform 0.6s ease;
+            pointer-events:none;
+          "></div>
+
+          <!-- Shimmer top line -->
+          <div style="
+            position:absolute; top:0; left:10%; right:10%; height:1px;
+            background: linear-gradient(90deg, transparent, ${c1}60, ${c2}60, transparent);
+            border-radius:100%;
+          "></div>
+
+          <!-- Count badge -->
+          <div style="display:flex; justify-content:flex-end; position:relative; z-index:2; margin-bottom:0.75rem;">
+            <span style="
+              font-size:9px; font-weight:800; letter-spacing:0.12em; text-transform:uppercase;
+              padding:4px 10px; border-radius:50px;
+              background: ${c1}18; color:${c1}; border:1px solid ${c1}35;
+              font-family:'Sora',sans-serif;
+            ">${total} aula${total !== 1 ? 's' : ''}</span>
           </div>
 
-          <!-- Top Counter Badge -->
-          <div class="flex items-center justify-end mb-14 relative z-10">
-            <span class="px-3 py-1.5 rounded-full font-bold text-[10px] tracking-widest uppercase transition-all duration-300 group-hover:shadow-[0_0_15px_rgba(255,255,255,0.1)] group-hover:bg-white/10" style="background: rgba(255,255,255,0.03); color: rgba(255,255,255,0.9); border: 1px solid rgba(255,255,255,0.1);">
-              ${total} aula(s)
-            </span>
-          </div>
+          <!-- Title block -->
+          <div style="position:relative; z-index:2; margin-top:auto;">
+            <h3 class="card-title" style="
+              font-family:'Sora',sans-serif;
+              font-size:1.25rem; font-weight:800; letter-spacing:-0.02em;
+              color:rgba(255,255,255,0.9);
+              transition: all 0.3s ease;
+              margin-bottom:0.75rem;
+              line-height:1.2;
+            ">${m.nome}</h3>
 
-          <!-- Title and dynamic underline -->
-          <div class="relative z-10 mt-auto">
-            <h3 class="text-2xl font-extrabold tracking-tight transition-all duration-300 group-hover:text-white" style="font-family:'Sora',sans-serif; color: rgba(255,255,255,0.85); text-shadow: 0 4px 20px rgba(0,0,0,0.5);">
-              ${m.nome}
-            </h3>
-            
-            <div class="flex items-center gap-2 mt-4">
-              <div class="h-1.5 w-10 rounded-full transition-all duration-500 group-hover:w-16 shadow-[0_0_15px_rgba(0,0,0,0.8)]" style="background: ${m.gradient};"></div>
-              <div class="h-1.5 w-1.5 rounded-full opacity-0 group-hover:opacity-100 transition-all duration-500 delay-100 shadow-[0_0_10px_rgba(0,0,0,0.8)]" style="background: ${baseColor};"></div>
-            </div>
+            <!-- Animated accent bar -->
+            <div class="accent-bar" style="
+              height:3px; width:28px; border-radius:100px;
+              background:${m.gradient};
+              transition: width 0.4s cubic-bezier(0.34,1.56,0.64,1), box-shadow 0.4s ease;
+            "></div>
           </div>
         `;
+
         grid.appendChild(card);
       });
+
+      // Inject keyframes if not already there
+      if (!document.getElementById('card-keyframes')) {
+        const style = document.createElement('style');
+        style.id = 'card-keyframes';
+        style.textContent = `
+          @keyframes fadeSlideIn {
+            from { opacity:0; transform:translateY(20px) scale(0.97); }
+            to   { opacity:1; transform:translateY(0) scale(1); }
+          }
+        `;
+        document.head.appendChild(style);
+      }
+
       feather.replace();
     }
+
 
     function selectMateria(materia) {
       materiaSelecionada = materia;
