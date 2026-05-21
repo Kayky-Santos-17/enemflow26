@@ -303,7 +303,7 @@
 
       const grid = document.getElementById('assuntos-grid');
       grid.innerHTML = '';
-      grid.className = "grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6";
+      grid.className = "grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6";
 
       const color = getCorMateria(materia);
 
@@ -316,30 +316,39 @@
           background: #08060f;
           border: 1px solid rgba(255, 255, 255, 0.03);
           border-radius: 16px;
-          padding: 24px;
-          min-height: 120px;
+          padding: 28px 32px;
+          min-height: 140px;
           transition: all 0.5s cubic-bezier(0.2, 0.8, 0.2, 1);
-          animation: fadeSlideIn 0.5s ease-out forwards;
-          animation-delay: ${idx * 0.04}s;
+          animation: fadeSlideIn 0.6s ease-out forwards;
+          animation-delay: ${idx * 0.05}s;
           opacity: 0;
         `;
         
         card.onclick = () => selectAssunto(assunto, list);
         
         card.addEventListener('mouseenter', () => {
-          card.style.transform = 'translateY(-4px) scale(1.015)';
-          card.style.boxShadow = `0 10px 30px -10px ${color}40`;
-          card.style.borderColor = `${color}30`;
+          card.style.transform = 'translateY(-6px) scale(1.015)';
+          card.style.boxShadow = `0 15px 40px -10px ${color}40`;
+          card.style.borderColor = `${color}35`;
           card.style.background = '#0c0918';
           
           const h3 = card.querySelector('h3');
-          if(h3) h3.style.filter = `drop-shadow(0 0 10px ${color}80)`;
+          if(h3) h3.style.filter = `drop-shadow(0 0 12px ${color}80)`;
+
+          const line = card.querySelector('.assunto-line');
+          if(line) line.style.width = '100%';
 
           const iconBg = card.querySelector('.assunto-icon-bg');
           if(iconBg) {
-             iconBg.style.background = `${color}20`;
+             iconBg.style.background = `${color}15`;
              iconBg.style.borderColor = `${color}40`;
-             iconBg.style.color = '#ffffff';
+             iconBg.style.transform = 'scale(1.08)';
+          }
+          
+          const orb = card.querySelector('.assunto-orb');
+          if(orb) {
+             orb.style.transform = 'scale(1.6)';
+             orb.style.opacity = '0.35';
           }
         });
         
@@ -352,35 +361,61 @@
           const h3 = card.querySelector('h3');
           if(h3) h3.style.filter = 'none';
 
+          const line = card.querySelector('.assunto-line');
+          if(line) line.style.width = '24px';
+
           const iconBg = card.querySelector('.assunto-icon-bg');
           if(iconBg) {
              iconBg.style.background = 'rgba(255,255,255,0.02)';
-             iconBg.style.borderColor = 'rgba(255,255,255,0.05)';
-             iconBg.style.color = `${color}`;
+             iconBg.style.borderColor = 'rgba(255,255,255,0.04)';
+             iconBg.style.transform = 'scale(1)';
+          }
+
+          const orb = card.querySelector('.assunto-orb');
+          if(orb) {
+             orb.style.transform = 'scale(1)';
+             orb.style.opacity = '0.12';
           }
         });
 
         card.innerHTML = `
-          <div class="absolute inset-0 opacity-0 group-hover:opacity-100 pointer-events-none" 
-               style="background: linear-gradient(120deg, transparent, rgba(255,255,255,0.02), transparent); transform: skewX(-20deg); animation: shimmer 2.5s infinite; transition: opacity 0.5s;"></div>
-          
-          <div class="flex items-start justify-between relative z-10">
-            <div class="assunto-icon-bg w-10 h-10 rounded-xl flex items-center justify-center transition-all duration-400" 
-                 style="background: rgba(255,255,255,0.02); border: 1px solid rgba(255,255,255,0.05); color: ${color};">
-              <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
-              </svg>
-            </div>
-            <span class="px-3 py-1 rounded-full font-bold text-[10px] tracking-widest" 
-                  style="background: rgba(255,255,255,0.03); color: rgba(196,188,220,0.6); border: 1px solid rgba(255,255,255,0.05);">
-              ${list.length} TÓPICOS
-            </span>
-          </div>
+          <!-- Efeito Orb brilhante no fundo -->
+          <div class="assunto-orb absolute -top-10 -right-10 w-32 h-32 rounded-full pointer-events-none" 
+               style="background: ${color}; opacity: 0.12; filter: blur(40px); transition: all 0.7s cubic-bezier(0.4, 0, 0.2, 1);"></div>
 
-          <div class="relative z-10 mt-5">
-            <h3 style="background: linear-gradient(135deg, ${color} 10%, #f3f0ff 100%); -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent; color: transparent !important; font-size: 1.15rem; font-weight: 700; font-family: 'Sora', sans-serif; letter-spacing: -0.01em; margin: 0; text-transform: capitalize; transition: filter 0.4s;">
+          <!-- Efeito Shimmer -->
+          <div class="absolute inset-0 opacity-0 group-hover:opacity-100 pointer-events-none" 
+               style="background: linear-gradient(120deg, transparent, rgba(255,255,255,0.03), transparent); transform: skewX(-20deg); animation: shimmer 2s infinite; transition: opacity 0.5s;"></div>
+          
+          <div class="flex flex-col gap-1 relative z-10 w-full">
+            <h3 style="background: linear-gradient(135deg, ${color} 15%, #f3f0ff 90%); -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent; color: transparent !important; font-size: 1.35rem; font-weight: 800; font-family: 'Sora', sans-serif; letter-spacing: -0.02em; margin: 0; padding-bottom: 2px; text-transform: capitalize; transition: filter 0.4s;">
               ${assunto}
             </h3>
+            
+            <!-- Trilho e Linha Expansível -->
+            <div class="relative w-full h-[3px] rounded-full mt-2 overflow-hidden" style="background: rgba(255,255,255,0.03);">
+              <div class="assunto-line absolute top-0 left-0 h-full rounded-full" 
+                   style="background-color: ${color}; width: 24px; transition: width 0.6s cubic-bezier(0.2, 0.8, 0.2, 1);"></div>
+            </div>
+          </div>
+          
+          <div class="relative z-10 flex items-end justify-between w-full mt-8">
+            <div class="flex flex-col">
+              <span style="color: rgba(196,188,220,0.35); font-size: 0.65rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.12em; margin-bottom: 3px; font-family: 'Inter', sans-serif;">Conteúdos</span>
+              <span class="inline-flex items-center transition-colors duration-400 group-hover:text-white" 
+                    style="color: rgba(196,188,220,0.7); font-size: 0.95rem; font-weight: 500; font-family: 'Inter', sans-serif;">
+                ${list.length} tópicos
+              </span>
+            </div>
+            
+            <!-- Botão/Ícone Seta -->
+            <div class="assunto-icon-bg w-10 h-10 rounded-xl flex items-center justify-center transition-all duration-500" 
+                 style="background: rgba(255,255,255,0.02); border: 1px solid rgba(255,255,255,0.04);">
+              <svg class="transition-transform duration-500 group-hover:translate-x-1" 
+                   style="color: ${color}; width: 16px; height: 16px;" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M9 5l7 7-7 7" />
+              </svg>
+            </div>
           </div>
         `;
         grid.appendChild(card);
