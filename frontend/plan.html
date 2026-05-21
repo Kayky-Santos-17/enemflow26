@@ -142,6 +142,16 @@
     ];
     let selectedMaterias = [];
 
+    // Load saved inputs on load
+    try {
+      const savedMaterias = localStorage.getItem('plan_selectedMaterias');
+      if (savedMaterias) {
+        selectedMaterias = JSON.parse(savedMaterias);
+      }
+    } catch (e) {
+      console.error('Error parsing saved materias:', e);
+    }
+
     const trigger = document.getElementById('multiSelectTrigger');
     const dropdown = document.getElementById('multiSelectDropdown');
     const selectedTagsContainer = document.getElementById('selectedTagsContainer');
@@ -180,6 +190,7 @@
       } else {
         selectedMaterias.push(materia);
       }
+      localStorage.setItem('plan_selectedMaterias', JSON.stringify(selectedMaterias));
       updateTags();
       renderDropdownItems();
     }
@@ -201,11 +212,41 @@
 
     window.removeMateria = function(materia) {
       selectedMaterias = selectedMaterias.filter(x => x !== materia);
+      localStorage.setItem('plan_selectedMaterias', JSON.stringify(selectedMaterias));
       updateTags();
       renderDropdownItems();
     }
 
+    // Save select options when changed
+    document.getElementById('tempo').addEventListener('change', (e) => {
+      localStorage.setItem('plan_tempo', e.target.value);
+    });
+    document.getElementById('dificuldade').addEventListener('change', (e) => {
+      localStorage.setItem('plan_dificuldade', e.target.value);
+    });
+
+    // Restore select option values
+    const savedTempo = localStorage.getItem('plan_tempo');
+    if (savedTempo) {
+      document.getElementById('tempo').value = savedTempo;
+    }
+    const savedDificuldade = localStorage.getItem('plan_dificuldade');
+    if (savedDificuldade) {
+      document.getElementById('dificuldade').value = savedDificuldade;
+    }
+
+    updateTags();
     renderDropdownItems();
+
+    // Restore previously generated content
+    const planVisible = localStorage.getItem('plan_visible') === 'true';
+    const savedPlanContent = localStorage.getItem('plan_content');
+    if (planVisible && savedPlanContent) {
+      const resultContainer = document.getElementById('resultContainer');
+      const contentDiv = document.getElementById('planContent');
+      contentDiv.innerHTML = savedPlanContent;
+      resultContainer.classList.remove('hidden');
+    }
 
     document.getElementById('planForm').addEventListener('submit', async (e) => {
       e.preventDefault();
@@ -228,9 +269,14 @@
           body: JSON.stringify({ materias: selectedMaterias, tempoDisponivel, dificuldade })
         });
 
-        contentDiv.innerHTML = marked.parse(data.cronograma);
+        const parsedHtml = marked.parse(data.cronograma);
+        contentDiv.innerHTML = parsedHtml;
         resultContainer.classList.remove('hidden');
         resultContainer.scrollIntoView({ behavior: 'smooth', block: 'start' });
+
+        // Save generated plan state
+        localStorage.setItem('plan_content', parsedHtml);
+        localStorage.setItem('plan_visible', 'true');
 
         App.showToast('Cronograma criado! Salvo na sua conta.');
       } catch (err) {

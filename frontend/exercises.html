@@ -94,7 +94,7 @@
           <div id="exerciseContent" class="prose prose-slate dark:prose-invert max-w-none prose-p:leading-relaxed prose-headings:text-purple-500"></div>
           
           <div class="mt-8 flex justify-end">
-             <button onclick="document.getElementById('resultContainer').classList.add('hidden'); document.getElementById('genBtn').focus();" class="px-4 py-2 bg-slate-100 dark:bg-white/5 hover:bg-slate-200 dark:hover:bg-white/10 rounded-lg text-sm font-medium transition-colors">
+             <button onclick="clearExercise()" class="px-4 py-2 bg-slate-100 dark:bg-white/5 hover:bg-slate-200 dark:hover:bg-white/10 rounded-lg text-sm font-medium transition-colors">
                Ocultar e Tentar Outra
              </button>
           </div>
@@ -208,6 +208,38 @@
 
     loadFeaturedMaterials();
 
+    // --- State Persistence: Restore saved inputs ---
+    const savedMateria = localStorage.getItem('exercise_materia');
+    const savedAssunto = localStorage.getItem('exercise_assunto');
+    if (savedMateria) document.getElementById('materia').value = savedMateria;
+    if (savedAssunto) document.getElementById('assunto').value = savedAssunto;
+
+    // Save inputs when user changes them
+    document.getElementById('materia').addEventListener('change', (e) => {
+      localStorage.setItem('exercise_materia', e.target.value);
+    });
+    document.getElementById('assunto').addEventListener('input', (e) => {
+      localStorage.setItem('exercise_assunto', e.target.value);
+    });
+
+    // Restore previously generated question
+    const exerciseVisible = localStorage.getItem('exercise_visible') === 'true';
+    const savedExerciseContent = localStorage.getItem('exercise_content');
+    if (exerciseVisible && savedExerciseContent) {
+      const resultContainer = document.getElementById('resultContainer');
+      const contentDiv = document.getElementById('exerciseContent');
+      contentDiv.innerHTML = savedExerciseContent;
+      resultContainer.classList.remove('hidden');
+    }
+
+    // Clear saved exercise state and hide result
+    function clearExercise() {
+      localStorage.removeItem('exercise_content');
+      localStorage.removeItem('exercise_visible');
+      document.getElementById('resultContainer').classList.add('hidden');
+      document.getElementById('genBtn').focus();
+    }
+
     document.getElementById('exerciseForm').addEventListener('submit', async (e) => {
       e.preventDefault();
       
@@ -227,9 +259,14 @@
           body: JSON.stringify({ materia, assunto })
         });
 
-        contentDiv.innerHTML = marked.parse(data.resposta);
+        const parsedHtml = marked.parse(data.resposta);
+        contentDiv.innerHTML = parsedHtml;
         resultContainer.classList.remove('hidden');
         resultContainer.scrollIntoView({ behavior: 'smooth', block: 'start' });
+
+        // Save generated exercise state
+        localStorage.setItem('exercise_content', parsedHtml);
+        localStorage.setItem('exercise_visible', 'true');
 
         App.showToast('Questão gerada com sucesso! Salva no histórico.');
       } catch (err) {
