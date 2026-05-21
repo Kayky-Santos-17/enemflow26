@@ -85,29 +85,38 @@
                 <span id="placeholderText" class="text-sm text-slate-400 select-none">Escolha uma ou mais matérias...</span>
                 <i data-feather="chevron-down" class="w-4 h-4 ml-auto text-slate-400 shrink-0"></i>
               </div>
-              <div id="multiSelectDropdown" class="hidden absolute left-0 w-full mt-2 rounded-2xl bg-[#0c0a1b]/98 border border-white/10 shadow-2xl z-50 max-h-60 overflow-y-auto py-2 backdrop-blur-xl animate-fade-in">
-              </div>
+              <div id="multiSelectDropdown" class="hidden absolute left-0 w-full mt-2 rounded-2xl bg-[#0c0a1b]/98 border border-white/10 shadow-2xl z-50 max-h-44 overflow-y-auto py-2 backdrop-blur-xl animate-fade-in">              </div>
             </div>
           </div>
 
           <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div class="space-y-2">
-              <label class="text-sm font-medium text-slate-700 dark:text-slate-300">Tempo disponível por dia</label>
-              <select id="tempo" class="w-full px-4 py-3 rounded-xl bg-slate-50 dark:bg-black/20 border border-slate-200 dark:border-white/10 outline-none focus:ring-2 focus:ring-pink-500">
-                <option value="1 hora">1 hora</option>
-                <option value="2 horas" selected>2 horas</option>
-                <option value="4 horas">4 horas</option>
-                <option value="Integral (+6h)">Integral (+6h)</option>
-              </select>
+              <label class="text-sm font-medium text-slate-700 dark:text-slate-300 block mb-2 font-sora">Tempo disponível por dia</label>
+              <div class="relative custom-select" id="tempoSelect">
+                <div class="select-trigger w-full px-4 py-3 rounded-xl bg-slate-50 dark:bg-black/20 border border-slate-200 dark:border-white/10 outline-none focus-within:ring-2 focus-within:ring-pink-500 flex justify-between items-center cursor-pointer transition-all">
+                  <span class="selected-text text-sm text-slate-700 dark:text-slate-300">2 horas</span>
+                  <i data-feather="chevron-down" class="w-4 h-4 text-slate-400"></i>
+                </div>
+                <div class="select-dropdown hidden absolute left-0 w-full mt-2 rounded-2xl bg-[#0c0a1b]/98 border border-white/10 shadow-2xl z-50 max-h-48 overflow-y-auto py-2 backdrop-blur-xl animate-fade-in">
+                  <!-- JS will populate -->
+                </div>
+              </div>
+              <div id="customTempoContainer" class="hidden mt-3 animate-fade-in">
+                <input type="text" id="customTempoInput" placeholder="Digite seu tempo. Ex: 3 horas e 30 min" class="w-full px-4 py-3 rounded-xl bg-slate-50 dark:bg-black/20 border border-slate-200 dark:border-white/10 outline-none focus:ring-2 focus:ring-pink-500 text-sm text-slate-700 dark:text-slate-300">
+              </div>
             </div>
             
             <div class="space-y-2">
-              <label class="text-sm font-medium text-slate-700 dark:text-slate-300">Seu nível atual</label>
-              <select id="dificuldade" class="w-full px-4 py-3 rounded-xl bg-slate-50 dark:bg-black/20 border border-slate-200 dark:border-white/10 outline-none focus:ring-2 focus:ring-pink-500">
-                <option value="Iniciante">Iniciante (Começando agora)</option>
-                <option value="Intermediário" selected>Intermediário (Já vi algo)</option>
-                <option value="Avançado">Avançado (Foco em revisão/exercícios)</option>
-              </select>
+              <label class="text-sm font-medium text-slate-700 dark:text-slate-300 block mb-2 font-sora">Seu nível atual</label>
+              <div class="relative custom-select" id="nivelSelect">
+                <div class="select-trigger w-full px-4 py-3 rounded-xl bg-slate-50 dark:bg-black/20 border border-slate-200 dark:border-white/10 outline-none focus-within:ring-2 focus-within:ring-pink-500 flex justify-between items-center cursor-pointer transition-all">
+                  <span class="selected-text text-sm text-slate-700 dark:text-slate-300">Intermediário (Já vi algo)</span>
+                  <i data-feather="chevron-down" class="w-4 h-4 text-slate-400"></i>
+                </div>
+                <div class="select-dropdown hidden absolute left-0 w-full mt-2 rounded-2xl bg-[#0c0a1b]/98 border border-white/10 shadow-2xl z-50 max-h-48 overflow-y-auto py-2 backdrop-blur-xl animate-fade-in">
+                  <!-- JS will populate -->
+                </div>
+              </div>
             </div>
           </div>
 
@@ -138,9 +147,27 @@
     const materiasList = [
       "Matemática", "Português", "Física", "Química", "Biologia", 
       "História", "Geografia", "Sociologia", "Filosofia", "Artes", 
-      "Literatura", "Inglês", "Espanhol", "Redação"
+      "Literatura", "Inglês", "Espanhol", "Redação", "Educação Física"
     ];
     let selectedMaterias = [];
+
+    // Custom Select Options
+    const tempoOptions = [
+      { value: "1 hora", label: "1 hora" },
+      { value: "2 horas", label: "2 horas" },
+      { value: "4 horas", label: "4 horas" },
+      { value: "Integral (+6h)", label: "Integral (+6h)" },
+      { value: "Personalizado", label: "Personalizado..." }
+    ];
+    
+    const nivelOptions = [
+      { value: "Iniciante", label: "Iniciante (Começando agora)" },
+      { value: "Intermediário", label: "Intermediário (Já vi algo)" },
+      { value: "Avançado", label: "Avançado (Foco em revisão/exercícios)" }
+    ];
+
+    let currentTempo = "2 horas";
+    let currentNivel = "Intermediário";
 
     // Load saved inputs on load
     try {
@@ -165,6 +192,74 @@
       if (!trigger.contains(e.target) && !dropdown.contains(e.target)) {
         dropdown.classList.add('hidden');
       }
+      
+      document.querySelectorAll('.custom-select').forEach(select => {
+        const t = select.querySelector('.select-trigger');
+        const d = select.querySelector('.select-dropdown');
+        if (!t.contains(e.target) && !d.contains(e.target)) {
+          d.classList.add('hidden');
+        }
+      });
+    });
+
+    function setupCustomSelect(selectId, options, currentValue, onSelect) {
+      const container = document.getElementById(selectId);
+      const selTrigger = container.querySelector('.select-trigger');
+      const selDropdown = container.querySelector('.select-dropdown');
+      const selText = container.querySelector('.selected-text');
+
+      selTrigger.addEventListener('click', () => {
+        selDropdown.classList.toggle('hidden');
+      });
+
+      function render() {
+        selDropdown.innerHTML = '';
+        const currentLabel = options.find(o => o.value === currentValue)?.label || currentValue;
+        selText.textContent = currentLabel;
+
+        options.forEach(opt => {
+          const isSelected = opt.value === currentValue;
+          const item = document.createElement('div');
+          item.className = "px-4 py-2.5 hover:bg-white/5 cursor-pointer text-sm font-medium flex items-center justify-between transition-colors";
+          item.style.color = isSelected ? '#f472b6' : 'rgba(196,188,220,0.7)';
+          item.innerHTML = `
+            <span>${opt.label}</span>
+            <i data-feather="check" class="w-4 h-4 text-pink-500 ${isSelected ? '' : 'hidden'}"></i>
+          `;
+          item.onclick = () => {
+            currentValue = opt.value;
+            onSelect(currentValue);
+            selDropdown.classList.add('hidden');
+            render();
+          };
+          selDropdown.appendChild(item);
+        });
+        if (typeof feather !== 'undefined') feather.replace();
+      }
+      
+      render();
+      return {
+        setValue: (val) => {
+          currentValue = val;
+          render();
+        }
+      };
+    }
+
+    const tempoSelectCtrl = setupCustomSelect('tempoSelect', tempoOptions, currentTempo, (val) => {
+      currentTempo = val;
+      localStorage.setItem('plan_tempo', val);
+      const customContainer = document.getElementById('customTempoContainer');
+      if (val === 'Personalizado') {
+        customContainer.classList.remove('hidden');
+      } else {
+        customContainer.classList.add('hidden');
+      }
+    });
+
+    const nivelSelectCtrl = setupCustomSelect('nivelSelect', nivelOptions, currentNivel, (val) => {
+      currentNivel = val;
+      localStorage.setItem('plan_dificuldade', val);
     });
 
     function renderDropdownItems() {
@@ -217,23 +312,26 @@
       renderDropdownItems();
     }
 
-    // Save select options when changed
-    document.getElementById('tempo').addEventListener('change', (e) => {
-      localStorage.setItem('plan_tempo', e.target.value);
-    });
-    document.getElementById('dificuldade').addEventListener('change', (e) => {
-      localStorage.setItem('plan_dificuldade', e.target.value);
-    });
-
-    // Restore select option values
+    // Restore custom input values
     const savedTempo = localStorage.getItem('plan_tempo');
     if (savedTempo) {
-      document.getElementById('tempo').value = savedTempo;
+      currentTempo = savedTempo;
+      tempoSelectCtrl.setValue(savedTempo);
+      if (savedTempo === 'Personalizado') {
+        document.getElementById('customTempoContainer').classList.remove('hidden');
+        const customVal = localStorage.getItem('plan_tempo_custom');
+        if (customVal) document.getElementById('customTempoInput').value = customVal;
+      }
     }
     const savedDificuldade = localStorage.getItem('plan_dificuldade');
     if (savedDificuldade) {
-      document.getElementById('dificuldade').value = savedDificuldade;
+      currentNivel = savedDificuldade;
+      nivelSelectCtrl.setValue(savedDificuldade);
     }
+    
+    document.getElementById('customTempoInput').addEventListener('input', (e) => {
+      localStorage.setItem('plan_tempo_custom', e.target.value);
+    });
 
     updateTags();
     renderDropdownItems();
@@ -253,8 +351,14 @@
       
       if (selectedMaterias.length === 0) return App.showToast('Selecione ao menos uma matéria.', true);
 
-      const tempoDisponivel = document.getElementById('tempo').value;
-      const dificuldade = document.getElementById('dificuldade').value;
+      let tempoDisponivel = currentTempo;
+      if (tempoDisponivel === 'Personalizado') {
+        const customVal = document.getElementById('customTempoInput').value.trim();
+        if (!customVal) return App.showToast('Por favor, digite seu tempo personalizado.', true);
+        tempoDisponivel = customVal;
+      }
+      
+      const dificuldade = currentNivel;
       const btn = document.getElementById('genBtn');
       const resultContainer = document.getElementById('resultContainer');
       const contentDiv = document.getElementById('planContent');
