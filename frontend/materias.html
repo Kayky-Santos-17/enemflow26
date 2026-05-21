@@ -124,6 +124,27 @@
       try {
         dbContents = await App.api('/contents');
         renderMaterias();
+
+        // Recupera o estado de navegação anterior
+        const savedMateria = localStorage.getItem('selectedMateria');
+        const savedAssunto = localStorage.getItem('selectedAssunto');
+
+        if (savedMateria) {
+          selectMateria(savedMateria);
+          if (savedAssunto) {
+            const filtrados = dbContents.filter(c => c.materia === savedMateria);
+            const assuntosMap = {};
+            filtrados.forEach(c => {
+              const assunto = c.assunto || 'Geral';
+              if (!assuntosMap[assunto]) assuntosMap[assunto] = [];
+              assuntosMap[assunto].push(c);
+            });
+            const topicos = assuntosMap[savedAssunto];
+            if (topicos) {
+              selectAssunto(savedAssunto, topicos);
+            }
+          }
+        }
       } catch (err) {
         App.showToast("Falha ao carregar conteúdos: " + err.message, true);
       }
@@ -290,6 +311,7 @@
 
     function selectMateria(materia) {
       materiaSelecionada = materia;
+      localStorage.setItem('selectedMateria', materia);
       document.getElementById('selected-materia-title').innerText = materia;
 
       const filtrados = dbContents.filter(c => c.materia === materia);
@@ -428,6 +450,7 @@
 
     function selectAssunto(assunto, topicos) {
       assuntoSelecionado = assunto;
+      localStorage.setItem('selectedAssunto', assunto);
       document.getElementById('selected-assunto-title').innerText = assunto;
 
       const grid = document.getElementById('topicos-grid');
@@ -525,12 +548,17 @@
     }
 
     function backToMaterias() {
+      materiaSelecionada = '';
+      assuntoSelecionado = '';
+      localStorage.removeItem('selectedMateria');
+      localStorage.removeItem('selectedAssunto');
       document.getElementById('materias-section').classList.remove('hidden');
       document.getElementById('assuntos-section').classList.add('hidden');
       document.getElementById('topicos-section').classList.add('hidden');
     }
 
     function backToAssuntos() {
+      localStorage.removeItem('selectedAssunto');
       selectMateria(materiaSelecionada);
     }
 
