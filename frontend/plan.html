@@ -85,7 +85,7 @@
                 <span id="placeholderText" class="text-sm text-slate-400 select-none">Escolha uma ou mais matérias...</span>
                 <i data-feather="chevron-down" class="w-4 h-4 ml-auto text-slate-400 shrink-0"></i>
               </div>
-              <div id="multiSelectDropdown" class="hidden absolute left-0 w-full mt-2 rounded-2xl bg-[#0c0a1b] border border-white/10 shadow-2xl z-50 max-h-40 overflow-y-auto py-2 animate-fade-in">              </div>
+              <div id="multiSelectDropdown" class="hidden absolute left-0 w-full mt-2 rounded-xl bg-white dark:bg-[#1a162b] border border-slate-200 dark:border-white/10 shadow-2xl z-50 max-h-56 overflow-y-auto p-1.5 animate-fade-in">              </div>
             </div>
           </div>
 
@@ -97,7 +97,7 @@
                   <span class="selected-text text-sm text-slate-700 dark:text-slate-300">2 horas</span>
                   <i data-feather="chevron-down" class="w-4 h-4 text-slate-400"></i>
                 </div>
-                <div class="select-dropdown hidden absolute left-0 w-full bottom-full mb-2 rounded-2xl bg-[#0c0a1b] border border-white/10 shadow-2xl z-50 max-h-40 overflow-y-auto py-2 animate-fade-in">
+                <div class="select-dropdown hidden absolute left-0 w-full bottom-full mb-2 rounded-xl bg-white dark:bg-[#1a162b] border border-slate-200 dark:border-white/10 shadow-2xl z-50 p-1.5 animate-fade-in">
                   <!-- JS will populate -->
                 </div>
               </div>
@@ -113,7 +113,7 @@
                   <span class="selected-text text-sm text-slate-700 dark:text-slate-300">Intermediário (Já vi algo)</span>
                   <i data-feather="chevron-down" class="w-4 h-4 text-slate-400"></i>
                 </div>
-                <div class="select-dropdown hidden absolute left-0 w-full bottom-full mb-2 rounded-2xl bg-[#0c0a1b] border border-white/10 shadow-2xl z-50 max-h-40 overflow-y-auto py-2 animate-fade-in">
+                <div class="select-dropdown hidden absolute left-0 w-full bottom-full mb-2 rounded-xl bg-white dark:bg-[#1a162b] border border-slate-200 dark:border-white/10 shadow-2xl z-50 p-1.5 animate-fade-in">
                   <!-- JS will populate -->
                 </div>
               </div>
@@ -220,8 +220,7 @@
         options.forEach(opt => {
           const isSelected = opt.value === currentValue;
           const item = document.createElement('div');
-          item.className = "px-4 py-2.5 hover:bg-white/5 cursor-pointer text-sm font-medium flex items-center justify-between transition-colors";
-          item.style.color = isSelected ? '#f472b6' : 'rgba(196,188,220,0.7)';
+          item.className = `px-3 py-2.5 mx-1 my-0.5 rounded-lg cursor-pointer text-sm font-medium flex items-center justify-between transition-all ${isSelected ? 'bg-pink-500/10 dark:bg-pink-500/20 text-pink-600 dark:text-pink-400' : 'text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-white/5'}`;
           item.innerHTML = `
             <span>${opt.label}</span>
             <i data-feather="check" class="w-4 h-4 text-pink-500 ${isSelected ? '' : 'hidden'}"></i>
@@ -267,8 +266,7 @@
       materiasList.forEach(m => {
         const isSelected = selectedMaterias.includes(m);
         const item = document.createElement('div');
-        item.className = "px-4 py-2.5 hover:bg-white/5 cursor-pointer text-sm font-medium flex items-center justify-between transition-colors";
-        item.style.color = isSelected ? '#f472b6' : 'rgba(196,188,220,0.7)';
+        item.className = `px-3 py-2.5 mx-1 my-0.5 rounded-lg cursor-pointer text-sm font-medium flex items-center justify-between transition-all ${isSelected ? 'bg-pink-500/10 dark:bg-pink-500/20 text-pink-600 dark:text-pink-400' : 'text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-white/5'}`;
         item.innerHTML = `
           <span>${m}</span>
           <i data-feather="check" class="w-4 h-4 text-pink-500 ${isSelected ? '' : 'hidden'}"></i>
