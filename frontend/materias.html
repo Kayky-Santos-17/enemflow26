@@ -303,20 +303,85 @@
 
       const grid = document.getElementById('assuntos-grid');
       grid.innerHTML = '';
+      grid.className = "grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6";
 
-      Object.keys(assuntosMap).forEach(assunto => {
+      const color = getCorMateria(materia);
+
+      Object.keys(assuntosMap).forEach((assunto, idx) => {
         const list = assuntosMap[assunto];
         const card = document.createElement('div');
-        card.className = "glass-card p-3 cursor-pointer group transition-all duration-300 hover:scale-[1.03] hover:shadow-[0_0_20px_rgba(244,114,182,0.12)] hover:border-pink-500/30";
+        
+        card.className = "group relative overflow-hidden flex flex-col justify-between cursor-pointer";
+        card.style.cssText = `
+          background: #08060f;
+          border: 1px solid rgba(255, 255, 255, 0.03);
+          border-radius: 16px;
+          padding: 24px;
+          min-height: 120px;
+          transition: all 0.5s cubic-bezier(0.2, 0.8, 0.2, 1);
+          animation: fadeSlideIn 0.5s ease-out forwards;
+          animation-delay: ${idx * 0.04}s;
+          opacity: 0;
+        `;
+        
         card.onclick = () => selectAssunto(assunto, list);
+        
+        card.addEventListener('mouseenter', () => {
+          card.style.transform = 'translateY(-4px) scale(1.015)';
+          card.style.boxShadow = `0 10px 30px -10px ${color}40`;
+          card.style.borderColor = `${color}30`;
+          card.style.background = '#0c0918';
+          
+          const h3 = card.querySelector('h3');
+          if(h3) h3.style.filter = `drop-shadow(0 0 10px ${color}80)`;
+
+          const iconBg = card.querySelector('.assunto-icon-bg');
+          if(iconBg) {
+             iconBg.style.background = `${color}20`;
+             iconBg.style.borderColor = `${color}40`;
+             iconBg.style.color = '#ffffff';
+          }
+        });
+        
+        card.addEventListener('mouseleave', () => {
+          card.style.transform = 'translateY(0) scale(1)';
+          card.style.boxShadow = 'none';
+          card.style.borderColor = 'rgba(255, 255, 255, 0.03)';
+          card.style.background = '#08060f';
+          
+          const h3 = card.querySelector('h3');
+          if(h3) h3.style.filter = 'none';
+
+          const iconBg = card.querySelector('.assunto-icon-bg');
+          if(iconBg) {
+             iconBg.style.background = 'rgba(255,255,255,0.02)';
+             iconBg.style.borderColor = 'rgba(255,255,255,0.05)';
+             iconBg.style.color = `${color}`;
+          }
+        });
+
         card.innerHTML = `
-          <div class="flex items-center justify-between mb-2">
-            <div class="w-8 h-8 rounded-lg flex items-center justify-center" style="background:rgba(244,114,182,0.08);">
-              <i data-feather="book-open" class="w-3.5 h-3.5" style="color:#f472b6;"></i>
+          <div class="absolute inset-0 opacity-0 group-hover:opacity-100 pointer-events-none" 
+               style="background: linear-gradient(120deg, transparent, rgba(255,255,255,0.02), transparent); transform: skewX(-20deg); animation: shimmer 2.5s infinite; transition: opacity 0.5s;"></div>
+          
+          <div class="flex items-start justify-between relative z-10">
+            <div class="assunto-icon-bg w-10 h-10 rounded-xl flex items-center justify-center transition-all duration-400" 
+                 style="background: rgba(255,255,255,0.02); border: 1px solid rgba(255,255,255,0.05); color: ${color};">
+              <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
+              </svg>
             </div>
-            <span class="px-2 py-0.5 rounded-full font-semibold text-[9px]" style="background:rgba(124,92,252,0.06); color:rgba(196,188,220,0.5);">${list.length} tópicos</span>
+            <span class="px-3 py-1 rounded-full font-bold text-[10px] tracking-widest" 
+                  style="background: rgba(255,255,255,0.03); color: rgba(196,188,220,0.6); border: 1px solid rgba(255,255,255,0.05);">
+              ${list.length} TÓPICOS
+            </span>
           </div>
-          <h3 class="text-xs font-bold truncate group-hover:text-[#f472b6] transition-colors" style="font-family:'Sora',sans-serif; color:#e4dff0;">${assunto}</h3>
+
+          <div class="relative z-10 mt-5">
+            <h3 style="background: linear-gradient(135deg, ${color} 10%, #f3f0ff 100%); -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent; color: transparent !important; font-size: 1.15rem; font-weight: 700; font-family: 'Sora', sans-serif; letter-spacing: -0.01em; margin: 0; text-transform: capitalize; transition: filter 0.4s;">
+              ${assunto}
+            </h3>
+          </div>
         `;
         grid.appendChild(card);
       });
@@ -324,7 +389,6 @@
       document.getElementById('materias-section').classList.add('hidden');
       document.getElementById('assuntos-section').classList.remove('hidden');
       document.getElementById('topicos-section').classList.add('hidden');
-      feather.replace();
     }
 
     function selectAssunto(assunto, topicos) {
