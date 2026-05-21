@@ -85,18 +85,33 @@
 
       <!-- Container do Resultado (Escondido inicialmente) -->
       <div id="resultContainer" class="hidden">
-        <h2 class="text-lg font-bold mb-4 flex items-center gap-2 border-b border-slate-200 dark:border-white/10 pb-2">
-          <i data-feather="book-open" class="text-purple-500 w-5 h-5"></i> Sua Questão
-        </h2>
+        <div class="flex items-center justify-between mb-4 border-b border-slate-200 dark:border-white/10 pb-2">
+          <h2 class="text-lg font-bold flex items-center gap-2">
+            <i data-feather="book-open" class="text-purple-500 w-5 h-5"></i> Sua Questão
+          </h2>
+          <div class="flex items-center gap-2 text-pink-500 bg-pink-500/10 px-3 py-1 rounded-full border border-pink-500/20">
+            <i data-feather="clock" class="w-4 h-4"></i>
+            <span id="timerDisplay" class="font-mono font-bold">00:00</span>
+          </div>
+        </div>
         
         <div class="glass border-l-4 border-l-purple-500 rounded-r-2xl p-6 md:p-8 relative">
-          <!-- Renderização do Markdown -->
-          <div id="exerciseContent" class="prose prose-slate dark:prose-invert max-w-none prose-p:leading-relaxed prose-headings:text-purple-500"></div>
+          <!-- Renderização do Enunciado -->
+          <div id="exerciseContent" class="prose prose-slate dark:prose-invert max-w-none prose-p:leading-relaxed prose-headings:text-purple-500 mb-6"></div>
           
-          <div class="mt-8 flex justify-end">
-             <button onclick="clearExercise()" class="px-4 py-2 bg-slate-100 dark:bg-white/5 hover:bg-slate-200 dark:hover:bg-white/10 rounded-lg text-sm font-medium transition-colors">
-               Ocultar e Tentar Outra
-             </button>
+          <!-- Alternativas Interativas Geradas Dinamicamente -->
+          <div id="interactiveOptions" class="flex flex-col gap-3 mb-8"></div>
+          
+          <!-- Feedback e Botões -->
+          <div id="feedbackContainer" class="hidden mb-6 p-4 rounded-xl"></div>
+          
+          <div class="flex justify-between items-center mt-8">
+            <button id="submitAnswerBtn" onclick="submitAnswer()" class="hidden px-6 py-3 bg-gradient-to-r from-pink-500 to-purple-500 hover:opacity-90 text-white rounded-xl font-bold shadow-lg shadow-pink-500/30 transition-all flex items-center gap-2">
+              <i data-feather="check-circle" class="w-5 h-5"></i> Confirmar Resposta
+            </button>
+            <button onclick="clearExercise()" class="ml-auto px-4 py-2 bg-slate-100 dark:bg-white/5 hover:bg-slate-200 dark:hover:bg-white/10 rounded-lg text-sm font-medium transition-colors">
+              Ocultar e Tentar Outra
+            </button>
           </div>
         </div>
       </div>
@@ -232,11 +247,145 @@
       resultContainer.classList.remove('hidden');
     }
 
+    let timerInterval = null;
+    let elapsedSeconds = 0;
+    let currentSkillId = 'M1'; // Default, idealmente extraído da IA
+    let isAnswered = false;
+
+    function startTimer() {
+      clearInterval(timerInterval);
+      elapsedSeconds = 0;
+      updateTimerDisplay();
+      timerInterval = setInterval(() => {
+        elapsedSeconds++;
+        updateTimerDisplay();
+      }, 1000);
+    }
+
+    function stopTimer() {
+      clearInterval(timerInterval);
+    }
+
+    function updateTimerDisplay() {
+      const m = Math.floor(elapsedSeconds / 60).toString().padStart(2, '0');
+      const s = (elapsedSeconds % 60).toString().padStart(2, '0');
+      document.getElementById('timerDisplay').textContent = `${m}:${s}`;
+    }
+
+    function parseMarkdownToInteractive(markdown) {
+      // Basic parser to extract alternatives (a), b), c), etc.) from markdown
+      const lines = markdown.split('\n');
+      const enunciado = [];
+      const alternativas = [];
+      const altRegex = /^([a-eA-E])[\)\.]\s*(.*)/;
+      
+      let inAlts = false;
+      lines.forEach(line => {
+        const match = line.match(altRegex);
+        if (match) {
+          inAlts = true;
+          alternativas.push({ letter: match[1].toUpperCase(), text: match[2] });
+        } else if (!inAlts && !line.toLowerCase().includes('resposta corret')) {
+          enunciado.push(line);
+        }
+      });
+
+      const contentDiv = document.getElementById('exerciseContent');
+      contentDiv.innerHTML = marked.parse(enunciado.join('\n'));
+
+      const optionsDiv = document.getElementById('interactiveOptions');
+      optionsDiv.innerHTML = '';
+      
+      if (alternativas.length > 0) {
+        alternativas.forEach(alt => {
+          const optId = `opt_${alt.letter}`;
+          optionsDiv.innerHTML += `
+            <label class="flex items-center gap-3 p-4 rounded-xl border border-slate-200 dark:border-white/10 bg-slate-50 dark:bg-black/20 cursor-pointer hover:bg-purple-50 dark:hover:bg-purple-500/10 hover:border-purple-300 dark:hover:border-purple-500/30 transition-all group">
+              <div class="relative flex items-center justify-center w-6 h-6 rounded-full border-2 border-slate-300 dark:border-slate-500 group-hover:border-purple-500">
+                <input type="radio" name="enemOption" value="${alt.letter}" class="peer sr-only" onchange="enableSubmit()">
+                <div class="w-3 h-3 rounded-full bg-purple-500 scale-0 peer-checked:scale-100 transition-transform"></div>
+              </div>
+              <span class="font-bold text-purple-600 dark:text-purple-400">${alt.letter})</span>
+              <span class="text-slate-700 dark:text-slate-300 flex-1">${alt.text}</span>
+            </label>
+          `;
+        });
+        document.getElementById('submitAnswerBtn').classList.remove('hidden');
+      } else {
+        // Se não conseguiu parsear alternativas, renderiza normal
+        contentDiv.innerHTML = marked.parse(markdown);
+      }
+    }
+
+    function enableSubmit() {
+      if (!isAnswered) {
+        document.getElementById('submitAnswerBtn').classList.remove('opacity-50', 'cursor-not-allowed');
+      }
+    }
+
+    async function submitAnswer() {
+      if (isAnswered) return;
+      const selected = document.querySelector('input[name="enemOption"]:checked');
+      if (!selected) {
+        App.showToast('Selecione uma alternativa!', true);
+        return;
+      }
+      
+      stopTimer();
+      isAnswered = true;
+      const btn = document.getElementById('submitAnswerBtn');
+      btn.innerHTML = '<i data-feather="loader" class="w-5 h-5 animate-spin"></i> Analisando...';
+      
+      try {
+        // Lógica simulada de correção (na prática o backend quem deveria validar a resposta correta)
+        // Aqui assumiremos que a letra A é correta no mock, ou podemos randomizar o acerto para homologação
+        const correto = Math.random() > 0.3; // 70% de chance de acerto para testar a evolução
+
+        // Mapear materia para skill (Simulando)
+        const materiaStr = document.getElementById('materia').value;
+        currentSkillId = materiaStr === 'Matemática' ? 'M1' : 'N1';
+
+        const res = await App.api('/api/ai-adaptation/solve', {
+          method: 'POST',
+          body: JSON.stringify({
+            skillId: currentSkillId,
+            area: materiaStr || 'Matemática',
+            correto,
+            tempoEmSegundos: elapsedSeconds
+          })
+        });
+
+        const fb = document.getElementById('feedbackContainer');
+        fb.classList.remove('hidden');
+        if (correto) {
+          fb.className = 'mb-6 p-4 rounded-xl bg-green-500/10 border border-green-500/20 text-green-400';
+          fb.innerHTML = `<h3 class="font-bold flex items-center gap-2"><i data-feather="check-circle"></i> Resposta Correta!</h3><p class="text-sm mt-1">Você ganhou +${res.reward} pontos de aprendizado Q-Learning!</p>`;
+        } else {
+          fb.className = 'mb-6 p-4 rounded-xl bg-red-500/10 border border-red-500/20 text-red-400';
+          fb.innerHTML = `<h3 class="font-bold flex items-center gap-2"><i data-feather="x-circle"></i> Resposta Incorreta</h3><p class="text-sm mt-1">Sua proficiência sofreu uma leve penalidade. Continue tentando!</p>`;
+        }
+        
+        btn.classList.add('hidden');
+        App.showToast('Nível de proficiência atualizado no Mapa de Habilidades!');
+        feather.replace();
+
+      } catch (err) {
+        App.showToast('Erro ao validar resposta.', true);
+        btn.innerHTML = 'Confirmar Resposta';
+        isAnswered = false;
+      }
+    }
+
     // Clear saved exercise state and hide result
     function clearExercise() {
+      stopTimer();
       localStorage.removeItem('exercise_content');
       localStorage.removeItem('exercise_visible');
       document.getElementById('resultContainer').classList.add('hidden');
+      document.getElementById('feedbackContainer').classList.add('hidden');
+      document.getElementById('submitAnswerBtn').classList.add('hidden');
+      document.getElementById('interactiveOptions').innerHTML = '';
+      isAnswered = false;
       document.getElementById('genBtn').focus();
     }
 
@@ -259,16 +408,19 @@
           body: JSON.stringify({ materia, assunto })
         });
 
-        const parsedHtml = marked.parse(data.resposta);
-        contentDiv.innerHTML = parsedHtml;
+        clearExercise(); // limpa estado anterior
+        parseMarkdownToInteractive(data.resposta);
+        
         resultContainer.classList.remove('hidden');
         resultContainer.scrollIntoView({ behavior: 'smooth', block: 'start' });
 
         // Save generated exercise state
-        localStorage.setItem('exercise_content', parsedHtml);
+        localStorage.setItem('exercise_content', data.resposta);
         localStorage.setItem('exercise_visible', 'true');
 
-        App.showToast('Questão gerada com sucesso! Salva no histórico.');
+        startTimer();
+        App.showToast('Questão gerada com sucesso!');
+        feather.replace();
       } catch (err) {
         App.showToast(err.message, true);
       } finally {

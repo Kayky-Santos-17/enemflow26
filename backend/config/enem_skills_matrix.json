@@ -1,0 +1,1192 @@
+[
+  {
+    "id": "M1",
+    "area": "Matemática",
+    "description": "Matemática Básica e Operações (1)",
+    "prerequisites": []
+  },
+  {
+    "id": "M2",
+    "area": "Matemática",
+    "description": "Matemática Básica e Operações (2)",
+    "prerequisites": [
+      "M1"
+    ]
+  },
+  {
+    "id": "M3",
+    "area": "Matemática",
+    "description": "Matemática Básica e Operações (3)",
+    "prerequisites": [
+      "M2"
+    ]
+  },
+  {
+    "id": "M4",
+    "area": "Matemática",
+    "description": "Matemática Básica e Operações (4)",
+    "prerequisites": [
+      "M3"
+    ]
+  },
+  {
+    "id": "M5",
+    "area": "Matemática",
+    "description": "Matemática Básica e Operações (5)",
+    "prerequisites": [
+      "M4"
+    ]
+  },
+  {
+    "id": "M6",
+    "area": "Matemática",
+    "description": "Geometria e Medidas (6)",
+    "prerequisites": [
+      "M5"
+    ]
+  },
+  {
+    "id": "M7",
+    "area": "Matemática",
+    "description": "Geometria e Medidas (7)",
+    "prerequisites": [
+      "M6"
+    ]
+  },
+  {
+    "id": "M8",
+    "area": "Matemática",
+    "description": "Geometria e Medidas (8)",
+    "prerequisites": [
+      "M7"
+    ]
+  },
+  {
+    "id": "M9",
+    "area": "Matemática",
+    "description": "Geometria e Medidas (9)",
+    "prerequisites": [
+      "M8"
+    ]
+  },
+  {
+    "id": "M10",
+    "area": "Matemática",
+    "description": "Geometria e Medidas (10)",
+    "prerequisites": [
+      "M9"
+    ]
+  },
+  {
+    "id": "M11",
+    "area": "Matemática",
+    "description": "Estatística e Probabilidade (11)",
+    "prerequisites": [
+      "M10"
+    ]
+  },
+  {
+    "id": "M12",
+    "area": "Matemática",
+    "description": "Estatística e Probabilidade (12)",
+    "prerequisites": [
+      "M11"
+    ]
+  },
+  {
+    "id": "M13",
+    "area": "Matemática",
+    "description": "Estatística e Probabilidade (13)",
+    "prerequisites": [
+      "M12"
+    ]
+  },
+  {
+    "id": "M14",
+    "area": "Matemática",
+    "description": "Estatística e Probabilidade (14)",
+    "prerequisites": [
+      "M13"
+    ]
+  },
+  {
+    "id": "M15",
+    "area": "Matemática",
+    "description": "Estatística e Probabilidade (15)",
+    "prerequisites": [
+      "M14"
+    ]
+  },
+  {
+    "id": "M16",
+    "area": "Matemática",
+    "description": "Álgebra e Funções (16)",
+    "prerequisites": [
+      "M15"
+    ]
+  },
+  {
+    "id": "M17",
+    "area": "Matemática",
+    "description": "Álgebra e Funções (17)",
+    "prerequisites": [
+      "M16"
+    ]
+  },
+  {
+    "id": "M18",
+    "area": "Matemática",
+    "description": "Álgebra e Funções (18)",
+    "prerequisites": [
+      "M17"
+    ]
+  },
+  {
+    "id": "M19",
+    "area": "Matemática",
+    "description": "Álgebra e Funções (19)",
+    "prerequisites": [
+      "M18"
+    ]
+  },
+  {
+    "id": "M20",
+    "area": "Matemática",
+    "description": "Álgebra e Funções (20)",
+    "prerequisites": [
+      "M19"
+    ]
+  },
+  {
+    "id": "M21",
+    "area": "Matemática",
+    "description": "Matemática Avançada e Problemas Complexos (21)",
+    "prerequisites": [
+      "M20"
+    ]
+  },
+  {
+    "id": "M22",
+    "area": "Matemática",
+    "description": "Matemática Avançada e Problemas Complexos (22)",
+    "prerequisites": [
+      "M21"
+    ]
+  },
+  {
+    "id": "M23",
+    "area": "Matemática",
+    "description": "Matemática Avançada e Problemas Complexos (23)",
+    "prerequisites": [
+      "M22"
+    ]
+  },
+  {
+    "id": "M24",
+    "area": "Matemática",
+    "description": "Matemática Avançada e Problemas Complexos (24)",
+    "prerequisites": [
+      "M23"
+    ]
+  },
+  {
+    "id": "M25",
+    "area": "Matemática",
+    "description": "Matemática Avançada e Problemas Complexos (25)",
+    "prerequisites": [
+      "M24"
+    ]
+  },
+  {
+    "id": "M26",
+    "area": "Matemática",
+    "description": "Matemática Avançada e Problemas Complexos (26)",
+    "prerequisites": [
+      "M25"
+    ]
+  },
+  {
+    "id": "M27",
+    "area": "Matemática",
+    "description": "Matemática Avançada e Problemas Complexos (27)",
+    "prerequisites": [
+      "M26"
+    ]
+  },
+  {
+    "id": "M28",
+    "area": "Matemática",
+    "description": "Matemática Avançada e Problemas Complexos (28)",
+    "prerequisites": [
+      "M27"
+    ]
+  },
+  {
+    "id": "M29",
+    "area": "Matemática",
+    "description": "Matemática Avançada e Problemas Complexos (29)",
+    "prerequisites": [
+      "M28"
+    ]
+  },
+  {
+    "id": "M30",
+    "area": "Matemática",
+    "description": "Matemática Avançada e Problemas Complexos (30)",
+    "prerequisites": [
+      "M29"
+    ]
+  },
+  {
+    "id": "N1",
+    "area": "Ciências da Natureza",
+    "description": "Física: Mecânica, Termologia e Óptica (1)",
+    "prerequisites": []
+  },
+  {
+    "id": "N2",
+    "area": "Ciências da Natureza",
+    "description": "Física: Mecânica, Termologia e Óptica (2)",
+    "prerequisites": [
+      "N1"
+    ]
+  },
+  {
+    "id": "N3",
+    "area": "Ciências da Natureza",
+    "description": "Física: Mecânica, Termologia e Óptica (3)",
+    "prerequisites": [
+      "N2"
+    ]
+  },
+  {
+    "id": "N4",
+    "area": "Ciências da Natureza",
+    "description": "Física: Mecânica, Termologia e Óptica (4)",
+    "prerequisites": [
+      "N3"
+    ]
+  },
+  {
+    "id": "N5",
+    "area": "Ciências da Natureza",
+    "description": "Física: Mecânica, Termologia e Óptica (5)",
+    "prerequisites": [
+      "N4"
+    ]
+  },
+  {
+    "id": "N6",
+    "area": "Ciências da Natureza",
+    "description": "Física: Mecânica, Termologia e Óptica (6)",
+    "prerequisites": [
+      "N5"
+    ]
+  },
+  {
+    "id": "N7",
+    "area": "Ciências da Natureza",
+    "description": "Física: Mecânica, Termologia e Óptica (7)",
+    "prerequisites": [
+      "N6"
+    ]
+  },
+  {
+    "id": "N8",
+    "area": "Ciências da Natureza",
+    "description": "Física: Mecânica, Termologia e Óptica (8)",
+    "prerequisites": [
+      "N7"
+    ]
+  },
+  {
+    "id": "N9",
+    "area": "Ciências da Natureza",
+    "description": "Física: Mecânica, Termologia e Óptica (9)",
+    "prerequisites": [
+      "N8"
+    ]
+  },
+  {
+    "id": "N10",
+    "area": "Ciências da Natureza",
+    "description": "Física: Mecânica, Termologia e Óptica (10)",
+    "prerequisites": [
+      "N9"
+    ]
+  },
+  {
+    "id": "N11",
+    "area": "Ciências da Natureza",
+    "description": "Química: Físico-Química e Orgânica (11)",
+    "prerequisites": [
+      "N10"
+    ]
+  },
+  {
+    "id": "N12",
+    "area": "Ciências da Natureza",
+    "description": "Química: Físico-Química e Orgânica (12)",
+    "prerequisites": [
+      "N11"
+    ]
+  },
+  {
+    "id": "N13",
+    "area": "Ciências da Natureza",
+    "description": "Química: Físico-Química e Orgânica (13)",
+    "prerequisites": [
+      "N12"
+    ]
+  },
+  {
+    "id": "N14",
+    "area": "Ciências da Natureza",
+    "description": "Química: Físico-Química e Orgânica (14)",
+    "prerequisites": [
+      "N13"
+    ]
+  },
+  {
+    "id": "N15",
+    "area": "Ciências da Natureza",
+    "description": "Química: Físico-Química e Orgânica (15)",
+    "prerequisites": [
+      "N14"
+    ]
+  },
+  {
+    "id": "N16",
+    "area": "Ciências da Natureza",
+    "description": "Química: Físico-Química e Orgânica (16)",
+    "prerequisites": [
+      "N15"
+    ]
+  },
+  {
+    "id": "N17",
+    "area": "Ciências da Natureza",
+    "description": "Química: Físico-Química e Orgânica (17)",
+    "prerequisites": [
+      "N16"
+    ]
+  },
+  {
+    "id": "N18",
+    "area": "Ciências da Natureza",
+    "description": "Química: Físico-Química e Orgânica (18)",
+    "prerequisites": [
+      "N17"
+    ]
+  },
+  {
+    "id": "N19",
+    "area": "Ciências da Natureza",
+    "description": "Química: Físico-Química e Orgânica (19)",
+    "prerequisites": [
+      "N18"
+    ]
+  },
+  {
+    "id": "N20",
+    "area": "Ciências da Natureza",
+    "description": "Química: Físico-Química e Orgânica (20)",
+    "prerequisites": [
+      "N19"
+    ]
+  },
+  {
+    "id": "N21",
+    "area": "Ciências da Natureza",
+    "description": "Biologia: Ecologia, Genética e Citologia (21)",
+    "prerequisites": [
+      "N20"
+    ]
+  },
+  {
+    "id": "N22",
+    "area": "Ciências da Natureza",
+    "description": "Biologia: Ecologia, Genética e Citologia (22)",
+    "prerequisites": [
+      "N21"
+    ]
+  },
+  {
+    "id": "N23",
+    "area": "Ciências da Natureza",
+    "description": "Biologia: Ecologia, Genética e Citologia (23)",
+    "prerequisites": [
+      "N22"
+    ]
+  },
+  {
+    "id": "N24",
+    "area": "Ciências da Natureza",
+    "description": "Biologia: Ecologia, Genética e Citologia (24)",
+    "prerequisites": [
+      "N23"
+    ]
+  },
+  {
+    "id": "N25",
+    "area": "Ciências da Natureza",
+    "description": "Biologia: Ecologia, Genética e Citologia (25)",
+    "prerequisites": [
+      "N24"
+    ]
+  },
+  {
+    "id": "N26",
+    "area": "Ciências da Natureza",
+    "description": "Biologia: Ecologia, Genética e Citologia (26)",
+    "prerequisites": [
+      "N25"
+    ]
+  },
+  {
+    "id": "N27",
+    "area": "Ciências da Natureza",
+    "description": "Biologia: Ecologia, Genética e Citologia (27)",
+    "prerequisites": [
+      "N26"
+    ]
+  },
+  {
+    "id": "N28",
+    "area": "Ciências da Natureza",
+    "description": "Biologia: Ecologia, Genética e Citologia (28)",
+    "prerequisites": [
+      "N27"
+    ]
+  },
+  {
+    "id": "N29",
+    "area": "Ciências da Natureza",
+    "description": "Biologia: Ecologia, Genética e Citologia (29)",
+    "prerequisites": [
+      "N28"
+    ]
+  },
+  {
+    "id": "N30",
+    "area": "Ciências da Natureza",
+    "description": "Biologia: Ecologia, Genética e Citologia (30)",
+    "prerequisites": [
+      "N29"
+    ]
+  },
+  {
+    "id": "H1",
+    "area": "Ciências Humanas",
+    "description": "História e Sociedade (1)",
+    "prerequisites": []
+  },
+  {
+    "id": "H2",
+    "area": "Ciências Humanas",
+    "description": "História e Sociedade (2)",
+    "prerequisites": [
+      "H1"
+    ]
+  },
+  {
+    "id": "H3",
+    "area": "Ciências Humanas",
+    "description": "História e Sociedade (3)",
+    "prerequisites": [
+      "H2"
+    ]
+  },
+  {
+    "id": "H4",
+    "area": "Ciências Humanas",
+    "description": "História e Sociedade (4)",
+    "prerequisites": [
+      "H3"
+    ]
+  },
+  {
+    "id": "H5",
+    "area": "Ciências Humanas",
+    "description": "História e Sociedade (5)",
+    "prerequisites": [
+      "H4"
+    ]
+  },
+  {
+    "id": "H6",
+    "area": "Ciências Humanas",
+    "description": "História e Sociedade (6)",
+    "prerequisites": [
+      "H5"
+    ]
+  },
+  {
+    "id": "H7",
+    "area": "Ciências Humanas",
+    "description": "História e Sociedade (7)",
+    "prerequisites": [
+      "H6"
+    ]
+  },
+  {
+    "id": "H8",
+    "area": "Ciências Humanas",
+    "description": "História e Sociedade (8)",
+    "prerequisites": [
+      "H7"
+    ]
+  },
+  {
+    "id": "H9",
+    "area": "Ciências Humanas",
+    "description": "História e Sociedade (9)",
+    "prerequisites": [
+      "H8"
+    ]
+  },
+  {
+    "id": "H10",
+    "area": "Ciências Humanas",
+    "description": "História e Sociedade (10)",
+    "prerequisites": [
+      "H9"
+    ]
+  },
+  {
+    "id": "H11",
+    "area": "Ciências Humanas",
+    "description": "História e Sociedade (11)",
+    "prerequisites": [
+      "H10"
+    ]
+  },
+  {
+    "id": "H12",
+    "area": "Ciências Humanas",
+    "description": "História e Sociedade (12)",
+    "prerequisites": [
+      "H11"
+    ]
+  },
+  {
+    "id": "H13",
+    "area": "Ciências Humanas",
+    "description": "História e Sociedade (13)",
+    "prerequisites": [
+      "H12"
+    ]
+  },
+  {
+    "id": "H14",
+    "area": "Ciências Humanas",
+    "description": "História e Sociedade (14)",
+    "prerequisites": [
+      "H13"
+    ]
+  },
+  {
+    "id": "H15",
+    "area": "Ciências Humanas",
+    "description": "História e Sociedade (15)",
+    "prerequisites": [
+      "H14"
+    ]
+  },
+  {
+    "id": "H16",
+    "area": "Ciências Humanas",
+    "description": "Geografia, Política e Economia (16)",
+    "prerequisites": [
+      "H15"
+    ]
+  },
+  {
+    "id": "H17",
+    "area": "Ciências Humanas",
+    "description": "Geografia, Política e Economia (17)",
+    "prerequisites": [
+      "H16"
+    ]
+  },
+  {
+    "id": "H18",
+    "area": "Ciências Humanas",
+    "description": "Geografia, Política e Economia (18)",
+    "prerequisites": [
+      "H17"
+    ]
+  },
+  {
+    "id": "H19",
+    "area": "Ciências Humanas",
+    "description": "Geografia, Política e Economia (19)",
+    "prerequisites": [
+      "H18"
+    ]
+  },
+  {
+    "id": "H20",
+    "area": "Ciências Humanas",
+    "description": "Geografia, Política e Economia (20)",
+    "prerequisites": [
+      "H19"
+    ]
+  },
+  {
+    "id": "H21",
+    "area": "Ciências Humanas",
+    "description": "Geografia, Política e Economia (21)",
+    "prerequisites": [
+      "H20"
+    ]
+  },
+  {
+    "id": "H22",
+    "area": "Ciências Humanas",
+    "description": "Geografia, Política e Economia (22)",
+    "prerequisites": [
+      "H21"
+    ]
+  },
+  {
+    "id": "H23",
+    "area": "Ciências Humanas",
+    "description": "Geografia, Política e Economia (23)",
+    "prerequisites": [
+      "H22"
+    ]
+  },
+  {
+    "id": "H24",
+    "area": "Ciências Humanas",
+    "description": "Geografia, Política e Economia (24)",
+    "prerequisites": [
+      "H23"
+    ]
+  },
+  {
+    "id": "H25",
+    "area": "Ciências Humanas",
+    "description": "Geografia, Política e Economia (25)",
+    "prerequisites": [
+      "H24"
+    ]
+  },
+  {
+    "id": "H26",
+    "area": "Ciências Humanas",
+    "description": "Geografia, Política e Economia (26)",
+    "prerequisites": [
+      "H25"
+    ]
+  },
+  {
+    "id": "H27",
+    "area": "Ciências Humanas",
+    "description": "Geografia, Política e Economia (27)",
+    "prerequisites": [
+      "H26"
+    ]
+  },
+  {
+    "id": "H28",
+    "area": "Ciências Humanas",
+    "description": "Geografia, Política e Economia (28)",
+    "prerequisites": [
+      "H27"
+    ]
+  },
+  {
+    "id": "H29",
+    "area": "Ciências Humanas",
+    "description": "Geografia, Política e Economia (29)",
+    "prerequisites": [
+      "H28"
+    ]
+  },
+  {
+    "id": "H30",
+    "area": "Ciências Humanas",
+    "description": "Geografia, Política e Economia (30)",
+    "prerequisites": [
+      "H29"
+    ]
+  },
+  {
+    "id": "L1",
+    "area": "Linguagens e Códigos",
+    "description": "Compreensão de Texto e Literatura (1)",
+    "prerequisites": []
+  },
+  {
+    "id": "L2",
+    "area": "Linguagens e Códigos",
+    "description": "Compreensão de Texto e Literatura (2)",
+    "prerequisites": [
+      "L1"
+    ]
+  },
+  {
+    "id": "L3",
+    "area": "Linguagens e Códigos",
+    "description": "Compreensão de Texto e Literatura (3)",
+    "prerequisites": [
+      "L2"
+    ]
+  },
+  {
+    "id": "L4",
+    "area": "Linguagens e Códigos",
+    "description": "Compreensão de Texto e Literatura (4)",
+    "prerequisites": [
+      "L3"
+    ]
+  },
+  {
+    "id": "L5",
+    "area": "Linguagens e Códigos",
+    "description": "Compreensão de Texto e Literatura (5)",
+    "prerequisites": [
+      "L4"
+    ]
+  },
+  {
+    "id": "L6",
+    "area": "Linguagens e Códigos",
+    "description": "Compreensão de Texto e Literatura (6)",
+    "prerequisites": [
+      "L5"
+    ]
+  },
+  {
+    "id": "L7",
+    "area": "Linguagens e Códigos",
+    "description": "Compreensão de Texto e Literatura (7)",
+    "prerequisites": [
+      "L6"
+    ]
+  },
+  {
+    "id": "L8",
+    "area": "Linguagens e Códigos",
+    "description": "Compreensão de Texto e Literatura (8)",
+    "prerequisites": [
+      "L7"
+    ]
+  },
+  {
+    "id": "L9",
+    "area": "Linguagens e Códigos",
+    "description": "Compreensão de Texto e Literatura (9)",
+    "prerequisites": [
+      "L8"
+    ]
+  },
+  {
+    "id": "L10",
+    "area": "Linguagens e Códigos",
+    "description": "Compreensão de Texto e Literatura (10)",
+    "prerequisites": [
+      "L9"
+    ]
+  },
+  {
+    "id": "L11",
+    "area": "Linguagens e Códigos",
+    "description": "Compreensão de Texto e Literatura (11)",
+    "prerequisites": [
+      "L10"
+    ]
+  },
+  {
+    "id": "L12",
+    "area": "Linguagens e Códigos",
+    "description": "Compreensão de Texto e Literatura (12)",
+    "prerequisites": [
+      "L11"
+    ]
+  },
+  {
+    "id": "L13",
+    "area": "Linguagens e Códigos",
+    "description": "Compreensão de Texto e Literatura (13)",
+    "prerequisites": [
+      "L12"
+    ]
+  },
+  {
+    "id": "L14",
+    "area": "Linguagens e Códigos",
+    "description": "Compreensão de Texto e Literatura (14)",
+    "prerequisites": [
+      "L13"
+    ]
+  },
+  {
+    "id": "L15",
+    "area": "Linguagens e Códigos",
+    "description": "Compreensão de Texto e Literatura (15)",
+    "prerequisites": [
+      "L14"
+    ]
+  },
+  {
+    "id": "L16",
+    "area": "Linguagens e Códigos",
+    "description": "Gramática, Artes e Educação Física (16)",
+    "prerequisites": [
+      "L15"
+    ]
+  },
+  {
+    "id": "L17",
+    "area": "Linguagens e Códigos",
+    "description": "Gramática, Artes e Educação Física (17)",
+    "prerequisites": [
+      "L16"
+    ]
+  },
+  {
+    "id": "L18",
+    "area": "Linguagens e Códigos",
+    "description": "Gramática, Artes e Educação Física (18)",
+    "prerequisites": [
+      "L17"
+    ]
+  },
+  {
+    "id": "L19",
+    "area": "Linguagens e Códigos",
+    "description": "Gramática, Artes e Educação Física (19)",
+    "prerequisites": [
+      "L18"
+    ]
+  },
+  {
+    "id": "L20",
+    "area": "Linguagens e Códigos",
+    "description": "Gramática, Artes e Educação Física (20)",
+    "prerequisites": [
+      "L19"
+    ]
+  },
+  {
+    "id": "L21",
+    "area": "Linguagens e Códigos",
+    "description": "Gramática, Artes e Educação Física (21)",
+    "prerequisites": [
+      "L20"
+    ]
+  },
+  {
+    "id": "L22",
+    "area": "Linguagens e Códigos",
+    "description": "Gramática, Artes e Educação Física (22)",
+    "prerequisites": [
+      "L21"
+    ]
+  },
+  {
+    "id": "L23",
+    "area": "Linguagens e Códigos",
+    "description": "Gramática, Artes e Educação Física (23)",
+    "prerequisites": [
+      "L22"
+    ]
+  },
+  {
+    "id": "L24",
+    "area": "Linguagens e Códigos",
+    "description": "Gramática, Artes e Educação Física (24)",
+    "prerequisites": [
+      "L23"
+    ]
+  },
+  {
+    "id": "L25",
+    "area": "Linguagens e Códigos",
+    "description": "Gramática, Artes e Educação Física (25)",
+    "prerequisites": [
+      "L24"
+    ]
+  },
+  {
+    "id": "L26",
+    "area": "Linguagens e Códigos",
+    "description": "Gramática, Artes e Educação Física (26)",
+    "prerequisites": [
+      "L25"
+    ]
+  },
+  {
+    "id": "L27",
+    "area": "Linguagens e Códigos",
+    "description": "Gramática, Artes e Educação Física (27)",
+    "prerequisites": [
+      "L26"
+    ]
+  },
+  {
+    "id": "L28",
+    "area": "Linguagens e Códigos",
+    "description": "Gramática, Artes e Educação Física (28)",
+    "prerequisites": [
+      "L27"
+    ]
+  },
+  {
+    "id": "L29",
+    "area": "Linguagens e Códigos",
+    "description": "Gramática, Artes e Educação Física (29)",
+    "prerequisites": [
+      "L28"
+    ]
+  },
+  {
+    "id": "L30",
+    "area": "Linguagens e Códigos",
+    "description": "Gramática, Artes e Educação Física (30)",
+    "prerequisites": [
+      "L29"
+    ]
+  },
+  {
+    "id": "R1",
+    "area": "Redação e Competências",
+    "description": "Competência 1 da Redação (Critério 1)",
+    "prerequisites": []
+  },
+  {
+    "id": "R2",
+    "area": "Redação e Competências",
+    "description": "Competência 1 da Redação (Critério 2)",
+    "prerequisites": [
+      "R1"
+    ]
+  },
+  {
+    "id": "R3",
+    "area": "Redação e Competências",
+    "description": "Competência 1 da Redação (Critério 3)",
+    "prerequisites": [
+      "R2"
+    ]
+  },
+  {
+    "id": "R4",
+    "area": "Redação e Competências",
+    "description": "Competência 1 da Redação (Critério 4)",
+    "prerequisites": [
+      "R3"
+    ]
+  },
+  {
+    "id": "R5",
+    "area": "Redação e Competências",
+    "description": "Competência 1 da Redação (Critério 5)",
+    "prerequisites": [
+      "R4"
+    ]
+  },
+  {
+    "id": "R6",
+    "area": "Redação e Competências",
+    "description": "Competência 1 da Redação (Critério 6)",
+    "prerequisites": [
+      "R5"
+    ]
+  },
+  {
+    "id": "R7",
+    "area": "Redação e Competências",
+    "description": "Competência 2 da Redação (Critério 7)",
+    "prerequisites": [
+      "R6"
+    ]
+  },
+  {
+    "id": "R8",
+    "area": "Redação e Competências",
+    "description": "Competência 2 da Redação (Critério 8)",
+    "prerequisites": [
+      "R7"
+    ]
+  },
+  {
+    "id": "R9",
+    "area": "Redação e Competências",
+    "description": "Competência 2 da Redação (Critério 9)",
+    "prerequisites": [
+      "R8"
+    ]
+  },
+  {
+    "id": "R10",
+    "area": "Redação e Competências",
+    "description": "Competência 2 da Redação (Critério 10)",
+    "prerequisites": [
+      "R9"
+    ]
+  },
+  {
+    "id": "R11",
+    "area": "Redação e Competências",
+    "description": "Competência 2 da Redação (Critério 11)",
+    "prerequisites": [
+      "R10"
+    ]
+  },
+  {
+    "id": "R12",
+    "area": "Redação e Competências",
+    "description": "Competência 2 da Redação (Critério 12)",
+    "prerequisites": [
+      "R11"
+    ]
+  },
+  {
+    "id": "R13",
+    "area": "Redação e Competências",
+    "description": "Competência 3 da Redação (Critério 13)",
+    "prerequisites": [
+      "R12"
+    ]
+  },
+  {
+    "id": "R14",
+    "area": "Redação e Competências",
+    "description": "Competência 3 da Redação (Critério 14)",
+    "prerequisites": [
+      "R13"
+    ]
+  },
+  {
+    "id": "R15",
+    "area": "Redação e Competências",
+    "description": "Competência 3 da Redação (Critério 15)",
+    "prerequisites": [
+      "R14"
+    ]
+  },
+  {
+    "id": "R16",
+    "area": "Redação e Competências",
+    "description": "Competência 3 da Redação (Critério 16)",
+    "prerequisites": [
+      "R15"
+    ]
+  },
+  {
+    "id": "R17",
+    "area": "Redação e Competências",
+    "description": "Competência 3 da Redação (Critério 17)",
+    "prerequisites": [
+      "R16"
+    ]
+  },
+  {
+    "id": "R18",
+    "area": "Redação e Competências",
+    "description": "Competência 3 da Redação (Critério 18)",
+    "prerequisites": [
+      "R17"
+    ]
+  },
+  {
+    "id": "R19",
+    "area": "Redação e Competências",
+    "description": "Competência 4 da Redação (Critério 19)",
+    "prerequisites": [
+      "R18"
+    ]
+  },
+  {
+    "id": "R20",
+    "area": "Redação e Competências",
+    "description": "Competência 4 da Redação (Critério 20)",
+    "prerequisites": [
+      "R19"
+    ]
+  },
+  {
+    "id": "R21",
+    "area": "Redação e Competências",
+    "description": "Competência 4 da Redação (Critério 21)",
+    "prerequisites": [
+      "R20"
+    ]
+  },
+  {
+    "id": "R22",
+    "area": "Redação e Competências",
+    "description": "Competência 4 da Redação (Critério 22)",
+    "prerequisites": [
+      "R21"
+    ]
+  },
+  {
+    "id": "R23",
+    "area": "Redação e Competências",
+    "description": "Competência 4 da Redação (Critério 23)",
+    "prerequisites": [
+      "R22"
+    ]
+  },
+  {
+    "id": "R24",
+    "area": "Redação e Competências",
+    "description": "Competência 4 da Redação (Critério 24)",
+    "prerequisites": [
+      "R23"
+    ]
+  },
+  {
+    "id": "R25",
+    "area": "Redação e Competências",
+    "description": "Competência 5 da Redação (Critério 25)",
+    "prerequisites": [
+      "R24"
+    ]
+  },
+  {
+    "id": "R26",
+    "area": "Redação e Competências",
+    "description": "Competência 5 da Redação (Critério 26)",
+    "prerequisites": [
+      "R25"
+    ]
+  },
+  {
+    "id": "R27",
+    "area": "Redação e Competências",
+    "description": "Competência 5 da Redação (Critério 27)",
+    "prerequisites": [
+      "R26"
+    ]
+  },
+  {
+    "id": "R28",
+    "area": "Redação e Competências",
+    "description": "Competência 5 da Redação (Critério 28)",
+    "prerequisites": [
+      "R27"
+    ]
+  },
+  {
+    "id": "R29",
+    "area": "Redação e Competências",
+    "description": "Competência 5 da Redação (Critério 29)",
+    "prerequisites": [
+      "R28"
+    ]
+  },
+  {
+    "id": "R30",
+    "area": "Redação e Competências",
+    "description": "Competência 5 da Redação (Critério 30)",
+    "prerequisites": [
+      "R29"
+    ]
+  }
+]

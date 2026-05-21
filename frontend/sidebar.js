@@ -155,6 +155,7 @@ document.addEventListener('DOMContentLoaded', () => {
     { title: 'Tutor IA', icon: 'cpu', url: 'chat.html', cat: 'Menu Principal' },
     { title: 'Plano de Estudos', icon: 'calendar', url: 'plan.html', cat: 'Menu Principal' },
     { title: 'Simulados', icon: 'check-square', url: 'exercises.html', cat: 'Menu Principal' },
+    { title: 'Mapa de Habilidades', icon: 'share-2', url: 'skills.html', cat: 'Menu Principal' },
     { title: 'Progresso', icon: 'bar-chart-2', url: 'progresso.html', cat: 'Sua Conta' },
     { title: 'Histórico', icon: 'clock', url: 'history.html', cat: 'Sua Conta' }
   ];
