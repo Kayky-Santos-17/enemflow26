@@ -192,6 +192,7 @@
 
   </main>
 
+  <script src="app.js"></script>
   <script src="sidebar.js"></script>
   <script>
     feather.replace();
@@ -333,9 +334,6 @@
 
     // ── Integração com a API ────────────────────────────────────────────────
 
-    const API_URL = 'http://localhost:3000/api/ai-adaptation'; // Ajuste conforme necessário
-    const token = localStorage.getItem('token') || '';
-
     // Mockup temporário se não houver backend rodando
     const mockSkills = Array.from({length: 30}, (_, i) => ({
       id: `M${i+1}`, 
@@ -347,19 +345,12 @@
     async function loadData() {
       try {
         // Tenta buscar da API Real
-        const res = await fetch(`${API_URL}/skills`, {
-          headers: { 'Authorization': `Bearer ${token}` }
-        });
-        if(res.ok) {
-          const data = await res.json();
-          initGraph(data);
-          loadRecommendations();
-          loadTRI();
-        } else {
-          throw new Error('Fallback para mock');
-        }
+        const data = await App.api('/api/ai-adaptation/skills');
+        initGraph(data);
+        loadRecommendations();
+        await loadTRI();
       } catch (e) {
-        console.log("Usando dados mockados para visualização do design...");
+        console.log("Usando dados mockados para visualização do design...", e);
         initGraph(mockSkills);
         renderMockRecommendations();
       }
@@ -368,10 +359,7 @@
     async function loadRecommendations() {
       const recsContainer = document.getElementById('recs-container');
       try {
-        const res = await fetch(`${API_URL}/recommendations`, {
-          headers: { 'Authorization': `Bearer ${token}` }
-        });
-        const recs = await res.json();
+        const recs = await App.api('/api/ai-adaptation/recommendations');
         recsContainer.innerHTML = '';
         recs.forEach((rec, idx) => {
           recsContainer.innerHTML += createRecCard(rec.skill, idx);
@@ -379,6 +367,21 @@
         feather.replace();
       } catch (e) {
         console.error("Erro recs", e);
+      }
+    }
+
+    async function loadTRI() {
+      try {
+        const data = await App.api('/api/ai-adaptation/simulate', {
+          method: 'POST',
+          body: JSON.stringify({ horasAdicionais: 0 })
+        });
+        if (data && data.notas && data.notas['Matemática']) {
+          baseScore = data.notas['Matemática'];
+          scoreDisplay.textContent = baseScore;
+        }
+      } catch (e) {
+        console.error("Erro ao carregar TRI inicial do backend:", e);
       }
     }
 
@@ -421,8 +424,9 @@
     const scoreDisplay = document.getElementById('tri-score');
     
     let baseScore = 368;
+    let debounceTimer;
 
-    slider.addEventListener('input', async (e) => {
+    slider.addEventListener('input', (e) => {
       const hours = parseInt(e.target.value);
       label.textContent = `${hours} horas`;
       
@@ -430,11 +434,25 @@
       const simulatedGain = Math.round(15 * Math.log(hours + 1) + (hours * 2));
       const newScore = Math.min(980, baseScore + simulatedGain);
       
-      // Anima o número
-      animateValue(scoreDisplay, parseInt(scoreDisplay.textContent), newScore, 300);
+      // Anima o número localmente
+      animateValue(scoreDisplay, parseInt(scoreDisplay.textContent), newScore, 200);
       
-      // Se tiver backend, chama a simulação real debounced
-      // fetch(simulate... )
+      // Simulação real no backend debounced
+      clearTimeout(debounceTimer);
+      debounceTimer = setTimeout(async () => {
+        try {
+          const data = await App.api('/api/ai-adaptation/simulate', {
+            method: 'POST',
+            body: JSON.stringify({ horasAdicionais: hours, areaTarget: 'Matemática' })
+          });
+          if (data && data.notas && data.notas['Matemática']) {
+            const realScore = data.notas['Matemática'];
+            animateValue(scoreDisplay, parseInt(scoreDisplay.textContent), realScore, 200);
+          }
+        } catch (err) {
+          console.error("Erro na simulação real do TRI:", err);
+        }
+      }, 300);
     });
 
     function animateValue(obj, start, end, duration) {

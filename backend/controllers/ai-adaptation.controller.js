@@ -4,7 +4,7 @@ const SkillProgress = require('../models/SkillProgress');
 
 async function getSkills(req, res) {
   try {
-    const userId = req.user.id; // assumindo que req.user é populado pelo middleware de auth
+    const userId = req.userId; // req.userId é populado pelo middleware de auth
     const progresses = await SkillProgress.find({ userId });
     
     // Mapeia para entregar pro frontend a estrutura das habilidades + progresso
@@ -26,7 +26,7 @@ async function getSkills(req, res) {
 
 async function getRecommendations(req, res) {
   try {
-    const userId = req.user.id;
+    const userId = req.userId;
     const recs = await aiService.getRecommendations(userId);
     res.json(recs);
   } catch (error) {
@@ -36,7 +36,7 @@ async function getRecommendations(req, res) {
 
 async function solveQuestion(req, res) {
   try {
-    const userId = req.user.id;
+    const userId = req.userId;
     const { skillId, area, correto, tempoEmSegundos } = req.body;
     
     if (!skillId || !area || typeof correto === 'undefined') {
@@ -62,7 +62,7 @@ async function solveQuestion(req, res) {
 
 async function simulateScore(req, res) {
   try {
-    const userId = req.user.id;
+    const userId = req.userId;
     const { horasAdicionais, areaTarget } = req.body;
     
     const notas = await aiService.simulateTRIScore(userId, horasAdicionais, areaTarget);
@@ -74,7 +74,7 @@ async function simulateScore(req, res) {
 
 async function reportFeedback(req, res) {
   try {
-    const userId = req.user.id;
+    const userId = req.userId;
     const { skillId } = req.body;
     
     await aiService.reportFeedback(userId, skillId);

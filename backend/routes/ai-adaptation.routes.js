@@ -1,7 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const aiAdaptationController = require('../controllers/ai-adaptation.controller');
-const authMiddleware = require('../middlewares/auth.middleware');
+const authMiddleware = require('../middlewares/auth');
 
 // Todas as rotas de IA Adaptativa são protegidas
 router.use(authMiddleware);
