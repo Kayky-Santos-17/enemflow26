@@ -630,7 +630,7 @@ html:not(.dark) .subject-card-premium:hover {
 
   /* 4b. Base font size must never go below 14px */
   body { font-size: 14px !important; }
-  p, span, a, label, button { font-size: inherit; min-font-size: 13px; }
+  p, span, a, label, button { font-size: inherit; }
 
   /* 5. Reduce card padding on mobile */
   .glass-card {
