@@ -319,8 +319,8 @@ document.addEventListener('DOMContentLoaded', () => {
   const mobileFullMenu = document.createElement('div');
   mobileFullMenu.id = 'ef-mobile-sheet';
   // Starts hidden off-screen at the bottom
-  mobileFullMenu.className = 'lg:hidden fixed inset-x-0 bottom-16 z-[60] rounded-t-3xl transition-transform duration-300 ease-out translate-y-full';
-  mobileFullMenu.style.cssText = 'background:rgba(10,8,22,0.98); backdrop-filter:blur(30px); -webkit-backdrop-filter:blur(30px); border-top:1px solid rgba(124,92,252,0.15); box-shadow: 0 -20px 60px rgba(0,0,0,0.5);';
+  mobileFullMenu.className = 'lg:hidden fixed inset-x-0 bottom-0 z-[60] rounded-t-3xl transition-transform duration-300 ease-out translate-y-full';
+  mobileFullMenu.style.cssText = 'background:rgba(10,8,22,0.98); backdrop-filter:blur(30px); -webkit-backdrop-filter:blur(30px); border-top:1px solid rgba(124,92,252,0.15); box-shadow: 0 -20px 60px rgba(0,0,0,0.5); padding-bottom: env(safe-area-inset-bottom);';
   
   // Secondary links NOT shown in bottom nav
   const secondaryItems = [
