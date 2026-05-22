@@ -207,6 +207,69 @@
     </div>
   </main>
 
+  <!-- Sobre a Plataforma -->
+  <section id="sobre" class="relative z-10 w-full py-16 lg:py-28 px-6 bg-black/20 backdrop-blur-sm border-t border-white/5 overflow-hidden">
+    <!-- Glow effects laterais -->
+    <div class="absolute top-1/2 left-0 -translate-y-1/2 w-72 h-72 bg-pink-500/10 rounded-full blur-[100px] pointer-events-none"></div>
+    <div class="absolute bottom-0 right-0 w-96 h-96 bg-violet-600/10 rounded-full blur-[120px] pointer-events-none"></div>
+
+    <div class="max-w-6xl mx-auto flex flex-col lg:flex-row items-center gap-12 lg:gap-20">
+      
+      <!-- Textos (Vem primeiro no mobile, à esquerda no desktop) -->
+      <div class="w-full lg:w-1/2 flex flex-col items-center lg:items-start text-center lg:text-left z-10">
+        <span class="px-3 py-1 rounded-full bg-violet-500/10 border border-violet-500/20 text-violet-400 font-bold uppercase tracking-widest text-[10px] md:text-xs mb-5 inline-block" style="font-family:'Sora',sans-serif;">A Revolução do Aprendizado</span>
+        
+        <h2 class="text-3xl sm:text-4xl lg:text-5xl font-extrabold mb-6 text-white" style="font-family:'Sora',sans-serif; line-height:1.2;">
+          Conecte-se ao seu <br> <span class="logo-text-gradient">Estado de Flow.</span>
+        </h2>
+        
+        <p class="text-slate-300 text-sm md:text-base leading-relaxed mb-6">
+          O <strong>EnemFlow</strong> não é apenas uma plataforma de questões. É a sua inteligência artificial pessoal focada no ENEM. Ele entende as suas maiores dificuldades e cria um ecossistema de aprendizado hiperfocado e direto ao ponto.
+        </p>
+        
+        <ul class="text-slate-400 text-sm md:text-base text-left space-y-4 mb-8">
+          <li class="flex items-start gap-3">
+            <i data-feather="check-circle" class="w-5 h-5 text-emerald-400 shrink-0 mt-0.5"></i>
+            <span><strong>Planos de Estudo IA:</strong> Um roteiro dinâmico ajustado à sua rotina e ao seu nível atual.</span>
+          </li>
+          <li class="flex items-start gap-3">
+            <i data-feather="check-circle" class="w-5 h-5 text-emerald-400 shrink-0 mt-0.5"></i>
+            <span><strong>Gabaritos Explicados:</strong> Nunca mais erre a mesma questão. A IA explica o "porquê" de cada alternativa.</span>
+          </li>
+          <li class="flex items-start gap-3">
+            <i data-feather="check-circle" class="w-5 h-5 text-emerald-400 shrink-0 mt-0.5"></i>
+            <span><strong>Tutor Especialista 24/7:</strong> Trave no estudo? Converse em tempo real com o tutor de plantão.</span>
+          </li>
+        </ul>
+        
+        <a href="login.html" class="btn-glow text-sm md:text-base px-8 py-3">
+          Experimentar Gratuitamente
+        </a>
+      </div>
+
+      <!-- Imagem Raio (Glassmorphism 3D) -->
+      <div class="w-full lg:w-1/2 relative flex justify-center z-10 mt-8 lg:mt-0">
+        <div class="relative w-full max-w-[320px] sm:max-w-[400px] lg:max-w-[480px]">
+          <!-- Efeito de moldura / brilho atrás da imagem -->
+          <div class="absolute inset-0 bg-gradient-to-tr from-violet-600 to-pink-500 rounded-[2.5rem] blur-xl opacity-30 animate-pulse"></div>
+          
+          <img src="assets/enem_flow_raio.png" alt="O Raio Enem Flow Inteligência Artificial" 
+               class="relative z-10 w-full h-auto rounded-[2.5rem] border border-white/10 shadow-2xl shadow-violet-900/50 object-cover" 
+               style="backdrop-filter: blur(10px);" />
+          
+          <!-- Elementos decorativos flutuantes (opcional, compõem a imagem) -->
+          <div class="absolute -top-6 -right-6 w-16 h-16 rounded-2xl bg-white/5 border border-white/10 backdrop-blur-lg shadow-xl flex items-center justify-center animate-bounce" style="animation-duration: 3s;">
+            <i data-feather="cpu" class="w-8 h-8 text-pink-400"></i>
+          </div>
+          <div class="absolute -bottom-4 -left-4 w-14 h-14 rounded-2xl bg-white/5 border border-white/10 backdrop-blur-lg shadow-xl flex items-center justify-center animate-bounce" style="animation-duration: 4s; animation-delay: 1s;">
+            <i data-feather="bar-chart-2" class="w-6 h-6 text-violet-400"></i>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </section>
+
   <!-- Features Mini -->
   <section class="relative z-10 w-full bg-black/40 backdrop-blur-md border-t border-white/5 py-12 mt-auto">
     <div class="max-w-5xl mx-auto px-6 grid grid-cols-1 md:grid-cols-3 gap-8 text-center">
