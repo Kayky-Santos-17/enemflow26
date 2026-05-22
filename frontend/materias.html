@@ -54,12 +54,21 @@
 
       <!-- Nível 2: Assuntos -->
       <section id="assuntos-section" class="hidden space-y-5">
-        <div class="flex items-center justify-between pt-5" style="border-top:1px solid rgba(124,92,252,0.08);">
-          <h2 class="text-base font-bold flex items-center gap-2" style="font-family:'Sora',sans-serif; color:#e4dff0;">
-            <i data-feather="book" class="w-4 h-4" style="color:#f472b6;"></i> Assuntos de <span id="selected-materia-title" class="text-gradient" style="margin-left:4px;"></span>
-          </h2>
-          <button onclick="backToMaterias()" class="px-3 py-1.5 text-xs font-semibold rounded-lg transition-all flex items-center gap-1.5" style="background:rgba(124,92,252,0.06); border:1px solid rgba(124,92,252,0.1); color:rgba(196,188,220,0.6);">
-            <i data-feather="arrow-left" class="w-3.5 h-3.5"></i> Voltar
+        <div class="glass-card p-6 flex flex-col md:flex-row md:items-center justify-between gap-4 border border-purple-500/10 shadow-[0_8px_32px_rgba(0,0,0,0.2)] animate-fade-in">
+          <div class="space-y-1.5">
+            <div class="flex items-center gap-1.5 text-[10px] md:text-xs text-purple-300/60 font-semibold uppercase tracking-wider">
+              <span>Matérias</span>
+              <i data-feather="chevron-right" class="w-3 h-3 text-purple-500/50"></i>
+              <span class="text-indigo-400" id="assuntos-materia-breadcrumb"></span>
+            </div>
+            <h2 class="text-xl md:text-2xl font-extrabold tracking-tight flex items-center gap-2.5 text-slate-100" style="font-family:'Sora',sans-serif;">
+              <i data-feather="book" class="w-5 h-5 text-pink-400 drop-shadow-[0_0_8px_rgba(244,114,182,0.5)]"></i>
+              <span>Assuntos de <span id="selected-materia-title" class="text-gradient font-black"></span></span>
+            </h2>
+          </div>
+          <button onclick="backToMaterias()" class="back-btn-premium group px-4 py-2 text-xs font-bold rounded-xl flex items-center gap-2 shrink-0">
+            <i data-feather="arrow-left" class="w-4 h-4 transition-transform group-hover:-translate-x-1"></i>
+            <span>Voltar para Matérias</span>
           </button>
         </div>
         <div id="assuntos-grid" class="grid grid-cols-2 sm:grid-cols-3 gap-3.5"></div>
@@ -67,12 +76,23 @@
 
       <!-- Nível 3: Tópicos & Materiais -->
       <section id="topicos-section" class="hidden space-y-5">
-        <div class="flex items-center justify-between pt-5" style="border-top:1px solid rgba(124,92,252,0.08);">
-          <h2 class="text-base font-bold flex items-center gap-2" style="font-family:'Sora',sans-serif; color:#e4dff0;">
-            <i data-feather="list" class="w-4 h-4" style="color:#c084fc;"></i> Tópicos de <span id="selected-assunto-title" class="text-gradient" style="margin-left:4px;"></span>
-          </h2>
-          <button onclick="backToAssuntos()" class="px-3 py-1.5 text-xs font-semibold rounded-lg transition-all flex items-center gap-1.5" style="background:rgba(124,92,252,0.06); border:1px solid rgba(124,92,252,0.1); color:rgba(196,188,220,0.6);">
-            <i data-feather="arrow-left" class="w-3.5 h-3.5"></i> Voltar
+        <div class="glass-card p-6 flex flex-col md:flex-row md:items-center justify-between gap-4 border border-purple-500/10 shadow-[0_8px_32px_rgba(0,0,0,0.2)] animate-fade-in">
+          <div class="space-y-1.5">
+            <div class="flex items-center gap-1.5 text-[10px] md:text-xs text-purple-300/60 font-semibold uppercase tracking-wider">
+              <span>Matérias</span>
+              <i data-feather="chevron-right" class="w-3 h-3 text-purple-500/50"></i>
+              <span id="topicos-materia-breadcrumb" class="text-purple-300/80"></span>
+              <i data-feather="chevron-right" class="w-3 h-3 text-purple-500/50"></i>
+              <span class="text-indigo-400" id="topicos-assunto-breadcrumb"></span>
+            </div>
+            <h2 class="text-xl md:text-2xl font-extrabold tracking-tight flex items-center gap-2.5 text-slate-100" style="font-family:'Sora',sans-serif;">
+              <i data-feather="list" class="w-5 h-5 text-purple-400 drop-shadow-[0_0_8px_rgba(168,85,247,0.5)]"></i>
+              <span>Tópicos de <span id="selected-assunto-title" class="text-gradient font-black"></span></span>
+            </h2>
+          </div>
+          <button onclick="backToAssuntos()" class="back-btn-premium group px-4 py-2 text-xs font-bold rounded-xl flex items-center gap-2 shrink-0">
+            <i data-feather="arrow-left" class="w-4 h-4 transition-transform group-hover:-translate-x-1"></i>
+            <span>Voltar para Assuntos</span>
           </button>
         </div>
         <div id="topicos-grid" class="grid grid-cols-1 md:grid-cols-2 gap-4"></div>
@@ -180,91 +200,34 @@
         const color = getCorMateria(nome);
         const card = document.createElement('div');
         
-        card.className = "group relative overflow-hidden flex flex-col justify-between cursor-pointer";
+        card.className = "subject-card-premium group cursor-pointer";
         card.style.cssText = `
-          background: #08060f;
-          border: 1px solid rgba(255, 255, 255, 0.03);
-          border-radius: 16px;
-          padding: 28px 32px;
-          min-height: 140px;
-          transition: all 0.5s cubic-bezier(0.2, 0.8, 0.2, 1);
+          --subject-color: ${color};
           animation: fadeSlideIn 0.6s ease-out forwards;
           animation-delay: ${idx * 0.05}s;
           opacity: 0;
         `;
         
         card.onclick = () => selectMateria(nome);
-        
-        card.addEventListener('mouseenter', () => {
-          card.style.transform = 'translateY(-6px) scale(1.015)';
-          card.style.boxShadow = `0 15px 40px -10px ${color}40`;
-          card.style.borderColor = `${color}35`;
-          card.style.background = '#0c0918';
-          
-          const h3 = card.querySelector('h3');
-          if(h3) h3.style.filter = `drop-shadow(0 0 12px ${color}80)`;
-
-          const line = card.querySelector('.materia-line');
-          if(line) line.style.width = '100%';
-
-          const iconBg = card.querySelector('.materia-icon-bg');
-          if(iconBg) {
-             iconBg.style.background = `${color}15`;
-             iconBg.style.borderColor = `${color}40`;
-             iconBg.style.transform = 'scale(1.08)';
-          }
-          
-          const orb = card.querySelector('.materia-orb');
-          if(orb) {
-             orb.style.transform = 'scale(1.6)';
-             orb.style.opacity = '0.35';
-          }
-        });
-        
-        card.addEventListener('mouseleave', () => {
-          card.style.transform = 'translateY(0) scale(1)';
-          card.style.boxShadow = 'none';
-          card.style.borderColor = 'rgba(255, 255, 255, 0.03)';
-          card.style.background = '#08060f';
-          
-          const h3 = card.querySelector('h3');
-          if(h3) h3.style.filter = 'none';
-
-          const line = card.querySelector('.materia-line');
-          if(line) line.style.width = '24px';
-
-          const iconBg = card.querySelector('.materia-icon-bg');
-          if(iconBg) {
-             iconBg.style.background = 'rgba(255,255,255,0.02)';
-             iconBg.style.borderColor = 'rgba(255,255,255,0.04)';
-             iconBg.style.transform = 'scale(1)';
-          }
-
-          const orb = card.querySelector('.materia-orb');
-          if(orb) {
-             orb.style.transform = 'scale(1)';
-             orb.style.opacity = '0.12';
-          }
-        });
 
         card.innerHTML = `
           <!-- Efeito Orb brilhante no fundo -->
           <div class="materia-orb absolute -top-10 -right-10 w-32 h-32 rounded-full pointer-events-none" 
-               style="background: ${color}; opacity: 0.12; filter: blur(40px); transition: all 0.7s cubic-bezier(0.4, 0, 0.2, 1);"></div>
+               style="background: var(--subject-color); filter: blur(40px);"></div>
 
           <!-- Efeito Shimmer -->
           <div class="absolute inset-0 opacity-0 group-hover:opacity-100 pointer-events-none" 
                style="background: linear-gradient(120deg, transparent, rgba(255,255,255,0.03), transparent); transform: skewX(-20deg); animation: shimmer 2s infinite; transition: opacity 0.5s;"></div>
           
           <div class="flex flex-col gap-1 relative z-10 w-full">
-            <h3 style="background: linear-gradient(135deg, ${color} 15%, #f3f0ff 90%); -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent; color: transparent !important; font-size: 1.5rem; font-weight: 800; font-family: 'Sora', sans-serif; letter-spacing: -0.03em; margin: 0; padding-bottom: 2px; transition: filter 0.4s;">
+            <h3 style="background: linear-gradient(135deg, var(--subject-color) 15%, #f3f0ff 90%); -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent; color: transparent !important; font-size: 1.5rem; font-weight: 800; font-family: 'Sora', sans-serif; letter-spacing: -0.03em; margin: 0; padding-bottom: 2px;">
               ${nome}
             </h3>
             
             <!-- Trilho e Linha Expansível -->
             <div class="relative w-full h-[3px] rounded-full mt-2 overflow-hidden" style="background: rgba(255,255,255,0.03);">
               <div class="materia-line absolute top-0 left-0 h-full rounded-full" 
-                   style="background-color: ${color}; width: 24px; transition: width 0.6s cubic-bezier(0.2, 0.8, 0.2, 1);"></div>
+                   style="background-color: var(--subject-color); width: 24px;"></div>
             </div>
           </div>
           
@@ -277,11 +240,9 @@
               </span>
             </div>
             
-            <!-- Botão/Ícone Seta -->
-            <div class="materia-icon-bg w-10 h-10 rounded-xl flex items-center justify-center transition-all duration-500" 
-                 style="background: rgba(255,255,255,0.02); border: 1px solid rgba(255,255,255,0.04);">
+            <div class="materia-icon-bg w-10 h-10 rounded-xl flex items-center justify-center">
               <svg class="transition-transform duration-500 group-hover:translate-x-1" 
-                   style="color: ${color}; width: 16px; height: 16px;" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                   style="color: var(--subject-color); width: 16px; height: 16px;" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M9 5l7 7-7 7" />
               </svg>
             </div>
@@ -313,6 +274,12 @@
       materiaSelecionada = materia;
       localStorage.setItem('selectedMateria', materia);
       document.getElementById('selected-materia-title').innerText = materia;
+      
+      const breadcrumbAssuntos = document.getElementById('assuntos-materia-breadcrumb');
+      if (breadcrumbAssuntos) breadcrumbAssuntos.innerText = materia;
+      
+      const breadcrumbTopicosMateria = document.getElementById('topicos-materia-breadcrumb');
+      if (breadcrumbTopicosMateria) breadcrumbTopicosMateria.innerText = materia;
 
       const filtrados = dbContents.filter(c => c.materia === materia);
       
@@ -333,91 +300,34 @@
         const list = assuntosMap[assunto];
         const card = document.createElement('div');
         
-        card.className = "group relative overflow-hidden flex flex-col justify-between cursor-pointer";
+        card.className = "subject-card-premium group cursor-pointer";
         card.style.cssText = `
-          background: #08060f;
-          border: 1px solid rgba(255, 255, 255, 0.03);
-          border-radius: 16px;
-          padding: 28px 32px;
-          min-height: 140px;
-          transition: all 0.5s cubic-bezier(0.2, 0.8, 0.2, 1);
+          --subject-color: ${color};
           animation: fadeSlideIn 0.6s ease-out forwards;
           animation-delay: ${idx * 0.05}s;
           opacity: 0;
         `;
         
         card.onclick = () => selectAssunto(assunto, list);
-        
-        card.addEventListener('mouseenter', () => {
-          card.style.transform = 'translateY(-6px) scale(1.015)';
-          card.style.boxShadow = `0 15px 40px -10px ${color}40`;
-          card.style.borderColor = `${color}35`;
-          card.style.background = '#0c0918';
-          
-          const h3 = card.querySelector('h3');
-          if(h3) h3.style.filter = `drop-shadow(0 0 12px ${color}80)`;
-
-          const line = card.querySelector('.assunto-line');
-          if(line) line.style.width = '100%';
-
-          const iconBg = card.querySelector('.assunto-icon-bg');
-          if(iconBg) {
-             iconBg.style.background = `${color}15`;
-             iconBg.style.borderColor = `${color}40`;
-             iconBg.style.transform = 'scale(1.08)';
-          }
-          
-          const orb = card.querySelector('.assunto-orb');
-          if(orb) {
-             orb.style.transform = 'scale(1.6)';
-             orb.style.opacity = '0.35';
-          }
-        });
-        
-        card.addEventListener('mouseleave', () => {
-          card.style.transform = 'translateY(0) scale(1)';
-          card.style.boxShadow = 'none';
-          card.style.borderColor = 'rgba(255, 255, 255, 0.03)';
-          card.style.background = '#08060f';
-          
-          const h3 = card.querySelector('h3');
-          if(h3) h3.style.filter = 'none';
-
-          const line = card.querySelector('.assunto-line');
-          if(line) line.style.width = '24px';
-
-          const iconBg = card.querySelector('.assunto-icon-bg');
-          if(iconBg) {
-             iconBg.style.background = 'rgba(255,255,255,0.02)';
-             iconBg.style.borderColor = 'rgba(255,255,255,0.04)';
-             iconBg.style.transform = 'scale(1)';
-          }
-
-          const orb = card.querySelector('.assunto-orb');
-          if(orb) {
-             orb.style.transform = 'scale(1)';
-             orb.style.opacity = '0.12';
-          }
-        });
 
         card.innerHTML = `
           <!-- Efeito Orb brilhante no fundo -->
           <div class="assunto-orb absolute -top-10 -right-10 w-32 h-32 rounded-full pointer-events-none" 
-               style="background: ${color}; opacity: 0.12; filter: blur(40px); transition: all 0.7s cubic-bezier(0.4, 0, 0.2, 1);"></div>
+               style="background: var(--subject-color); filter: blur(40px);"></div>
 
           <!-- Efeito Shimmer -->
           <div class="absolute inset-0 opacity-0 group-hover:opacity-100 pointer-events-none" 
                style="background: linear-gradient(120deg, transparent, rgba(255,255,255,0.03), transparent); transform: skewX(-20deg); animation: shimmer 2s infinite; transition: opacity 0.5s;"></div>
           
           <div class="flex flex-col gap-1 relative z-10 w-full">
-            <h3 style="background: linear-gradient(135deg, ${color} 15%, #f3f0ff 90%); -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent; color: transparent !important; font-size: 1.35rem; font-weight: 800; font-family: 'Sora', sans-serif; letter-spacing: -0.02em; margin: 0; padding-bottom: 2px; text-transform: capitalize; transition: filter 0.4s;">
+            <h3 style="background: linear-gradient(135deg, var(--subject-color) 15%, #f3f0ff 90%); -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent; color: transparent !important; font-size: 1.35rem; font-weight: 800; font-family: 'Sora', sans-serif; letter-spacing: -0.02em; margin: 0; padding-bottom: 2px; text-transform: capitalize;">
               ${assunto}
             </h3>
             
             <!-- Trilho e Linha Expansível -->
             <div class="relative w-full h-[3px] rounded-full mt-2 overflow-hidden" style="background: rgba(255,255,255,0.03);">
               <div class="assunto-line absolute top-0 left-0 h-full rounded-full" 
-                   style="background-color: ${color}; width: 24px; transition: width 0.6s cubic-bezier(0.2, 0.8, 0.2, 1);"></div>
+                   style="background-color: var(--subject-color); width: 24px;"></div>
             </div>
           </div>
           
@@ -430,11 +340,9 @@
               </span>
             </div>
             
-            <!-- Botão/Ícone Seta -->
-            <div class="assunto-icon-bg w-10 h-10 rounded-xl flex items-center justify-center transition-all duration-500" 
-                 style="background: rgba(255,255,255,0.02); border: 1px solid rgba(255,255,255,0.04);">
+            <div class="assunto-icon-bg w-10 h-10 rounded-xl flex items-center justify-center">
               <svg class="transition-transform duration-500 group-hover:translate-x-1" 
-                   style="color: ${color}; width: 16px; height: 16px;" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                   style="color: var(--subject-color); width: 16px; height: 16px;" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M9 5l7 7-7 7" />
               </svg>
             </div>
@@ -452,6 +360,9 @@
       assuntoSelecionado = assunto;
       localStorage.setItem('selectedAssunto', assunto);
       document.getElementById('selected-assunto-title').innerText = assunto;
+      
+      const breadcrumbTopicosAssunto = document.getElementById('topicos-assunto-breadcrumb');
+      if (breadcrumbTopicosAssunto) breadcrumbTopicosAssunto.innerText = assunto;
 
       const grid = document.getElementById('topicos-grid');
       grid.innerHTML = '';

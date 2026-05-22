@@ -482,3 +482,100 @@ h1, h2, h3, h4, h5, h6,
   .mobile-only-btn { display: flex !important; }
   .grid { grid-template-columns: 1fr !important; }
 }
+
+/* ── Premium Back Button & Adaptive Cards ─────────────────────────────────── */
+.back-btn-premium {
+  --btn-color: #7c5cfc;
+  border: 1px solid rgba(124, 92, 252, 0.25) !important;
+  background: rgba(124, 92, 252, 0.08) !important;
+  color: #c4b5fd !important;
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.back-btn-premium:hover {
+  border-color: var(--btn-color) !important;
+  background: color-mix(in srgb, var(--btn-color) 18%, transparent) !important;
+  color: #fff !important;
+  box-shadow: 0 0 20px -2px var(--btn-color), 0 4px 15px rgba(0, 0, 0, 0.2);
+  transform: translateX(-4px) translateY(-1px);
+}
+
+.back-btn-premium:active {
+  transform: translateX(-2px) scale(0.98);
+}
+
+.subject-card-premium {
+  --subject-color: #7c5cfc;
+  --subject-color-alpha: rgba(124, 92, 252, 0.25);
+  --subject-color-glow: rgba(124, 92, 252, 0.15);
+  background: var(--ef-bg-surface) !important;
+  border: 1px solid var(--ef-border) !important;
+  border-radius: 16px;
+  padding: 28px 32px;
+  min-height: 140px;
+  transition: all 0.5s cubic-bezier(0.2, 0.8, 0.2, 1) !important;
+  position: relative;
+  overflow: hidden;
+  box-shadow: var(--ef-shadow-card);
+}
+
+.subject-card-premium:hover {
+  transform: translateY(-6px) scale(1.015);
+  box-shadow: 0 15px 40px -10px var(--subject-color-alpha), var(--ef-shadow-card) !important;
+  border-color: var(--subject-color-alpha) !important;
+}
+
+.dark .subject-card-premium:hover {
+  background: #0c0918 !important;
+}
+
+html:not(.dark) .subject-card-premium:hover {
+  background: #ffffff !important;
+}
+
+.subject-card-premium h3 {
+  transition: filter 0.4s ease;
+}
+
+.subject-card-premium:hover h3 {
+  filter: drop-shadow(0 0 12px var(--subject-color)) !important;
+}
+
+.subject-card-premium .materia-line,
+.subject-card-premium .assunto-line {
+  transition: width 0.6s cubic-bezier(0.2, 0.8, 0.2, 1) !important;
+}
+
+.subject-card-premium:hover .materia-line,
+.subject-card-premium:hover .assunto-line {
+  width: 100% !important;
+}
+
+.subject-card-premium .materia-icon-bg,
+.subject-card-premium .assunto-icon-bg {
+  background: rgba(255, 255, 255, 0.02);
+  border: 1px solid rgba(255, 255, 255, 0.04);
+  transition: all 0.5s cubic-bezier(0.2, 0.8, 0.2, 1) !important;
+}
+
+.subject-card-premium:hover .materia-icon-bg,
+.subject-card-premium:hover .assunto-icon-bg {
+  background: var(--subject-color-glow) !important;
+  border-color: var(--subject-color-alpha) !important;
+  transform: scale(1.08);
+}
+
+.subject-card-premium .materia-orb,
+.subject-card-premium .assunto-orb {
+  opacity: 0.12;
+  transition: all 0.7s cubic-bezier(0.4, 0, 0.2, 1) !important;
+}
+
+.subject-card-premium:hover .materia-orb,
+.subject-card-premium:hover .assunto-orb {
+  transform: scale(1.6);
+  opacity: 0.35 !important;
+}
