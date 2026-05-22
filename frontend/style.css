@@ -141,11 +141,14 @@ body {
   color: var(--ef-text-primary);
   overflow-x: hidden;
   max-width: 100vw;
+  /* Prevents body scroll, isolates scroll to inner content */
+  overscroll-behavior: none;
 }
 
 html {
   overflow-x: hidden;
   max-width: 100vw;
+  overscroll-behavior: none;
 }
 
 /* ── Deep Background System ───────────────────────────────────────────────── */
@@ -585,4 +588,101 @@ html:not(.dark) .subject-card-premium:hover {
 .subject-card-premium:hover .assunto-orb {
   transform: scale(1.6);
   opacity: 0.35 !important;
+}
+
+/* ── Mobile App Layout (Screens below 1024px) ─────────────────────────────── */
+@media (max-width: 1023px) {
+
+  /* 1. Lock the html/body to viewport height — no page-level scroll */
+  html, body {
+    height: 100%;
+    height: -webkit-fill-available;
+    overflow: hidden;
+  }
+
+  /* 2. Main content area becomes a scrollable container in the safe zone */
+  main {
+    position: fixed !important;
+    top: 56px !important;              /* height of the top mobile header */
+    bottom: 64px !important;           /* height of the bottom nav bar */
+    left: 0 !important;
+    right: 0 !important;
+    overflow-y: auto !important;
+    overflow-x: hidden !important;
+    -webkit-overflow-scrolling: touch;
+    height: auto !important;
+    min-height: unset !important;
+    margin: 0 !important;
+    padding-top: 0 !important;         /* sidebar.js adds pt-16, we reset it */
+    padding-bottom: 0 !important;      /* we already account for bottom nav */
+  }
+
+  /* 3. Inner content padding — comfortable reading with room to breathe */
+  main > div:first-child {
+    padding: 1rem !important;
+    padding-bottom: 1.5rem !important;
+  }
+
+  /* 4. Tighten heading sizes for small screens */
+  h1 { font-size: 1.5rem !important; }
+  h2 { font-size: 1.2rem !important; }
+  h3 { font-size: 1rem !important; }
+
+  /* 5. Reduce card padding on mobile */
+  .glass-card {
+    padding: 1rem !important;
+    border-radius: 1rem !important;
+  }
+
+  /* 6. No horizontal overflow on any wrapper */
+  * {
+    max-width: 100%;
+    box-sizing: border-box;
+  }
+
+  /* 7. Grid: single column on small screens */
+  .grid-cols-2, .grid-cols-3, .md\:grid-cols-3, .md\:grid-cols-2 {
+    grid-template-columns: 1fr !important;
+  }
+
+  /* 8. Subject cards: smaller padding */
+  .subject-card-premium {
+    padding: 16px !important;
+    min-height: 100px !important;
+  }
+
+  /* 9. Bottom nav safe area for iPhone notch */
+  #ef-bottom-nav {
+    padding-bottom: calc(0.5rem + env(safe-area-inset-bottom)) !important;
+  }
+
+  /* 10. Make the bg-glow orbs contained so they don't cause overflow */
+  .bg-glow {
+    width: 250px !important;
+    height: 250px !important;
+  }
+
+  /* 11. Stack flex header items vertically */
+  header.flex {
+    flex-direction: column !important;
+    align-items: flex-start !important;
+    gap: 0.75rem !important;
+  }
+
+  /* 12. Buttons in header: full width row */
+  header .flex.items-center.gap-3 {
+    width: 100%;
+    overflow-x: auto;
+  }
+}
+
+/* ── Extra small screens (below 375px — very old phones) ──────────────────── */
+@media (max-width: 374px) {
+  main > div:first-child {
+    padding: 0.75rem !important;
+  }
+  h1 { font-size: 1.25rem !important; }
+  #ef-bottom-nav a span, #ef-bottom-nav button span {
+    font-size: 9px !important;
+  }
 }
