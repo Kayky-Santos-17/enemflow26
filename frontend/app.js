@@ -149,14 +149,9 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 
-  // Trava de Sessão 30 dias (persistente)
-  const lastAccess = localStorage.getItem('enemflow_last_access');
+  // Trava de Sessão infinita
   const now = Date.now();
-  if (lastAccess && (now - parseInt(lastAccess)) > 30 * 24 * 60 * 60 * 1000) {
-    if (!window.location.href.includes('login.html')) {
-      App.logout();
-    }
-  } else if (App.getToken()) {
+  if (App.getToken()) {
     localStorage.setItem('enemflow_last_access', now.toString());
   }
 

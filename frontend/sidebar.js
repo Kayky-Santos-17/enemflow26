@@ -259,6 +259,9 @@ document.addEventListener('DOMContentLoaded', () => {
   mobileHeader.style.cssText = 'background:rgba(7,6,14,0.85); backdrop-filter:blur(24px); -webkit-backdrop-filter:blur(24px); border-bottom:1px solid rgba(124,92,252,0.08);';
   mobileHeader.innerHTML = `
     <div class="flex items-center gap-2">
+      <button onclick="document.getElementById('ef-mobile-sheet').classList.toggle('translate-y-full')" class="mr-1 p-1.5 bg-white/5 rounded-lg border border-white/10 flex items-center justify-center text-slate-300">
+        <i data-feather="menu" class="w-5 h-5"></i>
+      </button>
       <div class="w-8 h-8 rounded-xl flex items-center justify-center shrink-0 shadow-[0_0_12px_rgba(124,92,252,0.3)] border border-violet-500/20" style="background: rgba(15,12,30,0.6);">
         <svg class="w-4.5 h-4.5" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
           <defs>
@@ -386,7 +389,11 @@ document.addEventListener('DOMContentLoaded', () => {
   document.body.insertBefore(mobileFullMenu, document.body.firstChild);
   document.body.insertBefore(bottomNav, document.body.firstChild);
   document.body.insertBefore(sidebar, document.body.firstChild);
-  document.body.insertBefore(mobileHeader, document.body.firstChild);
+  
+  const existingHeader = document.querySelector('.lg\\:hidden.fixed.top-0');
+  if (!existingHeader || existingHeader.id === 'ef-mobile-header') {
+    document.body.insertBefore(mobileHeader, document.body.firstChild);
+  }
 
   // 10. Adjust main content offset
   const main = document.querySelector('main');

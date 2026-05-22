@@ -593,11 +593,19 @@ html:not(.dark) .subject-card-premium:hover {
 /* ── Mobile App Layout (Screens below 1024px) ─────────────────────────────── */
 @media (max-width: 1023px) {
 
-  /* 1. Lock the html/body to viewport height — no page-level scroll */
+  /* 1. Lock the html/body to viewport height — no page-level scroll, and set absolute black background */
+  :root {
+    --ef-bg-deep: #000000 !important;
+  }
   html, body {
     height: 100%;
     height: -webkit-fill-available;
     overflow: hidden;
+    background-color: #000000 !important;
+  }
+  
+  .ef-deep-bg {
+    background-color: #000000 !important;
   }
 
   /* 2. Main content area becomes a scrollable container in the safe zone */
@@ -666,17 +674,27 @@ html:not(.dark) .subject-card-premium:hover {
     height: 250px !important;
   }
 
-  /* 11. Stack flex header items vertically */
+  /* 11. Stack flex header items vertically and allow wrap */
   header.flex {
     flex-direction: column !important;
     align-items: flex-start !important;
     gap: 0.75rem !important;
+    flex-wrap: wrap !important;
   }
 
   /* 12. Buttons in header: full width row */
   header .flex.items-center.gap-3 {
     width: 100%;
     overflow-x: auto;
+    flex-wrap: wrap;
+  }
+  
+  /* 13. Fix overflowing buttons on mobile */
+  button, .btn {
+    white-space: normal !important;
+    word-break: break-word !important;
+    height: auto !important;
+    min-height: 44px; /* Touch target size */
   }
 }
 
