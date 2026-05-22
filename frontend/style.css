@@ -139,6 +139,13 @@ body {
   font-family: var(--ef-font-body);
   background: var(--ef-bg-deep);
   color: var(--ef-text-primary);
+  overflow-x: hidden;
+  max-width: 100vw;
+}
+
+html {
+  overflow-x: hidden;
+  max-width: 100vw;
 }
 
 /* ── Deep Background System ───────────────────────────────────────────────── */

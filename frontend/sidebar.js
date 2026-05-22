@@ -145,7 +145,7 @@ document.addEventListener('DOMContentLoaded', () => {
   // 6. Build sidebar HTML
   const sidebar = document.createElement('aside');
   sidebar.id = 'ef-sidebar';
-  sidebar.className = `fixed top-0 left-0 h-screen flex flex-col border-r z-50 ${isCollapsed ? 'collapsed' : ''}`;
+  sidebar.className = `hidden lg:flex fixed top-0 left-0 h-screen flex-col border-r z-50 ${isCollapsed ? 'collapsed' : ''}`;
   sidebar.style.cssText = `background: rgba(10,8,20,0.96); backdrop-filter: blur(35px) saturate(1.5); -webkit-backdrop-filter: blur(35px) saturate(1.5); border-color: rgba(124,92,252,0.08);`;
 
   // Menu items — NO emojis, only feather icons
@@ -252,11 +252,11 @@ document.addEventListener('DOMContentLoaded', () => {
     </div>
   `;
 
-  // 7. Mobile header
+  // 7. Mobile Top Header (Minimal)
   const mobileHeader = document.createElement('div');
   mobileHeader.id = 'ef-mobile-header';
-  mobileHeader.className = 'lg:hidden fixed top-0 w-full z-40 px-4 py-3 flex items-center justify-between' + (page === 'chat.html' ? ' hidden' : '');
-  mobileHeader.style.cssText = 'background:rgba(7,6,14,0.9); backdrop-filter:blur(24px); -webkit-backdrop-filter:blur(24px); border-bottom:1px solid rgba(124,92,252,0.08);';
+  mobileHeader.className = 'lg:hidden fixed top-0 w-full z-40 px-4 py-3 flex items-center justify-between';
+  mobileHeader.style.cssText = 'background:rgba(7,6,14,0.85); backdrop-filter:blur(24px); -webkit-backdrop-filter:blur(24px); border-bottom:1px solid rgba(124,92,252,0.08);';
   mobileHeader.innerHTML = `
     <div class="flex items-center gap-2">
       <div class="w-8 h-8 rounded-xl flex items-center justify-center shrink-0 shadow-[0_0_12px_rgba(124,92,252,0.3)] border border-violet-500/20" style="background: rgba(15,12,30,0.6);">
@@ -272,26 +272,87 @@ document.addEventListener('DOMContentLoaded', () => {
       </div>
       <span class="text-xl font-extrabold logo-text-gradient" style="font-family:'Sora',sans-serif;">EnemFlow</span>
     </div>
-    <button id="ef-mobile-menu-btn" class="p-2 rounded-lg" style="background:rgba(124,92,252,0.08); color:rgba(167,139,250,0.6);">
-      <i data-feather="menu" class="w-5 h-5"></i>
-    </button>
+    <div class="flex items-center gap-3">
+      <div class="flex items-center gap-1 bg-violet-500/10 px-2 py-1 rounded-md border border-violet-500/20">
+        <svg class="w-3 h-3" viewBox="0 0 24 24" fill="currentColor" style="color:#a78bfa;">
+          <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon>
+        </svg>
+        <span id="sb-mobile-xp" class="text-xs font-bold text-violet-300">0</span>
+      </div>
+      <a href="perfil.html" class="w-8 h-8 rounded-full flex items-center justify-center font-bold text-xs shrink-0 bg-cover bg-center border border-white/10" style="background-color:rgba(124,92,252,0.2);color:#a78bfa;" id="sb-mobile-avatar">?</a>
+    </div>
   `;
 
-  // 8. Mobile overlay
-  const overlay = document.createElement('div');
-  overlay.id = 'ef-overlay';
-  overlay.className = 'fixed inset-0 z-40 hidden lg:hidden';
-  overlay.style.cssText = 'background:rgba(7,6,14,0.7); backdrop-filter:blur(6px);';
+  // 8. Mobile Bottom Navigation
+  const bottomNavItems = [
+    { title: 'Início', icon: 'home', url: 'dashboard.html' },
+    { title: 'Matérias', icon: 'book-open', url: 'materias.html' },
+    { title: 'Tutor IA', icon: 'cpu', url: 'chat.html' },
+    { title: 'Planos', icon: 'calendar', url: 'plan.html' },
+    { title: 'Menu', icon: 'grid', url: 'javascript:void(0)', isMenu: true }
+  ];
+
+  let bottomNavHtml = '';
+  bottomNavItems.forEach(item => {
+    const isActive = page === item.url;
+    const color = isActive ? '#c4b5fd' : 'rgba(196,188,220,0.5)';
+    const bg = isActive ? 'rgba(124,92,252,0.15)' : 'transparent';
+    const clickAttr = item.isMenu ? 'onclick="document.getElementById(\'ef-mobile-full-menu\').classList.toggle(\'hidden\')"' : `href="${item.url}"`;
+    const tag = item.isMenu ? 'button' : 'a';
+    
+    bottomNavHtml += `
+      <${tag} ${clickAttr} class="flex flex-col items-center justify-center w-full py-2 gap-1 rounded-xl transition-all duration-200" style="color: ${color}; background: ${bg};">
+        <i data-feather="${item.icon}" class="w-5 h-5 ${isActive ? 'drop-shadow-[0_0_8px_rgba(124,92,252,0.8)]' : ''}" ${isActive ? 'style="color:#a78bfa;"' : ''}></i>
+        <span class="text-[10px] font-medium tracking-wide" style="font-family:'Inter',sans-serif;">${item.title}</span>
+      </${tag}>
+    `;
+  });
+
+  const bottomNav = document.createElement('nav');
+  bottomNav.id = 'ef-bottom-nav';
+  bottomNav.className = 'lg:hidden fixed bottom-0 w-full z-50 px-2 pb-safe pt-2 flex justify-between items-center';
+  bottomNav.style.cssText = 'background:rgba(7,6,14,0.9); backdrop-filter:blur(24px); -webkit-backdrop-filter:blur(24px); border-top:1px solid rgba(124,92,252,0.1); padding-bottom: calc(0.5rem + env(safe-area-inset-bottom));';
+  bottomNav.innerHTML = bottomNavHtml;
+
+  // 8.5 Mobile Full Menu Overlay
+  const mobileFullMenu = document.createElement('div');
+  mobileFullMenu.id = 'ef-mobile-full-menu';
+  mobileFullMenu.className = 'hidden lg:hidden fixed inset-0 z-40 flex flex-col pt-20 pb-24 px-4 overflow-y-auto';
+  mobileFullMenu.style.cssText = 'background:rgba(7,6,14,0.95); backdrop-filter:blur(30px); -webkit-backdrop-filter:blur(30px);';
+  
+  // Reuse menuItems for full menu
+  let fullMenuHtml = '<h3 class="text-white font-bold text-lg mb-4 mt-2">Menu Completo</h3><div class="grid grid-cols-2 gap-3">';
+  menuItems.forEach(item => {
+    fullMenuHtml += `
+      <a href="${item.url}" class="flex flex-col items-center justify-center p-4 rounded-2xl bg-white/5 border border-white/5 hover:bg-white/10 transition-colors gap-2 text-center">
+        <div class="w-10 h-10 rounded-full bg-violet-500/10 flex items-center justify-center text-violet-400 mb-1">
+          <i data-feather="${item.icon}" class="w-5 h-5"></i>
+        </div>
+        <span class="text-sm font-medium text-slate-300">${item.title}</span>
+      </a>
+    `;
+  });
+  fullMenuHtml += `
+    </div>
+    <div class="mt-8">
+      <button onclick="App.logout()" class="w-full flex items-center justify-center gap-2 px-4 py-3 rounded-xl text-sm font-semibold transition-colors" style="color:#f87171; border:1px solid rgba(248,113,113,0.12); background:rgba(248,113,113,0.04);">
+        <i data-feather="log-out" class="w-5 h-5 shrink-0"></i>
+        <span>Sair da Conta</span>
+      </button>
+    </div>
+  `;
+  mobileFullMenu.innerHTML = fullMenuHtml;
 
   // 9. Inject into DOM
-  document.body.insertBefore(overlay, document.body.firstChild);
+  document.body.insertBefore(mobileFullMenu, document.body.firstChild);
+  document.body.insertBefore(bottomNav, document.body.firstChild);
   document.body.insertBefore(sidebar, document.body.firstChild);
   document.body.insertBefore(mobileHeader, document.body.firstChild);
 
   // 10. Adjust main content offset
   const main = document.querySelector('main');
   if (main) {
-    main.classList.add('pt-16', 'lg:pt-0');
+    main.classList.add('pt-16', 'lg:pt-0', 'pb-24', 'lg:pb-0'); // Added pb-24 for bottom nav
     if (window.innerWidth >= 1024) {
       main.style.marginLeft = isCollapsed ? 'var(--sb-collapsed)' : 'var(--sb-width)';
       main.style.transition = 'margin-left 0.4s cubic-bezier(0.25, 0.8, 0.25, 1)';
@@ -334,32 +395,17 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 
-  // 12. Mobile menu button actions
-  const mobileBtn = document.getElementById('ef-mobile-menu-btn');
-  if (mobileBtn) {
-    mobileBtn.addEventListener('click', () => {
-      sidebar.classList.add('mobile-open');
-      overlay.classList.remove('hidden');
-    });
-  }
-  overlay.addEventListener('click', () => {
-    sidebar.classList.remove('mobile-open');
-    overlay.classList.add('hidden');
-  });
-
   // 13. Window resize handler
   window.addEventListener('resize', () => {
     if (main) {
       if (window.innerWidth >= 1024) {
         main.style.marginLeft = isCollapsed ? 'var(--sb-collapsed)' : 'var(--sb-width)';
-        sidebar.classList.remove('mobile-open');
-        overlay.classList.add('hidden');
+        document.getElementById('ef-mobile-full-menu')?.classList.add('hidden');
       } else {
         main.style.marginLeft = '0';
       }
     }
   });
-
   // 14. Load user profile and check admin
   async function loadSidebarProfile() {
     try {
@@ -367,13 +413,26 @@ document.addEventListener('DOMContentLoaded', () => {
 
       document.getElementById('sb-username').innerText = user.nome;
       document.getElementById('sb-xp').innerText = user.xp || 0;
+      
+      const mobileXp = document.getElementById('sb-mobile-xp');
+      if (mobileXp) mobileXp.innerText = user.xp || 0;
 
       const avatarEl = document.getElementById('sb-avatar');
+      const mobileAvatarEl = document.getElementById('sb-mobile-avatar');
+      
       if (user.avatarUrl) {
-        avatarEl.style.backgroundImage = `url(${user.avatarUrl})`;
-        avatarEl.innerText = '';
+        if (avatarEl) {
+          avatarEl.style.backgroundImage = `url(${user.avatarUrl})`;
+          avatarEl.innerText = '';
+        }
+        if (mobileAvatarEl) {
+          mobileAvatarEl.style.backgroundImage = `url(${user.avatarUrl})`;
+          mobileAvatarEl.innerText = '';
+        }
       } else {
-        avatarEl.innerText = user.nome.charAt(0).toUpperCase();
+        const initial = user.nome.charAt(0).toUpperCase();
+        if (avatarEl) avatarEl.innerText = initial;
+        if (mobileAvatarEl) mobileAvatarEl.innerText = initial;
       }
 
       // Admin / Owner section

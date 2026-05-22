@@ -1,0 +1,246 @@
+<!DOCTYPE html>
+<html lang="pt-BR" class="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <title>EnemFlow - Sua IA de Estudos</title>
+  <meta name="description" content="EnemFlow - A plataforma definitiva de estudos para o ENEM impulsionada por Inteligência Artificial.">
+  <meta name="theme-color" content="#07060e">
+  <link rel="manifest" href="manifest.json">
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Sora:wght@300;400;500;600;700;800;900&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
+  <script src="https://unpkg.com/feather-icons"></script>
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: { extend: { fontFamily: { sans: ['Inter', 'sans-serif'], sora: ['Sora', 'sans-serif'] } } }
+    }
+  </script>
+  <link rel="icon" type="image/png" href="favicon.png?v=2">
+  <style>
+    /* Premium Landing Page Styles */
+    body {
+      background: #07060e;
+      color: #e4dff0;
+      overflow-x: hidden;
+      margin: 0;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+    
+    .hero-bg {
+      position: absolute;
+      inset: 0;
+      z-index: 0;
+      background-image: url('assets/hero-bg.png');
+      background-size: cover;
+      background-position: center;
+      background-repeat: no-repeat;
+      opacity: 0.45;
+      mask-image: linear-gradient(to bottom, black 40%, transparent 100%);
+      -webkit-mask-image: linear-gradient(to bottom, black 40%, transparent 100%);
+    }
+
+    .glass-nav {
+      background: rgba(7, 6, 14, 0.6);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      border-bottom: 1px solid rgba(124, 92, 252, 0.1);
+    }
+
+    .mega-title {
+      font-family: 'Sora', sans-serif;
+      font-size: clamp(3.5rem, 8vw, 6rem);
+      font-weight: 900;
+      line-height: 1.1;
+      letter-spacing: -0.04em;
+      background: linear-gradient(135deg, #fff 20%, #c4b5fd 70%, #ec4899 100%);
+      -webkit-background-clip: text;
+      background-clip: text;
+      -webkit-text-fill-color: transparent;
+      filter: drop-shadow(0 0 40px rgba(124, 92, 252, 0.4));
+      margin-bottom: 1.5rem;
+    }
+
+    .neon-subtitle {
+      font-size: clamp(1rem, 2vw, 1.25rem);
+      color: rgba(196, 188, 220, 0.8);
+      max-width: 600px;
+      margin: 0 auto;
+      line-height: 1.6;
+    }
+
+    .btn-glow {
+      position: relative;
+      background: linear-gradient(135deg, #7c5cfc, #ec4899);
+      border-radius: 100px;
+      padding: 18px 40px;
+      font-weight: 800;
+      font-size: 1.1rem;
+      font-family: 'Sora', sans-serif;
+      color: white;
+      transition: all 0.3s cubic-bezier(0.2, 0.8, 0.2, 1);
+      box-shadow: 0 10px 30px rgba(124, 92, 252, 0.3);
+      overflow: hidden;
+      display: inline-flex;
+      align-items: center;
+      gap: 12px;
+      border: 1px solid rgba(255,255,255,0.1);
+    }
+
+    .btn-glow::before {
+      content: '';
+      position: absolute;
+      top: 0; left: -100%;
+      width: 100%; height: 100%;
+      background: linear-gradient(90deg, transparent, rgba(255,255,255,0.3), transparent);
+      transition: left 0.6s ease;
+    }
+
+    .btn-glow:hover {
+      transform: translateY(-4px) scale(1.02);
+      box-shadow: 0 15px 40px rgba(236, 72, 153, 0.4), 0 0 20px rgba(124, 92, 252, 0.4);
+    }
+
+    .btn-glow:hover::before {
+      left: 100%;
+    }
+
+    .btn-secondary {
+      background: rgba(255, 255, 255, 0.03);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      backdrop-filter: blur(10px);
+      color: #e4dff0;
+      padding: 10px 24px;
+      border-radius: 100px;
+      font-weight: 600;
+      font-family: 'Sora', sans-serif;
+      font-size: 0.9rem;
+      transition: all 0.3s;
+    }
+
+    .btn-secondary:hover {
+      background: rgba(255, 255, 255, 0.08);
+      border-color: rgba(124, 92, 252, 0.4);
+      transform: translateY(-2px);
+    }
+    
+    .floating-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 8px 16px;
+      border-radius: 100px;
+      background: rgba(124, 92, 252, 0.1);
+      border: 1px solid rgba(124, 92, 252, 0.2);
+      color: #c4b5fd;
+      font-weight: 700;
+      font-size: 0.75rem;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      margin-bottom: 2rem;
+      animation: float 3s ease-in-out infinite;
+    }
+
+    @keyframes float {
+      0%, 100% { transform: translateY(0); }
+      50% { transform: translateY(-8px); }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Background Hero Image -->
+  <div class="hero-bg"></div>
+
+  <!-- Ambient Light -->
+  <div class="absolute top-0 left-1/2 -translate-x-1/2 w-[80vw] h-[500px] bg-violet-600/20 rounded-full blur-[120px] pointer-events-none z-0"></div>
+
+  <!-- Navigation -->
+  <nav class="glass-nav fixed w-full top-0 z-50 px-6 py-4 flex items-center justify-between">
+    <div class="flex items-center gap-2">
+      <div class="w-8 h-8 rounded-xl flex items-center justify-center shrink-0 shadow-[0_0_15px_rgba(124,92,252,0.5)] border border-violet-500/30" style="background: rgba(15,12,30,0.8);">
+        <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <defs>
+            <linearGradient id="boltGradNav" x1="0%" y1="0%" x2="100%" y2="100%">
+              <stop offset="0%" stop-color="#7c5cfc" />
+              <stop offset="100%" stop-color="#ec4899" />
+            </linearGradient>
+          </defs>
+          <path d="M13 2L5.5 13H11.5L9.5 22L18.5 11H12.5L13 2Z" fill="url(#boltGradNav)" />
+        </svg>
+      </div>
+      <span class="text-xl font-extrabold tracking-tight text-white" style="font-family:'Sora',sans-serif;">EnemFlow</span>
+    </div>
+    
+    <div>
+      <a href="login.html" class="btn-secondary">Entrar / Cadastrar</a>
+    </div>
+  </nav>
+
+  <!-- Hero Content -->
+  <main class="relative z-10 flex-1 flex flex-col items-center justify-center text-center px-4 pt-32 pb-20">
+    <div class="max-w-4xl mx-auto flex flex-col items-center animate-fade-in" style="animation-duration: 1s;">
+      
+      <div class="floating-badge">
+        <i data-feather="zap" class="w-3.5 h-3.5"></i> Inteligência Artificial para o ENEM
+      </div>
+
+      <h1 class="mega-title">
+        Domine o Fluxo<br>dos Seus Estudos.
+      </h1>
+
+      <p class="neon-subtitle mb-12">
+        A plataforma revolucionária que cria planos de estudo adaptativos, 
+        aplica simulados inteligentes e utiliza um Tutor IA 24/7 para maximizar sua nota no ENEM.
+      </p>
+
+      <div class="flex flex-col sm:flex-row items-center gap-6">
+        <a href="login.html" class="btn-glow">
+          Começar a Estudar Agora
+          <i data-feather="arrow-right" class="w-5 h-5"></i>
+        </a>
+      </div>
+      
+    </div>
+  </main>
+
+  <!-- Features Mini -->
+  <section class="relative z-10 w-full bg-black/40 backdrop-blur-md border-t border-white/5 py-12 mt-auto">
+    <div class="max-w-5xl mx-auto px-6 grid grid-cols-1 md:grid-cols-3 gap-8 text-center">
+      <div>
+        <div class="w-12 h-12 mx-auto rounded-2xl bg-violet-500/10 border border-violet-500/20 flex items-center justify-center mb-4 text-violet-400">
+          <i data-feather="cpu"></i>
+        </div>
+        <h3 class="font-bold text-white mb-2" style="font-family:'Sora',sans-serif;">Tutor IA 24h</h3>
+        <p class="text-sm text-slate-400">Tire dúvidas, peça resumos e analise PDFs instantaneamente com nossa IA avançada.</p>
+      </div>
+      <div>
+        <div class="w-12 h-12 mx-auto rounded-2xl bg-pink-500/10 border border-pink-500/20 flex items-center justify-center mb-4 text-pink-400">
+          <i data-feather="target"></i>
+        </div>
+        <h3 class="font-bold text-white mb-2" style="font-family:'Sora',sans-serif;">Simulados Adaptativos</h3>
+        <p class="text-sm text-slate-400">Questões focadas nas suas maiores dificuldades com gabaritos detalhados explicados pela IA.</p>
+      </div>
+      <div>
+        <div class="w-12 h-12 mx-auto rounded-2xl bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center mb-4 text-emerald-400">
+          <i data-feather="trending-up"></i>
+        </div>
+        <h3 class="font-bold text-white mb-2" style="font-family:'Sora',sans-serif;">Métricas de Evolução</h3>
+        <p class="text-sm text-slate-400">Acompanhe seu progresso real com gráficos precisos e um sistema de ganho de XP (gamificação).</p>
+      </div>
+    </div>
+  </section>
+
+  <script>
+    feather.replace();
+    
+    // Check if logged in, redirect to dashboard if so
+    if (localStorage.getItem('token') || sessionStorage.getItem('token')) {
+      window.location.href = 'dashboard.html';
+    }
+  </script>
+</body>
+</html>
