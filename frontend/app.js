@@ -4,11 +4,11 @@ const isLocal = protocol === 'file:' || host === 'localhost' || host === '127.0.
 
 const App = {
   apiUrl: isLocal ? `http://${host || 'localhost'}:3000` : '',
-  getToken: () => sessionStorage.getItem('token'),
-  setToken: (token) => sessionStorage.setItem('token', token),
+  getToken: () => localStorage.getItem('token'),
+  setToken: (token) => localStorage.setItem('token', token),
   logout: () => {
-    sessionStorage.removeItem('token');
-    sessionStorage.removeItem('enemflow_last_access');
+    localStorage.removeItem('token');
+    localStorage.removeItem('enemflow_last_access');
     window.location.href = 'login.html';
   },
 
@@ -149,15 +149,15 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 
-  // Trava de Sessão 12h
-  const lastAccess = sessionStorage.getItem('enemflow_last_access');
+  // Trava de Sessão 30 dias (persistente)
+  const lastAccess = localStorage.getItem('enemflow_last_access');
   const now = Date.now();
-  if (lastAccess && (now - parseInt(lastAccess)) > 12 * 60 * 60 * 1000) {
+  if (lastAccess && (now - parseInt(lastAccess)) > 30 * 24 * 60 * 60 * 1000) {
     if (!window.location.href.includes('login.html')) {
       App.logout();
     }
   } else if (App.getToken()) {
-    sessionStorage.setItem('enemflow_last_access', now.toString());
+    localStorage.setItem('enemflow_last_access', now.toString());
   }
 
   // Setup Mobile Nav Toggle

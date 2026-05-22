@@ -284,12 +284,13 @@ document.addEventListener('DOMContentLoaded', () => {
   `;
 
   // 8. Mobile Bottom Navigation
+  // The 5th item opens a slim bottom-sheet for secondary nav links
   const bottomNavItems = [
     { title: 'Início', icon: 'home', url: 'dashboard.html' },
     { title: 'Matérias', icon: 'book-open', url: 'materias.html' },
     { title: 'Tutor IA', icon: 'cpu', url: 'chat.html' },
-    { title: 'Planos', icon: 'calendar', url: 'plan.html' },
-    { title: 'Menu', icon: 'grid', url: 'javascript:void(0)', isMenu: true }
+    { title: 'Simulados', icon: 'check-square', url: 'exercises.html' },
+    { title: 'Mais', icon: 'more-horizontal', url: 'javascript:void(0)', isMenu: true }
   ];
 
   let bottomNavHtml = '';
@@ -297,53 +298,91 @@ document.addEventListener('DOMContentLoaded', () => {
     const isActive = page === item.url;
     const color = isActive ? '#c4b5fd' : 'rgba(196,188,220,0.5)';
     const bg = isActive ? 'rgba(124,92,252,0.15)' : 'transparent';
-    const clickAttr = item.isMenu ? 'onclick="document.getElementById(\'ef-mobile-full-menu\').classList.toggle(\'hidden\')"' : `href="${item.url}"`;
+    const clickAttr = item.isMenu ? 'onclick="document.getElementById(\'ef-mobile-sheet\').classList.toggle(\'translate-y-full\')"' : `href="${item.url}"`;
     const tag = item.isMenu ? 'button' : 'a';
     
     bottomNavHtml += `
       <${tag} ${clickAttr} class="flex flex-col items-center justify-center w-full py-2 gap-1 rounded-xl transition-all duration-200" style="color: ${color}; background: ${bg};">
         <i data-feather="${item.icon}" class="w-5 h-5 ${isActive ? 'drop-shadow-[0_0_8px_rgba(124,92,252,0.8)]' : ''}" ${isActive ? 'style="color:#a78bfa;"' : ''}></i>
-        <span class="text-[10px] font-medium tracking-wide" style="font-family:'Inter',sans-serif;">${item.title}</span>
+        <span style="font-size:11px; font-weight:500; font-family:'Inter',sans-serif;">${item.title}</span>
       </${tag}>
     `;
   });
 
   const bottomNav = document.createElement('nav');
   bottomNav.id = 'ef-bottom-nav';
-  bottomNav.className = 'lg:hidden fixed bottom-0 w-full z-50 px-2 pb-safe pt-2 flex justify-between items-center';
-  bottomNav.style.cssText = 'background:rgba(7,6,14,0.9); backdrop-filter:blur(24px); -webkit-backdrop-filter:blur(24px); border-top:1px solid rgba(124,92,252,0.1); padding-bottom: calc(0.5rem + env(safe-area-inset-bottom));';
+  bottomNav.className = 'lg:hidden fixed bottom-0 w-full z-50 px-2 pt-2 flex justify-between items-center';
+  bottomNav.style.cssText = 'background:rgba(7,6,14,0.92); backdrop-filter:blur(24px); -webkit-backdrop-filter:blur(24px); border-top:1px solid rgba(124,92,252,0.12); padding-bottom: calc(0.5rem + env(safe-area-inset-bottom));';
   bottomNav.innerHTML = bottomNavHtml;
 
-  // 8.5 Mobile Full Menu Overlay
+  // 8.5 Mobile Bottom Sheet (secondary nav - slides up from bottom)
   const mobileFullMenu = document.createElement('div');
-  mobileFullMenu.id = 'ef-mobile-full-menu';
-  mobileFullMenu.className = 'hidden lg:hidden fixed inset-0 z-40 flex flex-col pt-20 pb-24 px-4 overflow-y-auto';
-  mobileFullMenu.style.cssText = 'background:rgba(7,6,14,0.95); backdrop-filter:blur(30px); -webkit-backdrop-filter:blur(30px);';
+  mobileFullMenu.id = 'ef-mobile-sheet';
+  // Starts hidden off-screen at the bottom
+  mobileFullMenu.className = 'lg:hidden fixed inset-x-0 bottom-16 z-[60] rounded-t-3xl transition-transform duration-300 ease-out translate-y-full';
+  mobileFullMenu.style.cssText = 'background:rgba(10,8,22,0.98); backdrop-filter:blur(30px); -webkit-backdrop-filter:blur(30px); border-top:1px solid rgba(124,92,252,0.15); box-shadow: 0 -20px 60px rgba(0,0,0,0.5);';
   
-  // Reuse menuItems for full menu
-  let fullMenuHtml = '<h3 class="text-white font-bold text-lg mb-4 mt-2">Menu Completo</h3><div class="grid grid-cols-2 gap-3">';
-  menuItems.forEach(item => {
-    fullMenuHtml += `
-      <a href="${item.url}" class="flex flex-col items-center justify-center p-4 rounded-2xl bg-white/5 border border-white/5 hover:bg-white/10 transition-colors gap-2 text-center">
-        <div class="w-10 h-10 rounded-full bg-violet-500/10 flex items-center justify-center text-violet-400 mb-1">
-          <i data-feather="${item.icon}" class="w-5 h-5"></i>
+  // Secondary links NOT shown in bottom nav
+  const secondaryItems = [
+    { title: 'Plano de Estudos', icon: 'calendar', url: 'plan.html' },
+    { title: 'Progresso', icon: 'bar-chart-2', url: 'progresso.html' },
+    { title: 'Histórico', icon: 'clock', url: 'history.html' },
+    { title: 'Habilidades', icon: 'share-2', url: 'skills.html' },
+    { title: 'Anotações', icon: 'edit', url: 'anotacoes.html' },
+    { title: 'Perfil', icon: 'user', url: 'perfil.html' },
+    { title: 'Configurações', icon: 'settings', url: 'settings.html' },
+  ];
+
+  let sheetHtml = `
+    <div class="flex items-center justify-between px-5 pt-5 pb-3">
+      <h3 class="font-bold text-base" style="font-family:'Sora',sans-serif; color:#e4dff0;">Mais opções</h3>
+      <button onclick="document.getElementById('ef-mobile-sheet').classList.add('translate-y-full')" style="color:rgba(196,188,220,0.4);">
+        <i data-feather="x" class="w-5 h-5"></i>
+      </button>
+    </div>
+    <div class="grid grid-cols-4 gap-2 px-4 pb-4">
+  `;
+  secondaryItems.forEach(item => {
+    const isActive = page === item.url;
+    sheetHtml += `
+      <a href="${item.url}" class="flex flex-col items-center justify-center p-3 rounded-2xl transition-colors gap-2 text-center" style="background:${isActive ? 'rgba(124,92,252,0.15)' : 'rgba(255,255,255,0.03)'}; border:1px solid ${isActive ? 'rgba(124,92,252,0.3)' : 'rgba(255,255,255,0.05)'};">
+        <div class="w-9 h-9 rounded-xl flex items-center justify-center" style="background:rgba(124,92,252,0.08); color:${isActive ? '#a78bfa' : 'rgba(196,188,220,0.6)'};">
+          <i data-feather="${item.icon}" class="w-4 h-4"></i>
         </div>
-        <span class="text-sm font-medium text-slate-300">${item.title}</span>
+        <span style="font-size:10px; font-weight:500; font-family:'Inter',sans-serif; color:${isActive ? '#c4b5fd' : 'rgba(196,188,220,0.65)'}; line-height:1.2;">${item.title}</span>
       </a>
     `;
   });
-  fullMenuHtml += `
+  sheetHtml += `
     </div>
-    <div class="mt-8">
-      <button onclick="App.logout()" class="w-full flex items-center justify-center gap-2 px-4 py-3 rounded-xl text-sm font-semibold transition-colors" style="color:#f87171; border:1px solid rgba(248,113,113,0.12); background:rgba(248,113,113,0.04);">
-        <i data-feather="log-out" class="w-5 h-5 shrink-0"></i>
+    <div class="px-4 pb-5">
+      <button onclick="App.logout()" class="w-full flex items-center justify-center gap-2 px-4 py-3 rounded-xl text-sm font-semibold" style="color:#f87171; border:1px solid rgba(248,113,113,0.12); background:rgba(248,113,113,0.04); font-family:'Inter',sans-serif;">
+        <i data-feather="log-out" class="w-4 h-4 shrink-0"></i>
         <span>Sair da Conta</span>
       </button>
     </div>
   `;
-  mobileFullMenu.innerHTML = fullMenuHtml;
+  mobileFullMenu.innerHTML = sheetHtml;
+
+  // Tap backdrop to close sheet
+  const sheetBackdrop = document.createElement('div');
+  sheetBackdrop.id = 'ef-sheet-backdrop';
+  sheetBackdrop.className = 'lg:hidden fixed inset-0 z-[55] hidden';
+  sheetBackdrop.style.cssText = 'background:rgba(0,0,0,0.5); backdrop-filter:blur(4px);';
+  sheetBackdrop.addEventListener('click', () => {
+    document.getElementById('ef-mobile-sheet').classList.add('translate-y-full');
+    sheetBackdrop.classList.add('hidden');
+  });
+
+  // Toggle backdrop when sheet opens/closes
+  const observer = new MutationObserver(() => {
+    const isOpen = !mobileFullMenu.classList.contains('translate-y-full');
+    sheetBackdrop.classList.toggle('hidden', !isOpen);
+  });
+  observer.observe(mobileFullMenu, { attributes: true, attributeFilter: ['class'] });
 
   // 9. Inject into DOM
+  document.body.insertBefore(sheetBackdrop, document.body.firstChild);
   document.body.insertBefore(mobileFullMenu, document.body.firstChild);
   document.body.insertBefore(bottomNav, document.body.firstChild);
   document.body.insertBefore(sidebar, document.body.firstChild);

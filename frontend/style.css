@@ -623,10 +623,14 @@ html:not(.dark) .subject-card-premium:hover {
     padding-bottom: 1.5rem !important;
   }
 
-  /* 4. Tighten heading sizes for small screens */
-  h1 { font-size: 1.5rem !important; }
-  h2 { font-size: 1.2rem !important; }
-  h3 { font-size: 1rem !important; }
+  /* 4. Readable heading sizes for small screens */
+  h1 { font-size: 1.6rem !important; line-height: 1.2 !important; }
+  h2 { font-size: 1.25rem !important; }
+  h3 { font-size: 1.05rem !important; }
+
+  /* 4b. Base font size must never go below 14px */
+  body { font-size: 14px !important; }
+  p, span, a, label, button { font-size: inherit; min-font-size: 13px; }
 
   /* 5. Reduce card padding on mobile */
   .glass-card {
