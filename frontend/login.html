@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
   <meta name="theme-color" content="#07060e">
-  <title>EnemFlow AI - Autenticação Neural</title>
+  <title>EnemFlow AI - Seu Fluxo para Dominar o ENEM</title>
   <link rel="manifest" href="manifest.json">
   <script src="https://cdn.tailwindcss.com"></script>
   <link href="https://fonts.googleapis.com/css2?family=Sora:wght@300;400;500;600;700;800&family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
@@ -23,22 +23,96 @@
     }
   </script>
   <link rel="icon" type="image/png" href="favicon.png?v=2">
+  <style>
+    html { scroll-behavior: smooth; }
+  </style>
 </head>
-<body class="min-h-screen flex items-center justify-center relative overflow-hidden text-slate-100" style="background: radial-gradient(circle at 10% 20%, #0d0b21 0%, #05040e 100%);">
+<body class="bg-[#07060e] text-slate-100 overflow-x-hidden relative scroll-smooth">
   
-  <!-- Ambient Grid Glows & Lateral Lights -->
-  <div class="absolute top-[-10%] left-[-10%] w-[600px] h-[600px] rounded-full blur-[140px] pointer-events-none animate-pulse" style="background: radial-gradient(circle, rgba(124,92,252,0.18) 0%, transparent 70%);"></div>
-  <div class="absolute bottom-[-10%] right-[-10%] w-[600px] h-[600px] rounded-full blur-[140px] pointer-events-none animate-pulse" style="background: radial-gradient(circle, rgba(236,72,153,0.12) 0%, transparent 70%);"></div>
-  <div class="absolute top-[30%] right-[15%] w-[450px] h-[450px] rounded-full blur-[130px] pointer-events-none" style="background: radial-gradient(circle, rgba(59,130,246,0.15) 0%, transparent 70%);"></div>
+  <!-- Fundo Antigo com Texturas e Glows -->
+  <div class="fixed inset-0 pointer-events-none z-0" style="background: radial-gradient(circle at 10% 20%, #0d0b21 0%, #05040e 100%);">
+    <!-- Grid Decorativo -->
+    <div class="absolute inset-0 bg-[linear-gradient(to_right,#80808008_1px,transparent_1px),linear-gradient(to_bottom,#80808008_1px,transparent_1px)] bg-[size:16px_28px]"></div>
+    <!-- Glows Laterais -->
+    <div class="absolute top-[-10%] left-[-10%] w-[600px] h-[600px] rounded-full blur-[140px] animate-pulse" style="background: radial-gradient(circle, rgba(124,92,252,0.18) 0%, transparent 70%);"></div>
+    <div class="absolute bottom-[-10%] right-[-10%] w-[600px] h-[600px] rounded-full blur-[140px] animate-pulse" style="background: radial-gradient(circle, rgba(236,72,153,0.12) 0%, transparent 70%);"></div>
+    <div class="absolute top-[30%] right-[15%] w-[450px] h-[450px] rounded-full blur-[130px]" style="background: radial-gradient(circle, rgba(59,130,246,0.15) 0%, transparent 70%);"></div>
+  </div>
 
-  <!-- Background Decorative Grid -->
-  <div class="absolute inset-0 bg-[linear-gradient(to_right,#80808008_1px,transparent_1px),linear-gradient(to_bottom,#80808008_1px,transparent_1px)] bg-[size:16px_28px] pointer-events-none"></div>
+  <!-- SEÇÃO 1: APRESENTAÇÃO -->
+  <section id="presentation" class="min-h-screen flex flex-col justify-center relative z-10 px-6 py-12 lg:py-0">
+    <div class="w-full max-w-7xl mx-auto flex flex-col-reverse lg:flex-row items-center gap-12 lg:gap-20">
+      
+      <!-- Lado Esquerdo -->
+      <div class="w-full lg:w-1/2 flex flex-col items-center lg:items-start text-center lg:text-left z-10 animate-fade-in">
+        
+        <!-- Selo -->
+        <span class="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-violet-500/10 border border-violet-500/20 text-violet-400 font-bold uppercase tracking-widest text-[10px] md:text-xs mb-6 shadow-[0_0_15px_rgba(124,92,252,0.15)]" style="font-family:'Sora',sans-serif;">
+          Plataforma movida por IA
+        </span>
 
-  <div class="w-full max-w-6xl grid grid-cols-1 lg:grid-cols-2 gap-12 p-6 z-10">
+        <!-- Título principal -->
+        <h1 class="text-4xl sm:text-5xl lg:text-6xl font-extrabold mb-6 text-white tracking-tight" style="font-family:'Sora',sans-serif; line-height:1.15;">
+          Seu <span class="logo-text-gradient">fluxo</span> para dominar o ENEM.
+        </h1>
+
+        <!-- Subtexto -->
+        <p class="text-slate-300 text-sm md:text-base leading-relaxed mb-8 max-w-lg">
+          O EnemFlow une inteligência artificial, materiais organizados, PDFs, foco e acompanhamento inteligente para transformar sua rotina de estudos.
+        </p>
+
+        <!-- 3 blocos -->
+        <div class="flex flex-col sm:flex-row gap-4 mb-10 w-full lg:w-auto">
+          <div class="flex-1 bg-white/5 border border-white/10 rounded-xl p-4 backdrop-blur-sm text-left shadow-lg">
+            <h3 class="text-white font-bold text-sm mb-1" style="font-family:'Sora',sans-serif;">Tutor IA</h3>
+            <p class="text-slate-400 text-[11px] leading-tight">Tire dúvidas do conteúdo</p>
+          </div>
+          <div class="flex-1 bg-white/5 border border-white/10 rounded-xl p-4 backdrop-blur-sm text-left shadow-lg">
+            <h3 class="text-white font-bold text-sm mb-1" style="font-family:'Sora',sans-serif;">PDFs inteligentes</h3>
+            <p class="text-slate-400 text-[11px] leading-tight">Materiais organizados</p>
+          </div>
+          <div class="flex-1 bg-white/5 border border-white/10 rounded-xl p-4 backdrop-blur-sm text-left shadow-lg">
+            <h3 class="text-white font-bold text-sm mb-1" style="font-family:'Sora',sans-serif;">Zona de foco</h3>
+            <p class="text-slate-400 text-[11px] leading-tight">Estude com concentração</p>
+          </div>
+        </div>
+
+        <!-- Botões -->
+        <div class="flex flex-col sm:flex-row items-center gap-4 w-full lg:w-auto">
+          <button onclick="goToAuth(false)" class="w-full sm:w-auto py-3.5 px-8 hover:opacity-95 text-white rounded-full font-bold transition-all shadow-[0_0_20px_rgba(124,92,252,0.4)] hover:shadow-[0_0_30px_rgba(236,72,153,0.5)] transform hover:-translate-y-1" style="background:linear-gradient(135deg,#7c5cfc,#ec4899); font-family:'Sora',sans-serif; font-size: 0.95rem;">
+            Criar conta grátis
+          </button>
+          <button onclick="goToAuth(true)" class="w-full sm:w-auto py-3.5 px-8 text-white rounded-full font-bold transition-all border border-white/10 bg-white/5 hover:bg-white/10 hover:border-violet-500/40 transform hover:-translate-y-1 shadow-lg" style="font-family:'Sora',sans-serif; font-size: 0.95rem;">
+            Já tenho conta
+          </button>
+        </div>
+
+      </div>
+
+      <!-- Lado Direito (Ilustração) -->
+      <div class="w-full lg:w-1/2 flex justify-center items-center z-10 animate-fade-in lg:mt-0 mt-8" style="animation-delay: 0.2s;">
+        <div class="relative w-full max-w-[500px]">
+          <!-- Glow base da imagem -->
+          <div class="absolute inset-0 bg-gradient-to-tr from-violet-600 to-pink-500 rounded-3xl blur-2xl opacity-25 animate-pulse" style="animation-duration: 4s;"></div>
+          <!-- Imagem customizada gerada -->
+          <img src="assets/enemflow_hero_illustration.png" alt="Estudante no EnemFlow IA" class="relative z-10 w-full h-auto rounded-3xl border border-white/5 shadow-2xl object-cover" style="backdrop-filter: blur(10px);" />
+        </div>
+      </div>
+
+    </div>
     
-    <!-- Hero Section (Desktop Only) -->
-    <div class="hidden lg:flex flex-col justify-center px-12 animate-fade-in" style="animation-delay: 0.1s;">
-      <div class="flex items-center gap-3 mb-8">
+    <!-- Seta para baixo (Desktop apenas) -->
+    <div class="absolute bottom-6 left-1/2 -translate-x-1/2 animate-bounce opacity-40 hidden lg:block cursor-pointer" onclick="goToAuth(true)">
+      <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 14l-7 7m0 0l-7-7m7 7V3"></path></svg>
+    </div>
+  </section>
+
+  <!-- SEÇÃO 2: LOGIN / CADASTRO -->
+  <section id="login-section" class="min-h-screen flex items-center justify-center relative z-10 p-6">
+    <div class="w-full max-w-md animate-fade-in" style="animation-delay: 0.1s;">
+      
+      <!-- Cabeçalho (Logo) -->
+      <div class="flex items-center justify-center gap-3 mb-8">
         <div class="w-11 h-11 rounded-2xl flex items-center justify-center shrink-0 shadow-[0_0_20px_rgba(124,92,252,0.3)] border border-violet-500/20" style="background: rgba(15,12,30,0.6);">
           <svg class="w-6 h-6" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
             <defs>
@@ -52,49 +126,15 @@
         </div>
         <span class="text-3xl font-extrabold tracking-tight logo-text-gradient" style="font-family:'Sora',sans-serif;">EnemFlow</span>
       </div>
-      <h1 class="text-5xl font-extrabold leading-tight mb-6 text-white" style="font-family:'Sora',sans-serif;">
-        O seu tutor particular com <span class="bg-clip-text text-transparent bg-gradient-to-r from-violet-400 via-purple-400 to-fuchsia-400">Superpoderes de IA</span>.
-      </h1>
-      <p class="text-base mb-8 max-w-md leading-relaxed" style="color:rgba(196,188,220,0.55);">
-        Domine o ENEM com resumos inteligentes, banco de materiais unificado, cronômetro de estudos e uma inteligência artificial adaptada a você.
-      </p>
-      
-      <div class="flex items-center gap-4">
-        <div class="flex -space-x-3">
-          <div class="w-10 h-10 rounded-full bg-slate-800 border-2 border-slate-700 shadow-md"></div>
-          <div class="w-10 h-10 rounded-full bg-violet-900 border-2 border-violet-700 shadow-md"></div>
-          <div class="w-10 h-10 rounded-full bg-purple-900 border-2 border-purple-700 shadow-md flex items-center justify-center text-xs font-bold text-white">+1k</div>
-        </div>
-        <p class="text-xs font-bold uppercase tracking-wider text-slate-500">Junte-se à revolução nos estudos.</p>
-      </div>
-    </div>
 
-    <!-- Auth Card -->
-    <div class="flex items-center justify-center animate-fade-in" style="animation-delay: 0.2s;">
-      <div class="glass-card w-full max-w-md p-8 md:p-10 relative rounded-3xl shadow-2xl" style="background: rgba(13, 10, 30, 0.45); backdrop-filter: blur(25px); -webkit-backdrop-filter: blur(25px); border: 1px solid rgba(124,92,252,0.12);">
+      <!-- Auth Card -->
+      <div class="glass-card w-full p-8 md:p-10 relative rounded-3xl shadow-2xl" style="background: rgba(13, 10, 30, 0.45); backdrop-filter: blur(25px); -webkit-backdrop-filter: blur(25px); border: 1px solid rgba(124,92,252,0.12);">
         
-        <!-- Mobile Logo -->
-        <div class="flex lg:hidden items-center justify-center gap-2 mb-8">
-          <div class="w-9 h-9 rounded-xl flex items-center justify-center shrink-0 shadow-[0_0_15px_rgba(124,92,252,0.3)] border border-violet-500/20" style="background: rgba(15,12,30,0.6);">
-            <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-              <defs>
-                <linearGradient id="boltGradLogin2" x1="0%" y1="0%" x2="100%" y2="100%">
-                  <stop offset="0%" stop-color="#7c5cfc" />
-                  <stop offset="100%" stop-color="#ec4899" />
-                </linearGradient>
-              </defs>
-              <path d="M13 2L5.5 13H11.5L9.5 22L18.5 11H12.5L13 2Z" fill="url(#boltGradLogin2)" />
-            </svg>
-          </div>
-          <span class="text-2xl font-bold tracking-tight logo-text-gradient" style="font-family:'Sora',sans-serif;">EnemFlow</span>
-        </div>
-
         <div class="text-center mb-8">
           <h2 id="formTitle" class="text-2xl font-extrabold text-white mb-2 tracking-tight" style="font-family:'Sora',sans-serif;">Bem-vindo de volta</h2>
           <p id="formSubtitle" class="text-xs font-medium" style="color:rgba(196,188,220,0.5);">Insira suas credenciais para acessar sua jornada.</p>
           
-          <!-- Caixa de Alerta Inline Premium (Fixo na Tela, sem Flutuação) -->
-          <div id="authAlert" class="hidden mt-4 p-3.5 rounded-2xl text-xs font-semibold border text-left flex items-start gap-2.5 animate-fade-in transition-all">
+          <div id="authAlert" class="hidden mt-4 p-3.5 rounded-2xl text-xs font-semibold border text-left flex items-start gap-2.5 transition-all">
             <svg class="w-4 h-4 shrink-0 text-red-500 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
               <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/>
             </svg>
@@ -137,16 +177,14 @@
         </div>
       </div>
     </div>
-  </div>
+  </section>
 
   <!-- Tela de Ativação Neural (Splash Screen Premium) -->
-  <div id="neuralSplash" class="fixed inset-0 bg-[#070709] z-[9999] hidden flex flex-col items-center justify-center animate-fade-in">
-    <!-- Ambient mesh glow nodes -->
+  <div id="neuralSplash" class="fixed inset-0 bg-[#070709] z-[9999] hidden flex flex-col items-center justify-center">
     <div class="absolute w-[500px] h-[500px] bg-violet-500/10 rounded-full blur-[100px]"></div>
     <div class="absolute w-[500px] h-[500px] bg-purple-500/10 rounded-full blur-[100px] -translate-y-12"></div>
     
-    <div class="relative flex flex-col items-center justify-center text-center p-8 space-y-6 max-w-md z-10 animate-fade-in">
-      <!-- Lightning Bolt Pulse Icon -->
+    <div class="relative flex flex-col items-center justify-center text-center p-8 space-y-6 max-w-md z-10">
       <div class="relative w-24 h-24 rounded-3xl flex items-center justify-center animate-bounce duration-1000 border border-violet-500/20 shadow-xl shadow-indigo-500/30" style="background: rgba(15,12,30,0.7);">
         <svg class="w-12 h-12 animate-pulse" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
           <defs>
@@ -164,7 +202,6 @@
         <p class="text-[10px] text-slate-400 font-bold uppercase tracking-wider animate-pulse" id="splash-status">Autenticando suas credenciais...</p>
       </div>
 
-      <!-- Linear Loading Bar -->
       <div class="w-64 h-1.5 bg-white/5 rounded-full overflow-hidden border border-white/10 relative">
         <div class="h-full w-0 transition-all duration-[1500ms] ease-in-out" id="splash-loader" style="background:linear-gradient(90deg,#7c5cfc,#a855f7,#c084fc);"></div>
       </div>
@@ -193,8 +230,15 @@
     
     let isLogin = true;
 
+    // Função para rolar suavemente e trocar de modo (Login/Cadastro)
+    function goToAuth(wantsLogin) {
+      if (isLogin !== wantsLogin) {
+        toggleMode();
+      }
+      document.getElementById('login-section').scrollIntoView({ behavior: 'smooth' });
+    }
+
     function toggleMode() {
-      // Oculta alertas antigos ao trocar
       document.getElementById('authAlert').classList.add('hidden');
 
       isLogin = !isLogin;
@@ -236,22 +280,18 @@
 
         App.setToken(data.token);
         
-        // 1. Oculta o formulário de login suavemente
         const card = document.querySelector('.glass-card');
         card.classList.add('opacity-0', 'scale-95', 'transition-all', 'duration-500');
         
-        // 2. Após 300ms, revela a tela de ativação neural (Splash)
         setTimeout(() => {
           const splash = document.getElementById('neuralSplash');
           splash.classList.remove('hidden');
           
-          // Anima a barra de progresso e texto
           setTimeout(() => {
             document.getElementById('splash-loader').style.width = '100%';
             document.getElementById('splash-status').innerText = 'Sincronizando Conexão Neural...';
           }, 100);
 
-          // Redireciona após concluir com verificação de tipo de usuário
           setTimeout(async () => {
             try {
               const user = await App.api('/auth/me');
@@ -269,7 +309,6 @@
         }, 300);
 
       } catch (err) {
-        // Aplica o shake no formulário para alertar o erro fisicamente
         const card = document.querySelector('.glass-card');
         card.classList.add('animate-shake');
         setTimeout(() => card.classList.remove('animate-shake'), 400);
@@ -278,7 +317,7 @@
         const alertText = document.getElementById('authAlertText');
         alertText.innerText = err.message;
         
-        alertBox.className = "mt-4 p-3.5 rounded-2xl text-xs font-semibold border bg-red-500/10 border-red-500/30 text-red-500 dark:text-red-400 text-left flex items-start gap-2.5 animate-fade-in";
+        alertBox.className = "mt-4 p-3.5 rounded-2xl text-xs font-semibold border bg-red-500/10 border-red-500/30 text-red-500 dark:text-red-400 text-left flex items-start gap-2.5 transition-all";
         alertBox.classList.remove('hidden');
 
         btn.disabled = false;
