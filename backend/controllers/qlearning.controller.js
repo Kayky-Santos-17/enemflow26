@@ -5,7 +5,7 @@ const qLearningService = require('../services/qLearning.service');
  */
 exports.getRecommendation = async (req, res) => {
   try {
-    const userId = req.user.id; // Supondo middleware de auth existente
+    const userId = req.userId; // Supondo middleware de auth existente
     
     // Adicionar um cache rápido na resposta (opcional, pode ser feito no front-end também)
     // Para performance, como solicitado, evitamos recalcular tudo pesadamente. 
@@ -29,7 +29,7 @@ exports.getRecommendation = async (req, res) => {
  */
 exports.trainAgent = async (req, res) => {
   try {
-    const userId = req.user.id;
+    const userId = req.userId;
     const { 
       actionTaken, 
       previousState,

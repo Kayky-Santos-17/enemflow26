@@ -1,7 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const qLearningController = require('../controllers/qlearning.controller');
-const { verifyToken } = require('../middlewares/auth');
+const verifyToken = require('../middlewares/auth');
 
 // Rotas protegidas (Requer login)
 router.use(verifyToken);
