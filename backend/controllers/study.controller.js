@@ -20,13 +20,15 @@ exports.start = (req, res) => {
 // POST /study/end
 exports.end = async (req, res) => {
   try {
-    const { startTime, contentId } = req.body;
+    const { startTime, contentId, clientDuration } = req.body;
 
     if (!startTime || !contentId) {
       return res.status(400).json({ error: 'startTime e contentId são obrigatórios.' });
     }
 
-    const duracao = Math.max(0, Math.floor((Date.now() - startTime) / 1000)); // em segundos
+    const duracaoServidor = Math.max(0, Math.floor((Date.now() - startTime) / 1000)); // em segundos
+    // Se o cliente enviar uma duração (ex: com pausas descontadas), usa ela, mas limita ao tempo do servidor (segurança)
+    const duracao = clientDuration !== undefined ? Math.min(clientDuration, duracaoServidor) : duracaoServidor;
     // 10 XP a cada 1 hora (3600 segundos). Logo, 1 XP a cada 360 segundos (6 minutos de foco).
     const xpGanho = Math.floor(duracao / 360);
 

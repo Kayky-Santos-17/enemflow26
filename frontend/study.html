@@ -123,10 +123,15 @@
         <div class="timer-ring-wrapper" id="timerRing">
           <span class="timer-time" id="display">00:00:00</span>
         </div>
-        <button id="focusBtn" class="btn-focus-action idle" onclick="handleFocusToggle()">
-          <i data-feather="play" class="w-5 h-5"></i>
-          <span id="focusBtnText">Iniciar Foco</span>
-        </button>
+        <div style="display:flex; gap:10px; width:100%; max-width:280px; justify-content:center;" id="focusActions">
+          <button id="focusBtn" class="btn-focus-action idle" style="flex:1;" onclick="handleFocusToggle()">
+            <i data-feather="play" class="w-5 h-5"></i>
+            <span id="focusBtnText">Iniciar Foco</span>
+          </button>
+          <button id="pauseBtn" class="btn-focus-action idle" style="display:none; flex:0.4; background:rgba(245,158,11,0.1); border:1px solid rgba(245,158,11,0.25); color:#fbbf24;" onclick="handlePauseToggle()">
+            <i data-feather="pause" class="w-5 h-5"></i>
+          </button>
+        </div>
         <div class="xp-gain-bubble" id="xpBubble">
           <svg viewBox="0 0 24 24" width="14" height="14" fill="currentColor"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon></svg>
           <span id="sessionXpCounter">Acumulando +0 XP</span>
@@ -169,6 +174,7 @@
 
     let timerInterval, localStartTime = 0, serverStartTime = null;
     let isTimerRunning = false, isTimerFocusMode = false, isPdfFullscreen = false;
+    let isPaused = false, totalPausedMs = 0, pauseStartTime = 0;
     let currentContentUrl = '';
 
     const quotes = [
@@ -237,14 +243,17 @@
     async function closeSession() {
       if (isTimerRunning) {
         clearInterval(timerInterval);
+        if (isPaused) totalPausedMs += (Date.now() - pauseStartTime);
         isTimerRunning = false;
+        const finalDuration = Math.max(0, Math.floor((Date.now() - localStartTime - totalPausedMs) / 1000));
+        
         const focusBtn = document.getElementById('focusBtn');
         if (focusBtn) {
           focusBtn.innerHTML = 'Salvando...';
           focusBtn.disabled = true;
         }
         try {
-          await App.api('/study/end', { method: 'POST', body: JSON.stringify({ startTime: serverStartTime, contentId }) });
+          await App.api('/study/end', { method: 'POST', body: JSON.stringify({ startTime: serverStartTime, contentId, clientDuration: finalDuration }) });
           localStorage.removeItem('currentContentId');
         } catch (err) {
           console.error('Erro ao salvar no fechamento:', err);
@@ -307,13 +316,23 @@
         focusBtn.disabled = true; focusBtn.innerText = 'Iniciando...';
         const data = await App.api('/study/start', { method: 'POST' });
         serverStartTime = data.startTime; localStartTime = Date.now(); isTimerRunning = true;
+        isPaused = false; totalPausedMs = 0;
+        
         playChime('start');
         document.getElementById('timerRing').classList.add('active');
         document.getElementById('display').classList.add('active');
-        document.getElementById('statusPill').classList.add('active');
+        
+        const pill = document.getElementById('statusPill');
+        pill.classList.add('active');
+        pill.style.background = ''; pill.style.color = ''; pill.style.borderColor = '';
+        
         document.getElementById('statusText').innerText = 'FOCO TOTAL EM CURSO';
         focusBtn.disabled = false; focusBtn.className = 'btn-focus-action active';
-        focusBtn.innerHTML = '<i data-feather="square" class="w-5 h-5"></i><span>Encerrar Sessão</span>';
+        focusBtn.innerHTML = '<i data-feather="square" class="w-5 h-5"></i><span>Encerrar</span>';
+        
+        document.getElementById('pauseBtn').style.display = 'flex';
+        document.getElementById('pauseBtn').innerHTML = '<i data-feather="pause" class="w-5 h-5"></i>';
+        
         document.getElementById('xpBubble').classList.add('visible');
         timerInterval = setInterval(updateTimerDisplay, 1000);
         updateTimerDisplay();
@@ -327,13 +346,22 @@
     }
 
     async function stopStudySession() {
-      clearInterval(timerInterval); isTimerRunning = false;
+      clearInterval(timerInterval);
+      if (isPaused) {
+        totalPausedMs += (Date.now() - pauseStartTime);
+      }
+      isTimerRunning = false;
+      isPaused = false;
+      const finalDuration = Math.max(0, Math.floor((Date.now() - localStartTime - totalPausedMs) / 1000));
+      
       const focusBtn = document.getElementById('focusBtn');
-      focusBtn.innerHTML = 'Calculando XP...'; focusBtn.disabled = true;
+      focusBtn.innerHTML = 'Salvando...'; focusBtn.disabled = true;
+      document.getElementById('pauseBtn').style.display = 'none';
+      
       playChime('stop');
       try {
         const data = await App.api('/study/end', {
-          method: 'POST', body: JSON.stringify({ startTime: serverStartTime, contentId })
+          method: 'POST', body: JSON.stringify({ startTime: serverStartTime, contentId, clientDuration: finalDuration })
         });
         localStorage.removeItem('currentContentId');
         // Show post-timer modal with "Possui dúvidas?" and "Abrir Tutor IA"
@@ -347,8 +375,39 @@
       }
     }
 
+    function handlePauseToggle() {
+      if (!isTimerRunning) return;
+      const pill = document.getElementById('statusPill');
+      
+      if (isPaused) {
+        // Retomar
+        totalPausedMs += (Date.now() - pauseStartTime);
+        isPaused = false;
+        document.getElementById('pauseBtn').innerHTML = '<i data-feather="pause" class="w-5 h-5"></i>';
+        document.getElementById('statusText').innerText = 'FOCO TOTAL EM CURSO';
+        pill.classList.add('active');
+        pill.style.background = '';
+        pill.style.color = '';
+        pill.style.borderColor = '';
+        document.getElementById('timerRing').classList.add('active');
+      } else {
+        // Pausar
+        isPaused = true;
+        pauseStartTime = Date.now();
+        document.getElementById('pauseBtn').innerHTML = '<i data-feather="play" class="w-5 h-5"></i>';
+        document.getElementById('statusText').innerText = 'PAUSADO';
+        pill.classList.remove('active');
+        pill.style.background = 'rgba(245,158,11,0.1)';
+        pill.style.color = '#fbbf24';
+        pill.style.borderColor = 'rgba(245,158,11,0.2)';
+        document.getElementById('timerRing').classList.remove('active');
+      }
+      feather.replace();
+    }
+
     function updateTimerDisplay() {
-      const diffMs = Date.now() - localStartTime;
+      if (isPaused) return;
+      const diffMs = Date.now() - localStartTime - totalPausedMs;
       const sec = Math.floor(diffMs / 1000);
       const h = Math.floor(sec / 3600).toString().padStart(2, '0');
       const m = Math.floor((sec % 3600) / 60).toString().padStart(2, '0');
@@ -371,10 +430,27 @@
       layout.classList.toggle('no-media', isTimerFocusMode);
     }
 
-    function togglePdfFullscreen() {
+    async function togglePdfFullscreen() {
       const layout = document.getElementById('immersiveLayout');
       isPdfFullscreen = !isPdfFullscreen;
       layout.classList.toggle('no-timer', isPdfFullscreen);
+
+      try {
+        if (isPdfFullscreen) {
+          const elem = document.documentElement;
+          if (elem.requestFullscreen) await elem.requestFullscreen();
+          else if (elem.webkitRequestFullscreen) await elem.webkitRequestFullscreen();
+          else if (elem.msRequestFullscreen) await elem.msRequestFullscreen();
+        } else {
+          if (document.fullscreenElement || document.webkitFullscreenElement || document.msFullscreenElement) {
+            if (document.exitFullscreen) await document.exitFullscreen();
+            else if (document.webkitExitFullscreen) await document.webkitExitFullscreen();
+            else if (document.msExitFullscreen) await document.msExitFullscreen();
+          }
+        }
+      } catch (err) {
+        console.warn('Fullscreen API error:', err);
+      }
     }
 
     function downloadPdf() {

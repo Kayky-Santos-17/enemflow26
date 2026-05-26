@@ -3,14 +3,12 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-  <title>EnemFlow - Sua IA de Estudos</title>
-  <meta name="description" content="EnemFlow - A plataforma definitiva de estudos para o ENEM impulsionada por Inteligência Artificial.">
+  <title>EnemFlow — Seu Fluxo para Dominar o ENEM</title>
+  <meta name="description" content="EnemFlow reúne organização, inteligência artificial, acompanhamento e recursos avançados para transformar sua rotina de estudos para o ENEM.">
   <meta name="theme-color" content="#07060e">
   <link rel="manifest" href="manifest.json">
+  <link href="https://fonts.googleapis.com/css2?family=Sora:wght@300;400;500;600;700;800;900&family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
   <script src="https://cdn.tailwindcss.com"></script>
-  <link href="https://fonts.googleapis.com/css2?family=Sora:wght@300;400;500;600;700;800;900&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="style.css">
-  <script src="https://unpkg.com/feather-icons"></script>
   <script>
     tailwind.config = {
       darkMode: 'class',
@@ -19,290 +17,1315 @@
   </script>
   <link rel="icon" type="image/png" href="favicon.png?v=2">
   <style>
-    /* Premium Landing Page Styles */
+    /* ── Reset & Base ──────────────────────────────────────── */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg-deep: #07060e;
+      --bg-surface: rgba(12, 10, 24, 0.55);
+      --violet: #7c5cfc;
+      --pink: #ec4899;
+      --text-primary: #e8e4f0;
+      --text-secondary: rgba(196, 188, 220, 0.7);
+      --text-muted: rgba(160, 150, 200, 0.5);
+      --border: rgba(124, 92, 252, 0.08);
+      --border-hover: rgba(124, 92, 252, 0.25);
+      --font-heading: 'Sora', sans-serif;
+      --font-body: 'Inter', 'Sora', sans-serif;
+      --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
+      --ease-spring: cubic-bezier(0.2, 0.8, 0.2, 1);
+    }
+
+    html {
+      -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
+      text-rendering: optimizeLegibility;
+      scroll-behavior: smooth;
+    }
+
     body {
-      background: #07060e;
-      color: #e4dff0;
+      font-family: var(--font-body);
+      background: var(--bg-deep);
+      color: var(--text-primary);
       overflow-x: hidden;
-      margin: 0;
       min-height: 100vh;
       display: flex;
       flex-direction: column;
     }
-    
-    .hero-bg {
-      position: absolute;
+
+    /* ── Background System ────────────────────────────────── */
+    .bg-grid {
+      position: fixed;
       inset: 0;
       z-index: 0;
-      background-image: url('assets/hero-bg.png');
-      background-size: cover;
-      background-position: center;
-      background-repeat: no-repeat;
-      opacity: 0.45;
-      mask-image: linear-gradient(to bottom, black 40%, transparent 100%);
-      -webkit-mask-image: linear-gradient(to bottom, black 40%, transparent 100%);
+      pointer-events: none;
+      background-image:
+        linear-gradient(to right, rgba(124, 92, 252, 0.03) 1px, transparent 1px),
+        linear-gradient(to bottom, rgba(124, 92, 252, 0.03) 1px, transparent 1px);
+      background-size: 60px 60px;
+      mask-image: radial-gradient(ellipse 70% 60% at 50% 40%, black 30%, transparent 75%);
+      -webkit-mask-image: radial-gradient(ellipse 70% 60% at 50% 40%, black 30%, transparent 75%);
     }
 
-    .glass-nav {
+    .bg-glow-1 {
+      position: fixed;
+      top: -15%;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 800px;
+      height: 500px;
+      background: radial-gradient(ellipse, rgba(124, 92, 252, 0.12) 0%, transparent 70%);
+      border-radius: 50%;
+      pointer-events: none;
+      z-index: 0;
+      filter: blur(80px);
+    }
+
+    .bg-glow-2 {
+      position: fixed;
+      bottom: -20%;
+      right: -10%;
+      width: 600px;
+      height: 600px;
+      background: radial-gradient(ellipse, rgba(236, 72, 153, 0.06) 0%, transparent 70%);
+      border-radius: 50%;
+      pointer-events: none;
+      z-index: 0;
+      filter: blur(100px);
+    }
+
+    .bg-glow-3 {
+      position: fixed;
+      top: 40%;
+      left: -10%;
+      width: 500px;
+      height: 500px;
+      background: radial-gradient(ellipse, rgba(124, 92, 252, 0.05) 0%, transparent 70%);
+      border-radius: 50%;
+      pointer-events: none;
+      z-index: 0;
+      filter: blur(100px);
+    }
+
+    /* ── Navigation ───────────────────────────────────────── */
+    .nav {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      z-index: 100;
+      padding: 0 24px;
+      height: 64px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
       background: rgba(7, 6, 14, 0.6);
-      backdrop-filter: blur(20px);
-      -webkit-backdrop-filter: blur(20px);
-      border-bottom: 1px solid rgba(124, 92, 252, 0.1);
+      backdrop-filter: blur(20px) saturate(1.4);
+      -webkit-backdrop-filter: blur(20px) saturate(1.4);
+      border-bottom: 1px solid rgba(124, 92, 252, 0.06);
+      transition: background 0.3s ease;
     }
 
-    .mega-title {
-      font-family: 'Sora', sans-serif;
-      font-size: clamp(3.5rem, 8vw, 6rem);
-      font-weight: 900;
-      line-height: 1.1;
-      letter-spacing: -0.04em;
-      background: linear-gradient(135deg, #fff 20%, #c4b5fd 70%, #ec4899 100%);
+    .nav-logo {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      text-decoration: none;
+    }
+
+    .nav-logo-icon {
+      width: 32px;
+      height: 32px;
+      border-radius: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: rgba(15, 12, 30, 0.8);
+      border: 1px solid rgba(124, 92, 252, 0.2);
+      box-shadow: 0 0 12px rgba(124, 92, 252, 0.3);
+      flex-shrink: 0;
+    }
+
+    .nav-logo-text {
+      font-family: var(--font-heading);
+      font-weight: 800;
+      font-size: 1.15rem;
+      color: #fff;
+      letter-spacing: -0.02em;
+    }
+
+    .nav-actions {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .nav-btn {
+      font-family: var(--font-heading);
+      font-size: 0.8rem;
+      font-weight: 600;
+      padding: 8px 20px;
+      border-radius: 100px;
+      cursor: pointer;
+      transition: all 0.3s var(--ease-spring);
+      text-decoration: none;
+      display: inline-flex;
+      align-items: center;
+      border: none;
+      outline: none;
+    }
+
+    .nav-btn-ghost {
+      background: transparent;
+      color: var(--text-secondary);
+      border: 1px solid transparent;
+    }
+
+    .nav-btn-ghost:hover {
+      color: #fff;
+      background: rgba(255, 255, 255, 0.04);
+      border-color: rgba(255, 255, 255, 0.06);
+    }
+
+    .nav-btn-outline {
+      background: rgba(255, 255, 255, 0.03);
+      color: var(--text-primary);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+    }
+
+    .nav-btn-outline:hover {
+      border-color: rgba(124, 92, 252, 0.3);
+      background: rgba(124, 92, 252, 0.06);
+      color: #fff;
+      transform: translateY(-1px);
+    }
+
+    /* ── Hero Section ─────────────────────────────────────── */
+    .hero {
+      position: relative;
+      z-index: 10;
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      padding: 120px 24px 60px;
+      min-height: 100vh;
+    }
+
+    .hero-content {
+      max-width: 720px;
+      width: 100%;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+
+    /* Logo Group */
+    .hero-logo {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      margin-bottom: 40px;
+      opacity: 0;
+      animation: fadeUp 0.8s var(--ease-out) 0.1s forwards;
+    }
+
+    .hero-logo-icon {
+      width: 48px;
+      height: 48px;
+      border-radius: 16px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: rgba(15, 12, 30, 0.7);
+      border: 1px solid rgba(124, 92, 252, 0.2);
+      box-shadow: 0 0 24px rgba(124, 92, 252, 0.25), 0 0 60px rgba(124, 92, 252, 0.08);
+    }
+
+    .hero-logo-text {
+      font-family: var(--font-heading);
+      font-weight: 800;
+      font-size: 1.75rem;
+      letter-spacing: -0.03em;
+      background: linear-gradient(135deg, #fff 30%, #c4b5fd 70%, #ec4899 100%);
       -webkit-background-clip: text;
       background-clip: text;
       -webkit-text-fill-color: transparent;
-      filter: drop-shadow(0 0 40px rgba(124, 92, 252, 0.4));
-      margin-bottom: 1.5rem;
     }
 
-    .neon-subtitle {
-      font-size: clamp(1rem, 2vw, 1.25rem);
-      color: rgba(196, 188, 220, 0.8);
-      max-width: 600px;
-      margin: 0 auto;
-      line-height: 1.6;
-    }
-
-    .btn-glow {
-      position: relative;
-      background: linear-gradient(135deg, #7c5cfc, #ec4899);
-      border-radius: 100px;
-      padding: 18px 40px;
+    /* Titles */
+    .hero-title {
+      font-family: var(--font-heading);
+      font-size: clamp(2rem, 5vw, 3.2rem);
       font-weight: 800;
-      font-size: 1.1rem;
-      font-family: 'Sora', sans-serif;
-      color: white;
-      transition: all 0.3s cubic-bezier(0.2, 0.8, 0.2, 1);
-      box-shadow: 0 10px 30px rgba(124, 92, 252, 0.3);
-      overflow: hidden;
-      display: inline-flex;
-      align-items: center;
-      gap: 12px;
-      border: 1px solid rgba(255,255,255,0.1);
+      line-height: 1.15;
+      letter-spacing: -0.04em;
+      color: #fff;
+      margin-bottom: 20px;
+      opacity: 0;
+      animation: fadeUp 0.8s var(--ease-out) 0.2s forwards;
     }
 
-    .btn-glow::before {
+    .hero-title .gradient {
+      background: linear-gradient(135deg, #7c5cfc 0%, #a78bfa 40%, #ec4899 100%);
+      -webkit-background-clip: text;
+      background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+
+    .hero-subtitle {
+      font-size: clamp(0.9rem, 1.6vw, 1.05rem);
+      color: var(--text-secondary);
+      line-height: 1.7;
+      max-width: 540px;
+      margin-bottom: 48px;
+      opacity: 0;
+      animation: fadeUp 0.8s var(--ease-out) 0.35s forwards;
+    }
+
+    /* ── Feature Cards ────────────────────────────────────── */
+    .features-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 16px;
+      width: 100%;
+      margin-bottom: 48px;
+      opacity: 0;
+      animation: fadeUp 0.8s var(--ease-out) 0.5s forwards;
+    }
+
+    .feature-card {
+      position: relative;
+      background: rgba(12, 10, 24, 0.4);
+      backdrop-filter: blur(16px) saturate(1.2);
+      -webkit-backdrop-filter: blur(16px) saturate(1.2);
+      border: 1px solid rgba(124, 92, 252, 0.08);
+      border-radius: 16px;
+      padding: 24px 20px;
+      text-align: left;
+      transition: all 0.4s var(--ease-spring);
+      overflow: hidden;
+    }
+
+    .feature-card::before {
       content: '';
       position: absolute;
-      top: 0; left: -100%;
-      width: 100%; height: 100%;
-      background: linear-gradient(90deg, transparent, rgba(255,255,255,0.3), transparent);
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 1px;
+      background: linear-gradient(90deg, transparent, rgba(124, 92, 252, 0.15), transparent);
+      opacity: 0;
+      transition: opacity 0.4s ease;
+    }
+
+    .feature-card:hover {
+      border-color: rgba(124, 92, 252, 0.18);
+      transform: translateY(-4px);
+      box-shadow:
+        0 8px 32px rgba(0, 0, 0, 0.3),
+        0 0 40px rgba(124, 92, 252, 0.06);
+    }
+
+    .feature-card:hover::before {
+      opacity: 1;
+    }
+
+    .feature-icon {
+      width: 40px;
+      height: 40px;
+      border-radius: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin-bottom: 14px;
+      transition: all 0.4s var(--ease-spring);
+    }
+
+    .feature-card:hover .feature-icon {
+      transform: scale(1.08);
+    }
+
+    .feature-icon-ai {
+      background: rgba(124, 92, 252, 0.1);
+      border: 1px solid rgba(124, 92, 252, 0.15);
+      color: #a78bfa;
+    }
+
+    .feature-icon-pdf {
+      background: rgba(236, 72, 153, 0.08);
+      border: 1px solid rgba(236, 72, 153, 0.12);
+      color: #f472b6;
+    }
+
+    .feature-icon-focus {
+      background: rgba(59, 130, 246, 0.08);
+      border: 1px solid rgba(59, 130, 246, 0.12);
+      color: #60a5fa;
+    }
+
+    .feature-title {
+      font-family: var(--font-heading);
+      font-weight: 700;
+      font-size: 0.88rem;
+      color: #fff;
+      margin-bottom: 6px;
+      letter-spacing: -0.01em;
+    }
+
+    .feature-desc {
+      font-size: 0.78rem;
+      color: var(--text-muted);
+      line-height: 1.5;
+    }
+
+    /* ── CTA Buttons ──────────────────────────────────────── */
+    .cta-group {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      opacity: 0;
+      animation: fadeUp 0.8s var(--ease-out) 0.65s forwards;
+    }
+
+    .btn-primary {
+      position: relative;
+      font-family: var(--font-heading);
+      font-size: 0.9rem;
+      font-weight: 700;
+      padding: 14px 32px;
+      border-radius: 100px;
+      border: none;
+      outline: none;
+      cursor: pointer;
+      color: #fff;
+      background: linear-gradient(135deg, #7c5cfc, #ec4899);
+      box-shadow: 0 4px 24px rgba(124, 92, 252, 0.25), 0 0 0 1px rgba(255, 255, 255, 0.06) inset;
+      transition: all 0.35s var(--ease-spring);
+      overflow: hidden;
+    }
+
+    .btn-primary::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: -100%;
+      width: 100%;
+      height: 100%;
+      background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.15), transparent);
       transition: left 0.6s ease;
     }
 
-    .btn-glow:hover {
-      transform: translateY(-4px) scale(1.02);
-      box-shadow: 0 15px 40px rgba(236, 72, 153, 0.4), 0 0 20px rgba(124, 92, 252, 0.4);
+    .btn-primary:hover {
+      transform: translateY(-2px) scale(1.02);
+      box-shadow:
+        0 8px 32px rgba(124, 92, 252, 0.35),
+        0 0 16px rgba(236, 72, 153, 0.2),
+        0 0 0 1px rgba(255, 255, 255, 0.1) inset;
     }
 
-    .btn-glow:hover::before {
+    .btn-primary:hover::before {
       left: 100%;
     }
 
-    .btn-secondary {
-      background: rgba(255, 255, 255, 0.03);
-      border: 1px solid rgba(255, 255, 255, 0.1);
-      backdrop-filter: blur(10px);
-      color: #e4dff0;
-      padding: 10px 24px;
-      border-radius: 100px;
+    .btn-primary:active {
+      transform: translateY(0) scale(0.98);
+    }
+
+    .btn-ghost {
+      font-family: var(--font-heading);
+      font-size: 0.88rem;
       font-weight: 600;
-      font-family: 'Sora', sans-serif;
-      font-size: 0.9rem;
-      transition: all 0.3s;
-    }
-
-    .btn-secondary:hover {
-      background: rgba(255, 255, 255, 0.08);
-      border-color: rgba(124, 92, 252, 0.4);
-      transform: translateY(-2px);
-    }
-    
-    .floating-badge {
-      display: inline-flex;
-      align-items: center;
-      gap: 8px;
-      padding: 8px 16px;
+      padding: 14px 28px;
       border-radius: 100px;
-      background: rgba(124, 92, 252, 0.1);
-      border: 1px solid rgba(124, 92, 252, 0.2);
-      color: #c4b5fd;
-      font-weight: 700;
-      font-size: 0.75rem;
-      text-transform: uppercase;
-      letter-spacing: 0.1em;
-      margin-bottom: 2rem;
-      animation: float 3s ease-in-out infinite;
+      cursor: pointer;
+      color: var(--text-secondary);
+      background: rgba(255, 255, 255, 0.03);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      transition: all 0.35s var(--ease-spring);
+      outline: none;
     }
 
-    @keyframes float {
-      0%, 100% { transform: translateY(0); }
-      50% { transform: translateY(-8px); }
+    .btn-ghost:hover {
+      color: #fff;
+      border-color: rgba(124, 92, 252, 0.25);
+      background: rgba(124, 92, 252, 0.06);
+      transform: translateY(-2px);
+      box-shadow: 0 4px 20px rgba(124, 92, 252, 0.1);
+    }
+
+    .btn-ghost:active {
+      transform: translateY(0) scale(0.98);
+    }
+
+    /* ── Modal Overlay ────────────────────────────────────── */
+    .modal-overlay {
+      position: fixed;
+      inset: 0;
+      z-index: 200;
+      background: rgba(4, 3, 8, 0.75);
+      backdrop-filter: blur(8px);
+      -webkit-backdrop-filter: blur(8px);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 24px;
+      opacity: 0;
+      visibility: hidden;
+      transition: all 0.35s ease;
+    }
+
+    .modal-overlay.active {
+      opacity: 1;
+      visibility: visible;
+    }
+
+    .modal-card {
+      width: 100%;
+      max-width: 420px;
+      background: rgba(12, 10, 26, 0.75);
+      backdrop-filter: blur(32px) saturate(1.4);
+      -webkit-backdrop-filter: blur(32px) saturate(1.4);
+      border: 1px solid rgba(124, 92, 252, 0.12);
+      border-radius: 24px;
+      padding: 40px 36px;
+      position: relative;
+      overflow: hidden;
+      box-shadow:
+        0 24px 80px rgba(0, 0, 0, 0.5),
+        0 0 60px rgba(124, 92, 252, 0.06),
+        inset 0 1px 0 rgba(255, 255, 255, 0.04);
+      transform: translateY(20px) scale(0.96);
+      transition: all 0.4s var(--ease-out);
+    }
+
+    .modal-overlay.active .modal-card {
+      transform: translateY(0) scale(1);
+    }
+
+    .modal-card::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 1px;
+      background: linear-gradient(90deg, transparent 5%, rgba(124, 92, 252, 0.25) 50%, transparent 95%);
+    }
+
+    .modal-card::after {
+      content: '';
+      position: absolute;
+      top: -50%;
+      left: -50%;
+      width: 200%;
+      height: 200%;
+      background: radial-gradient(ellipse at center top, rgba(124, 92, 252, 0.04) 0%, transparent 50%);
+      pointer-events: none;
+    }
+
+    .modal-close {
+      position: absolute;
+      top: 16px;
+      right: 16px;
+      width: 36px;
+      height: 36px;
+      border-radius: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: rgba(255, 255, 255, 0.04);
+      border: 1px solid rgba(255, 255, 255, 0.06);
+      cursor: pointer;
+      color: var(--text-muted);
+      transition: all 0.25s ease;
+      z-index: 10;
+    }
+
+    .modal-close:hover {
+      background: rgba(255, 255, 255, 0.08);
+      color: #fff;
+      border-color: rgba(124, 92, 252, 0.2);
+    }
+
+    .modal-logo {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      margin-bottom: 28px;
+      position: relative;
+      z-index: 1;
+    }
+
+    .modal-logo-icon {
+      width: 40px;
+      height: 40px;
+      border-radius: 14px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: rgba(15, 12, 30, 0.7);
+      border: 1px solid rgba(124, 92, 252, 0.2);
+      box-shadow: 0 0 20px rgba(124, 92, 252, 0.2);
+    }
+
+    .modal-title {
+      font-family: var(--font-heading);
+      font-weight: 800;
+      font-size: 1.5rem;
+      color: #fff;
+      text-align: center;
+      margin-bottom: 6px;
+      letter-spacing: -0.02em;
+      position: relative;
+      z-index: 1;
+    }
+
+    .modal-subtitle {
+      font-size: 0.82rem;
+      color: var(--text-muted);
+      text-align: center;
+      margin-bottom: 32px;
+      position: relative;
+      z-index: 1;
+    }
+
+    /* ── Form Elements ────────────────────────────────────── */
+    .form-group {
+      margin-bottom: 18px;
+      position: relative;
+      z-index: 1;
+    }
+
+    .form-label {
+      display: block;
+      font-size: 0.72rem;
+      font-weight: 600;
+      color: var(--text-muted);
+      margin-bottom: 6px;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+
+    .form-input-wrapper {
+      position: relative;
+    }
+
+    .form-input-icon {
+      position: absolute;
+      left: 14px;
+      top: 50%;
+      transform: translateY(-50%);
+      width: 18px;
+      height: 18px;
+      color: rgba(124, 92, 252, 0.3);
+      pointer-events: none;
+      transition: color 0.3s ease;
+    }
+
+    .form-input {
+      width: 100%;
+      padding: 14px 16px 14px 44px;
+      background: rgba(0, 0, 0, 0.3);
+      border: 1px solid rgba(124, 92, 252, 0.08);
+      border-radius: 14px;
+      color: #fff;
+      font-family: var(--font-body);
+      font-size: 0.9rem;
+      outline: none;
+      transition: all 0.3s ease;
+    }
+
+    .form-input::placeholder {
+      color: rgba(160, 150, 200, 0.3);
+    }
+
+    .form-input:focus {
+      border-color: rgba(124, 92, 252, 0.35);
+      box-shadow: 0 0 0 3px rgba(124, 92, 252, 0.08), 0 0 16px rgba(124, 92, 252, 0.06);
+      background: rgba(0, 0, 0, 0.4);
+    }
+
+    .form-input:focus + .form-input-icon-right,
+    .form-input:focus ~ .form-input-icon {
+      color: rgba(124, 92, 252, 0.6);
+    }
+
+    .form-row-between {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 6px;
+    }
+
+    .form-link {
+      font-size: 0.72rem;
+      font-weight: 600;
+      color: rgba(124, 92, 252, 0.6);
+      text-decoration: none;
+      transition: color 0.2s ease;
+    }
+
+    .form-link:hover {
+      color: #a78bfa;
+    }
+
+    .form-submit {
+      width: 100%;
+      padding: 15px;
+      border: none;
+      border-radius: 14px;
+      font-family: var(--font-heading);
+      font-size: 0.9rem;
+      font-weight: 700;
+      color: #fff;
+      background: linear-gradient(135deg, #7c5cfc, #a855f7);
+      cursor: pointer;
+      transition: all 0.35s var(--ease-spring);
+      box-shadow: 0 4px 20px rgba(124, 92, 252, 0.2);
+      margin-top: 8px;
+      position: relative;
+      z-index: 1;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+    }
+
+    .form-submit:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 32px rgba(124, 92, 252, 0.3), 0 0 12px rgba(124, 92, 252, 0.15);
+    }
+
+    .form-submit:active {
+      transform: translateY(0) scale(0.98);
+    }
+
+    .form-submit:disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
+      transform: none;
+    }
+
+    .form-footer {
+      text-align: center;
+      margin-top: 24px;
+      padding-top: 20px;
+      border-top: 1px solid rgba(255, 255, 255, 0.05);
+      position: relative;
+      z-index: 1;
+    }
+
+    .form-footer-text {
+      font-size: 0.78rem;
+      color: var(--text-muted);
+    }
+
+    .form-footer-link {
+      font-weight: 700;
+      color: #a78bfa;
+      cursor: pointer;
+      background: none;
+      border: none;
+      font-size: 0.78rem;
+      font-family: var(--font-body);
+      transition: color 0.2s ease;
+      padding: 0;
+      margin-left: 4px;
+    }
+
+    .form-footer-link:hover {
+      color: #c4b5fd;
+    }
+
+    /* ── Alert ────────────────────────────────────────────── */
+    .auth-alert {
+      display: none;
+      margin-top: 4px;
+      margin-bottom: 16px;
+      padding: 12px 14px;
+      border-radius: 12px;
+      background: rgba(248, 113, 113, 0.06);
+      border: 1px solid rgba(248, 113, 113, 0.15);
+      font-size: 0.78rem;
+      font-weight: 500;
+      color: #f87171;
+      align-items: center;
+      gap: 10px;
+      position: relative;
+      z-index: 1;
+    }
+
+    .auth-alert.show {
+      display: flex;
+    }
+
+    /* ── Splash Screen ────────────────────────────────────── */
+    .splash-screen {
+      position: fixed;
+      inset: 0;
+      background: #070709;
+      z-index: 9999;
+      display: none;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .splash-screen.active {
+      display: flex;
+    }
+
+    .splash-glow {
+      position: absolute;
+      width: 400px;
+      height: 400px;
+      background: radial-gradient(circle, rgba(124, 92, 252, 0.1) 0%, transparent 70%);
+      border-radius: 50%;
+      filter: blur(60px);
+    }
+
+    .splash-content {
+      position: relative;
+      z-index: 10;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 24px;
+    }
+
+    .splash-icon {
+      width: 80px;
+      height: 80px;
+      border-radius: 24px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: rgba(15, 12, 30, 0.7);
+      border: 1px solid rgba(124, 92, 252, 0.2);
+      box-shadow: 0 0 40px rgba(124, 92, 252, 0.2);
+      animation: pulse-scale 2s ease-in-out infinite;
+    }
+
+    .splash-title {
+      font-family: var(--font-heading);
+      font-weight: 800;
+      font-size: 1.4rem;
+      color: #fff;
+      letter-spacing: -0.02em;
+    }
+
+    .splash-status {
+      font-size: 0.65rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.15em;
+      color: var(--text-muted);
+      animation: pulse 2s ease-in-out infinite;
+    }
+
+    .splash-bar {
+      width: 220px;
+      height: 3px;
+      background: rgba(255, 255, 255, 0.04);
+      border-radius: 100px;
+      overflow: hidden;
+      border: 1px solid rgba(255, 255, 255, 0.04);
+    }
+
+    .splash-bar-fill {
+      height: 100%;
+      width: 0%;
+      background: linear-gradient(90deg, #7c5cfc, #a855f7, #c084fc);
+      border-radius: 100px;
+      transition: width 1.5s ease-in-out;
+    }
+
+    /* ── Animations ───────────────────────────────────────── */
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(16px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    @keyframes pulse-scale {
+      0%, 100% { transform: scale(1); }
+      50% { transform: scale(1.05); }
+    }
+
+    @keyframes pulse {
+      0%, 100% { opacity: 0.5; }
+      50% { opacity: 1; }
+    }
+
+    @keyframes shake {
+      0%, 100% { transform: translateX(0); }
+      20%, 60% { transform: translateX(-6px); }
+      40%, 80% { transform: translateX(6px); }
+    }
+
+    .animate-shake {
+      animation: shake 0.4s cubic-bezier(0.36, 0.07, 0.19, 0.97) both;
+    }
+
+    @keyframes spin {
+      from { transform: rotate(0deg); }
+      to { transform: rotate(360deg); }
+    }
+
+    .animate-spin {
+      animation: spin 1s linear infinite;
+    }
+
+    /* ── Responsive ───────────────────────────────────────── */
+    @media (max-width: 768px) {
+      .hero {
+        padding: 100px 20px 40px;
+      }
+
+      .features-grid {
+        grid-template-columns: 1fr;
+        gap: 12px;
+      }
+
+      .feature-card {
+        padding: 20px 18px;
+      }
+
+      .cta-group {
+        flex-direction: column;
+        width: 100%;
+      }
+
+      .btn-primary,
+      .btn-ghost {
+        width: 100%;
+        justify-content: center;
+      }
+
+      .hero-title {
+        font-size: clamp(1.6rem, 6vw, 2.2rem);
+      }
+
+      .hero-subtitle {
+        font-size: 0.88rem;
+        margin-bottom: 36px;
+      }
+
+      .hero-logo {
+        margin-bottom: 32px;
+      }
+
+      .modal-card {
+        padding: 32px 24px;
+        border-radius: 20px;
+      }
+
+      .nav-btn-ghost {
+        display: none;
+      }
+    }
+
+    @media (max-width: 380px) {
+      .hero {
+        padding: 90px 16px 30px;
+      }
+
+      .hero-title {
+        font-size: 1.4rem;
+      }
+
+      .modal-card {
+        padding: 28px 20px;
+      }
     }
   </style>
 </head>
 <body>
 
-  <!-- Background Hero Image -->
-  <div class="hero-bg"></div>
-
-  <!-- Ambient Light -->
-  <div class="absolute top-0 left-1/2 -translate-x-1/2 w-[80vw] h-[500px] bg-violet-600/20 rounded-full blur-[120px] pointer-events-none z-0"></div>
+  <!-- Background Effects -->
+  <div class="bg-grid"></div>
+  <div class="bg-glow-1"></div>
+  <div class="bg-glow-2"></div>
+  <div class="bg-glow-3"></div>
 
   <!-- Navigation -->
-  <nav class="glass-nav fixed w-full top-0 z-50 px-6 py-4 flex items-center justify-between">
-    <div class="flex items-center gap-2">
-      <div class="w-8 h-8 rounded-xl flex items-center justify-center shrink-0 shadow-[0_0_15px_rgba(124,92,252,0.5)] border border-violet-500/30" style="background: rgba(15,12,30,0.8);">
-        <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <nav class="nav" id="mainNav">
+    <a href="#" class="nav-logo">
+      <div class="nav-logo-icon">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
           <defs>
-            <linearGradient id="boltGradNav" x1="0%" y1="0%" x2="100%" y2="100%">
-              <stop offset="0%" stop-color="#7c5cfc" />
-              <stop offset="100%" stop-color="#ec4899" />
+            <linearGradient id="boltNav" x1="0%" y1="0%" x2="100%" y2="100%">
+              <stop offset="0%" stop-color="#7c5cfc"/>
+              <stop offset="100%" stop-color="#ec4899"/>
             </linearGradient>
           </defs>
-          <path d="M13 2L5.5 13H11.5L9.5 22L18.5 11H12.5L13 2Z" fill="url(#boltGradNav)" />
+          <path d="M13 2L5.5 13H11.5L9.5 22L18.5 11H12.5L13 2Z" fill="url(#boltNav)"/>
         </svg>
       </div>
-      <span class="text-xl font-extrabold tracking-tight text-white" style="font-family:'Sora',sans-serif;">EnemFlow</span>
-    </div>
-    
-    <div>
-      <a href="login.html" class="btn-secondary">Entrar / Cadastrar</a>
+      <span class="nav-logo-text">EnemFlow</span>
+    </a>
+    <div class="nav-actions">
+      <button class="nav-btn nav-btn-ghost" onclick="openModal(true)">Entrar</button>
+      <button class="nav-btn nav-btn-outline" onclick="openModal(false)">Criar Conta</button>
     </div>
   </nav>
 
-  <!-- Hero Content -->
-  <main class="relative z-10 flex-1 flex flex-col items-center justify-center text-center px-4 pt-32 pb-20">
-    <div class="max-w-4xl mx-auto flex flex-col items-center animate-fade-in" style="animation-duration: 1s;">
-      
-      <div class="floating-badge">
-        <i data-feather="zap" class="w-3.5 h-3.5"></i> Inteligência Artificial para o ENEM
+  <!-- Hero -->
+  <main class="hero">
+    <div class="hero-content">
+
+      <!-- Logo -->
+      <div class="hero-logo">
+        <div class="hero-logo-icon">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+            <defs>
+              <linearGradient id="boltHero" x1="0%" y1="0%" x2="100%" y2="100%">
+                <stop offset="0%" stop-color="#7c5cfc"/>
+                <stop offset="100%" stop-color="#ec4899"/>
+              </linearGradient>
+            </defs>
+            <path d="M13 2L5.5 13H11.5L9.5 22L18.5 11H12.5L13 2Z" fill="url(#boltHero)"/>
+          </svg>
+        </div>
+        <span class="hero-logo-text">EnemFlow</span>
       </div>
 
-      <h1 class="mega-title">
-        Domine o Fluxo<br>dos Seus Estudos.
+      <!-- Title -->
+      <h1 class="hero-title">
+        Seu <span class="gradient">fluxo</span> para<br>dominar o ENEM
       </h1>
 
-      <p class="neon-subtitle mb-12">
-        A plataforma revolucionária que cria planos de estudo adaptativos, 
-        aplica simulados inteligentes e utiliza um Tutor IA 24/7 para maximizar sua nota no ENEM.
+      <!-- Subtitle -->
+      <p class="hero-subtitle">
+        O EnemFlow reúne organização, inteligência, acompanhamento e recursos avançados para transformar sua rotina de estudos.
       </p>
 
-      <div class="flex flex-col sm:flex-row items-center gap-6">
-        <a href="login.html" class="btn-glow">
-          Começar a Estudar Agora
-          <i data-feather="arrow-right" class="w-5 h-5"></i>
-        </a>
+      <!-- Feature Cards -->
+      <div class="features-grid">
+        <div class="feature-card">
+          <div class="feature-icon feature-icon-ai">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <rect x="4" y="4" width="16" height="16" rx="2" ry="2"/><rect x="9" y="9" width="6" height="6"/><line x1="9" y1="1" x2="9" y2="4"/><line x1="15" y1="1" x2="15" y2="4"/><line x1="9" y1="20" x2="9" y2="23"/><line x1="15" y1="20" x2="15" y2="23"/><line x1="20" y1="9" x2="23" y2="9"/><line x1="20" y1="14" x2="23" y2="14"/><line x1="1" y1="9" x2="4" y2="9"/><line x1="1" y1="14" x2="4" y2="14"/>
+            </svg>
+          </div>
+          <div class="feature-title">Tutor IA</div>
+          <div class="feature-desc">Suporte inteligente para dúvidas</div>
+        </div>
+        <div class="feature-card">
+          <div class="feature-icon feature-icon-pdf">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/>
+            </svg>
+          </div>
+          <div class="feature-title">PDFs Inteligentes</div>
+          <div class="feature-desc">Conteúdo organizado e acessível</div>
+        </div>
+        <div class="feature-card">
+          <div class="feature-icon feature-icon-focus">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="6"/><circle cx="12" cy="12" r="2"/>
+            </svg>
+          </div>
+          <div class="feature-title">Zona de Foco</div>
+          <div class="feature-desc">Ambiente otimizado para concentração</div>
+        </div>
       </div>
-      
+
+      <!-- CTA Buttons -->
+      <div class="cta-group">
+        <button class="btn-primary" onclick="openModal(false)">Criar Conta</button>
+        <button class="btn-ghost" onclick="openModal(true)">Entrar</button>
+      </div>
+
     </div>
   </main>
 
-  <!-- Sobre a Plataforma -->
-  <section id="sobre" class="relative z-10 w-full py-16 lg:py-28 px-6 bg-black/20 backdrop-blur-sm border-t border-white/5 overflow-hidden">
-    <!-- Glow effects laterais -->
-    <div class="absolute top-1/2 left-0 -translate-y-1/2 w-72 h-72 bg-pink-500/10 rounded-full blur-[100px] pointer-events-none"></div>
-    <div class="absolute bottom-0 right-0 w-96 h-96 bg-violet-600/10 rounded-full blur-[120px] pointer-events-none"></div>
+  <!-- Login/Register Modal -->
+  <div class="modal-overlay" id="authModal">
+    <div class="modal-card" id="authModalCard">
 
-    <div class="max-w-6xl mx-auto flex flex-col lg:flex-row items-center gap-12 lg:gap-20">
-      
-      <!-- Textos (Vem primeiro no mobile, à esquerda no desktop) -->
-      <div class="w-full lg:w-1/2 flex flex-col items-center lg:items-start text-center lg:text-left z-10">
-        <span class="px-3 py-1 rounded-full bg-violet-500/10 border border-violet-500/20 text-violet-400 font-bold uppercase tracking-widest text-[10px] md:text-xs mb-5 inline-block" style="font-family:'Sora',sans-serif;">A Revolução do Aprendizado</span>
-        
-        <h2 class="text-3xl sm:text-4xl lg:text-5xl font-extrabold mb-6 text-white" style="font-family:'Sora',sans-serif; line-height:1.2;">
-          Conecte-se ao seu <br> <span class="logo-text-gradient">Estado de Flow.</span>
-        </h2>
-        
-        <p class="text-slate-300 text-sm md:text-base leading-relaxed mb-6">
-          O <strong>EnemFlow</strong> não é apenas uma plataforma de questões. É a sua inteligência artificial pessoal focada no ENEM. Ele entende as suas maiores dificuldades e cria um ecossistema de aprendizado hiperfocado e direto ao ponto.
-        </p>
-        
-        <ul class="text-slate-400 text-sm md:text-base text-left space-y-4 mb-8">
-          <li class="flex items-start gap-3">
-            <i data-feather="check-circle" class="w-5 h-5 text-emerald-400 shrink-0 mt-0.5"></i>
-            <span><strong>Planos de Estudo IA:</strong> Um roteiro dinâmico ajustado à sua rotina e ao seu nível atual.</span>
-          </li>
-          <li class="flex items-start gap-3">
-            <i data-feather="check-circle" class="w-5 h-5 text-emerald-400 shrink-0 mt-0.5"></i>
-            <span><strong>Gabaritos Explicados:</strong> Nunca mais erre a mesma questão. A IA explica o "porquê" de cada alternativa.</span>
-          </li>
-          <li class="flex items-start gap-3">
-            <i data-feather="check-circle" class="w-5 h-5 text-emerald-400 shrink-0 mt-0.5"></i>
-            <span><strong>Tutor Especialista 24/7:</strong> Trave no estudo? Converse em tempo real com o tutor de plantão.</span>
-          </li>
-        </ul>
-        
-        <a href="login.html" class="btn-glow text-sm md:text-base px-8 py-3">
-          Experimentar Gratuitamente
-        </a>
+      <!-- Close Button -->
+      <button class="modal-close" onclick="closeModal()">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
+        </svg>
+      </button>
+
+      <!-- Logo -->
+      <div class="modal-logo">
+        <div class="modal-logo-icon">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
+            <defs>
+              <linearGradient id="boltModal" x1="0%" y1="0%" x2="100%" y2="100%">
+                <stop offset="0%" stop-color="#7c5cfc"/>
+                <stop offset="100%" stop-color="#ec4899"/>
+              </linearGradient>
+            </defs>
+            <path d="M13 2L5.5 13H11.5L9.5 22L18.5 11H12.5L13 2Z" fill="url(#boltModal)"/>
+          </svg>
+        </div>
+        <span class="hero-logo-text" style="font-size:1.3rem;">EnemFlow</span>
       </div>
 
-      <!-- Imagem Raio (Glassmorphism 3D) -->
-      <div class="w-full lg:w-1/2 relative flex justify-center z-10 mt-8 lg:mt-0">
-        <div class="relative w-full max-w-[320px] sm:max-w-[400px] lg:max-w-[480px]">
-          <!-- Efeito de moldura / brilho atrás da imagem -->
-          <div class="absolute inset-0 bg-gradient-to-tr from-violet-600 to-pink-500 rounded-[2.5rem] blur-xl opacity-30 animate-pulse"></div>
-          
-          <img src="assets/enem_flow_raio.png" alt="O Raio Enem Flow Inteligência Artificial" 
-               class="relative z-10 w-full h-auto rounded-[2.5rem] border border-white/10 shadow-2xl shadow-violet-900/50 object-cover" 
-               style="backdrop-filter: blur(10px);" />
-          
-          <!-- Elementos decorativos flutuantes (opcional, compõem a imagem) -->
-          <div class="absolute -top-6 -right-6 w-16 h-16 rounded-2xl bg-white/5 border border-white/10 backdrop-blur-lg shadow-xl flex items-center justify-center animate-bounce" style="animation-duration: 3s;">
-            <i data-feather="cpu" class="w-8 h-8 text-pink-400"></i>
-          </div>
-          <div class="absolute -bottom-4 -left-4 w-14 h-14 rounded-2xl bg-white/5 border border-white/10 backdrop-blur-lg shadow-xl flex items-center justify-center animate-bounce" style="animation-duration: 4s; animation-delay: 1s;">
-            <i data-feather="bar-chart-2" class="w-6 h-6 text-violet-400"></i>
+      <!-- Title -->
+      <h2 class="modal-title" id="modalTitle">Bem-vindo de volta</h2>
+      <p class="modal-subtitle" id="modalSubtitle">Entre para continuar sua jornada</p>
+
+      <!-- Alert -->
+      <div class="auth-alert" id="authAlert">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0;">
+          <circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/>
+        </svg>
+        <span id="authAlertText"></span>
+      </div>
+
+      <!-- Form -->
+      <form id="authForm" autocomplete="on">
+        <!-- Nome (Register only) -->
+        <div class="form-group" id="nomeGroup" style="display:none;">
+          <label class="form-label">Nome Completo</label>
+          <div class="form-input-wrapper">
+            <input type="text" id="nome" class="form-input" placeholder="Seu nome completo" style="padding-left:44px;">
+            <svg class="form-input-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/>
+            </svg>
           </div>
         </div>
-      </div>
 
+        <!-- Email -->
+        <div class="form-group">
+          <label class="form-label">E-mail</label>
+          <div class="form-input-wrapper">
+            <input type="email" id="email" class="form-input" placeholder="voce@email.com" required style="padding-left:44px;">
+            <svg class="form-input-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/>
+            </svg>
+          </div>
+        </div>
+
+        <!-- Senha -->
+        <div class="form-group">
+          <div class="form-row-between">
+            <label class="form-label" style="margin-bottom:0;">Senha</label>
+            <a href="#" class="form-link" id="forgotPassLink">Esqueceu a senha?</a>
+          </div>
+          <div class="form-input-wrapper" style="margin-top:6px;">
+            <input type="password" id="senha" class="form-input" placeholder="••••••••" required style="padding-left:44px;">
+            <svg class="form-input-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/>
+            </svg>
+          </div>
+        </div>
+
+        <!-- Submit -->
+        <button type="submit" class="form-submit" id="submitBtn">
+          Acessar Plataforma
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M14 5l7 7m0 0l-7 7m7-7H3"/>
+          </svg>
+        </button>
+      </form>
+
+      <!-- Footer -->
+      <div class="form-footer">
+        <span class="form-footer-text" id="toggleText">Ainda não possui conta?</span>
+        <button type="button" class="form-footer-link" onclick="toggleMode()" id="toggleBtn">Criar conta</button>
+      </div>
     </div>
-  </section>
+  </div>
 
-  <!-- Features Mini -->
-  <section class="relative z-10 w-full bg-black/40 backdrop-blur-md border-t border-white/5 py-12 mt-auto">
-    <div class="max-w-5xl mx-auto px-6 grid grid-cols-1 md:grid-cols-3 gap-8 text-center">
-      <div>
-        <div class="w-12 h-12 mx-auto rounded-2xl bg-violet-500/10 border border-violet-500/20 flex items-center justify-center mb-4 text-violet-400">
-          <i data-feather="cpu"></i>
-        </div>
-        <h3 class="font-bold text-white mb-2" style="font-family:'Sora',sans-serif;">Tutor IA 24h</h3>
-        <p class="text-sm text-slate-400">Tire dúvidas, peça resumos e analise PDFs instantaneamente com nossa IA avançada.</p>
+  <!-- Splash Screen -->
+  <div class="splash-screen" id="neuralSplash">
+    <div class="splash-glow"></div>
+    <div class="splash-content">
+      <div class="splash-icon">
+        <svg width="36" height="36" viewBox="0 0 24 24" fill="none">
+          <defs>
+            <linearGradient id="boltSplash" x1="0%" y1="0%" x2="100%" y2="100%">
+              <stop offset="0%" stop-color="#7c5cfc"/>
+              <stop offset="100%" stop-color="#ec4899"/>
+            </linearGradient>
+          </defs>
+          <path d="M13 2L5.5 13H11.5L9.5 22L18.5 11H12.5L13 2Z" fill="url(#boltSplash)"/>
+        </svg>
       </div>
-      <div>
-        <div class="w-12 h-12 mx-auto rounded-2xl bg-pink-500/10 border border-pink-500/20 flex items-center justify-center mb-4 text-pink-400">
-          <i data-feather="target"></i>
-        </div>
-        <h3 class="font-bold text-white mb-2" style="font-family:'Sora',sans-serif;">Simulados Adaptativos</h3>
-        <p class="text-sm text-slate-400">Questões focadas nas suas maiores dificuldades com gabaritos detalhados explicados pela IA.</p>
-      </div>
-      <div>
-        <div class="w-12 h-12 mx-auto rounded-2xl bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center mb-4 text-emerald-400">
-          <i data-feather="trending-up"></i>
-        </div>
-        <h3 class="font-bold text-white mb-2" style="font-family:'Sora',sans-serif;">Métricas de Evolução</h3>
-        <p class="text-sm text-slate-400">Acompanhe seu progresso real com gráficos precisos e um sistema de ganho de XP (gamificação).</p>
+      <div class="splash-title">Sincronização Neural Ativa</div>
+      <div class="splash-status" id="splashStatus">Autenticando suas credenciais...</div>
+      <div class="splash-bar">
+        <div class="splash-bar-fill" id="splashLoader"></div>
       </div>
     </div>
-  </section>
+  </div>
 
+  <script src="app.js"></script>
   <script>
-    feather.replace();
-    
-    // Check if logged in, redirect to dashboard if so
-    if (localStorage.getItem('token') || sessionStorage.getItem('token')) {
-      window.location.href = 'dashboard.html';
+    // ── Auth Check ──
+    (async function checkAuthAndRedirect() {
+      if (typeof App !== 'undefined' && App.getToken()) {
+        try {
+          const user = await App.api('/auth/me');
+          if (user.role === 'owner') window.location.href = 'owner.html';
+          else if (user.role === 'admin') window.location.href = 'admin.html';
+          else window.location.href = 'dashboard.html';
+        } catch (err) {
+          sessionStorage.removeItem('token');
+        }
+      }
+    })();
+
+    // ── State ──
+    let isLogin = true;
+
+    // ── Modal ──
+    function openModal(wantsLogin) {
+      if (isLogin !== wantsLogin) toggleMode();
+      const modal = document.getElementById('authModal');
+      modal.classList.add('active');
+      document.body.style.overflow = 'hidden';
+      // Focus email field after animation
+      setTimeout(() => document.getElementById('email').focus(), 400);
+    }
+
+    function closeModal() {
+      const modal = document.getElementById('authModal');
+      modal.classList.remove('active');
+      document.body.style.overflow = '';
+      document.getElementById('authAlert').classList.remove('show');
+    }
+
+    // Close on overlay click
+    document.getElementById('authModal').addEventListener('click', (e) => {
+      if (e.target === e.currentTarget) closeModal();
+    });
+
+    // Close on Escape key
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape') closeModal();
+    });
+
+    // ── Toggle Login/Register ──
+    function toggleMode() {
+      isLogin = !isLogin;
+      document.getElementById('authAlert').classList.remove('show');
+
+      const nomeGroup = document.getElementById('nomeGroup');
+      const nomeInput = document.getElementById('nome');
+      nomeGroup.style.display = isLogin ? 'none' : 'block';
+      nomeInput.required = !isLogin;
+
+      document.getElementById('modalTitle').innerText = isLogin ? 'Bem-vindo de volta' : 'Comece sua jornada';
+      document.getElementById('modalSubtitle').innerText = isLogin ? 'Entre para continuar sua jornada' : 'O primeiro passo para dominar o ENEM';
+
+      document.getElementById('submitBtn').innerHTML = isLogin
+        ? 'Acessar Plataforma <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 5l7 7m0 0l-7 7m7-7H3"/></svg>'
+        : 'Criar Conta <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 1 1-8 0 4 4 0 0 1 8 0zM3 20a6 6 0 0 1 12 0v1H3v-1z"/></svg>';
+
+      document.getElementById('toggleText').innerText = isLogin ? 'Ainda não possui conta?' : 'Já possui conta?';
+      document.getElementById('toggleBtn').innerText = isLogin ? 'Criar conta' : 'Fazer login';
+      document.getElementById('forgotPassLink').style.display = isLogin ? 'block' : 'none';
+    }
+
+    // ── Form Submit ──
+    document.getElementById('authForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      document.getElementById('authAlert').classList.remove('show');
+
+      const email = document.getElementById('email').value;
+      const senha = document.getElementById('senha').value;
+      const nome = document.getElementById('nome').value;
+
+      const endpoint = isLogin ? '/auth/login' : '/auth/register';
+      const body = isLogin ? { email, senha } : { nome, email, senha };
+      const btn = document.getElementById('submitBtn');
+
+      btn.disabled = true;
+      btn.innerHTML = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" class="animate-spin"><circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4" opacity="0.25"/><path fill="currentColor" opacity="0.75" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"/></svg> Conectando...';
+
+      try {
+        const data = await App.api(endpoint, {
+          method: 'POST',
+          body: JSON.stringify(body)
+        });
+
+        App.setToken(data.token);
+
+        // Animate card out
+        const card = document.getElementById('authModalCard');
+        card.style.transition = 'all 0.4s ease';
+        card.style.opacity = '0';
+        card.style.transform = 'translateY(-10px) scale(0.96)';
+
+        setTimeout(() => {
+          closeModal();
+
+          // Show splash
+          const splash = document.getElementById('neuralSplash');
+          splash.classList.add('active');
+
+          setTimeout(() => {
+            document.getElementById('splashLoader').style.width = '100%';
+            document.getElementById('splashStatus').innerText = 'Sincronizando Conexão Neural...';
+          }, 100);
+
+          setTimeout(async () => {
+            try {
+              const user = await App.api('/auth/me');
+              if (user.role === 'owner') window.location.href = 'owner.html';
+              else if (user.role === 'admin') window.location.href = 'admin.html';
+              else window.location.href = 'dashboard.html';
+            } catch (err) {
+              window.location.href = 'dashboard.html';
+            }
+          }, 1600);
+        }, 350);
+
+      } catch (err) {
+        // Shake card
+        const card = document.getElementById('authModalCard');
+        card.classList.add('animate-shake');
+        setTimeout(() => card.classList.remove('animate-shake'), 400);
+
+        // Show alert
+        const alertBox = document.getElementById('authAlert');
+        document.getElementById('authAlertText').innerText = err.message;
+        alertBox.classList.add('show');
+
+        btn.disabled = false;
+        btn.innerHTML = isLogin
+          ? 'Acessar Plataforma <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 5l7 7m0 0l-7 7m7-7H3"/></svg>'
+          : 'Criar Conta <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 1 1-8 0 4 4 0 0 1 8 0zM3 20a6 6 0 0 1 12 0v1H3v-1z"/></svg>';
+      }
+    });
+
+    // ── Forgot Password ──
+    document.getElementById('forgotPassLink').addEventListener('click', async (e) => {
+      e.preventDefault();
+      const email = document.getElementById('email').value;
+      if (!email) {
+        if (typeof App !== 'undefined' && App.showToast) App.showToast('Preencha seu e-mail primeiro para recuperar a senha.', true);
+        return;
+      }
+
+      try {
+        const res = await App.api('/auth/forgot-password', {
+          method: 'POST',
+          body: JSON.stringify({ email })
+        });
+        if (typeof App !== 'undefined' && App.showToast) App.showToast(res.message);
+      } catch (err) {
+        if (typeof App !== 'undefined' && App.showToast) App.showToast(err.message, true);
+      }
+    });
+
+    // ── URL param to auto-open modal ──
+    const urlParams = new URLSearchParams(window.location.search);
+    if (urlParams.get('login') === 'true') {
+      openModal(true);
+    } else if (urlParams.get('register') === 'true') {
+      openModal(false);
     }
   </script>
 </body>

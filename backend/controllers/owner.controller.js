@@ -7,14 +7,15 @@ const fs = require('fs');
 const path = require('path');
 
 // Auxiliar: Calcula tamanho dos uploads
-const getFolderSize = (dirPath) => {
+// Auxiliar: Calcula tamanho dos uploads assincronamente para não bloquear o event loop
+const getFolderSizeAsync = async (dirPath) => {
   let size = 0;
   try {
     if (fs.existsSync(dirPath)) {
-      const files = fs.readdirSync(dirPath);
+      const files = await fs.promises.readdir(dirPath);
       for (const file of files) {
         const filePath = path.join(dirPath, file);
-        const stats = fs.statSync(filePath);
+        const stats = await fs.promises.stat(filePath);
         if (stats.isFile()) {
           size += stats.size;
         }
@@ -251,7 +252,7 @@ exports.getSystemMetrics = async (req, res) => {
 
     // Calcula espaço físico usado na pasta uploads
     const uploadsDir = path.join(__dirname, '../uploads');
-    const uploadsSizeBytes = getFolderSize(uploadsDir);
+    const uploadsSizeBytes = await getFolderSizeAsync(uploadsDir);
 
     // Estimativa de armazenamento do MongoDB para manter consistência sem depender de DB stats restritos na nuvem
     const mongoEstimateBytes = (await User.countDocuments() * 1500) + (await Chat.countDocuments() * 4000) + (await Content.countDocuments() * 2000);
