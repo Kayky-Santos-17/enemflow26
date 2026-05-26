@@ -2,476 +2,795 @@
 <html lang="pt-BR" class="dark">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
   <meta name="theme-color" content="#07060e">
-  <title>Mapa de Habilidades IA - EnemFlow26</title>
+  <title>Mapa de Habilidades - EnemFlow</title>
   <script src="https://cdn.tailwindcss.com"></script>
-  <!-- Cytoscape.js para o grafo interativo -->
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/cytoscape/3.26.0/cytoscape.min.js"></script>
-  <!-- Ícones Feather -->
-  <script src="https://unpkg.com/feather-icons"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Sora:wght@300;400;500;600;700;800&family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="style.css">
+  <script src="https://unpkg.com/feather-icons"></script>
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: { extend: { fontFamily: { sans: ['Inter', 'sans-serif'], sora: ['Sora', 'sans-serif'] } } }
+    }
+  </script>
   <style>
     body {
-      background-color: #030014;
-      color: #fff;
-      margin: 0;
-      overflow: hidden;
       font-family: 'Inter', sans-serif;
     }
-    
-    /* Fundo imersivo com nebulosa neon */
-    .space-bg {
-      position: fixed;
-      top: 0; left: 0; width: 100vw; height: 100vh;
-      background: radial-gradient(circle at 15% 50%, rgba(236, 72, 153, 0.15), transparent 25%),
-                  radial-gradient(circle at 85% 30%, rgba(139, 92, 246, 0.15), transparent 25%);
-      z-index: -2;
+
+    .skills-shell {
+      width: 100%;
+      max-width: 1160px;
+      margin: 0 auto;
+      padding: 2.5rem;
     }
-    
-    /* Malha de grade sutil para dar ar futurista */
-    .grid-overlay {
-      position: fixed;
-      top: 0; left: 0; width: 100vw; height: 100vh;
-      background-image: 
-        linear-gradient(rgba(255, 255, 255, 0.03) 1px, transparent 1px),
-        linear-gradient(90deg, rgba(255, 255, 255, 0.03) 1px, transparent 1px);
-      background-size: 40px 40px;
-      z-index: -1;
+
+    .skills-section-title {
+      font-family: 'Sora', sans-serif;
+      color: #e4dff0;
+      font-weight: 800;
+      letter-spacing: 0;
+    }
+
+    .skill-icon-box {
+      width: 44px;
+      height: 44px;
+      border-radius: 14px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      background: rgba(124, 92, 252, 0.1);
+      border: 1px solid rgba(124, 92, 252, 0.18);
+      color: #a78bfa;
+      box-shadow: 0 0 22px rgba(124, 92, 252, 0.12);
+    }
+
+    .metric-grid {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 1rem;
+    }
+
+    .metric-card {
+      min-height: 132px;
+      padding: 1.15rem;
+      border-radius: 18px;
+      background: rgba(12, 10, 22, 0.82);
+      border: 1px solid rgba(255, 255, 255, 0.07);
+      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.28);
+      transition: transform 0.28s ease, border-color 0.28s ease, background 0.28s ease, box-shadow 0.28s ease;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .metric-card::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(135deg, rgba(124, 92, 252, 0.1), rgba(236, 72, 153, 0.04));
+      opacity: 0;
+      transition: opacity 0.28s ease;
       pointer-events: none;
     }
 
-    /* Container do Cytoscape */
-    #cy {
-      width: 100%;
-      height: 100%;
-      position: absolute;
-      top: 0;
-      left: 0;
+    .metric-card:hover {
+      transform: translateY(-3px);
+      border-color: rgba(124, 92, 252, 0.34);
+      box-shadow: 0 16px 42px rgba(0, 0, 0, 0.32), 0 0 32px rgba(124, 92, 252, 0.1);
+    }
+
+    .metric-card:hover::before {
+      opacity: 1;
+    }
+
+    .metric-card > * {
+      position: relative;
       z-index: 1;
     }
 
-    /* Painel lateral flutuante Glassmorphism Premium */
-    .glass-panel {
-      background: rgba(15, 12, 41, 0.6);
-      backdrop-filter: blur(20px);
-      -webkit-backdrop-filter: blur(20px);
-      border: 1px solid rgba(255, 255, 255, 0.08);
-      box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5), inset 0 0 0 1px rgba(255, 255, 255, 0.05);
+    .area-row {
+      border-radius: 16px;
+      border: 1px solid rgba(255, 255, 255, 0.065);
+      background: rgba(255, 255, 255, 0.025);
+      padding: 1rem;
+      transition: border-color 0.25s ease, background 0.25s ease, transform 0.25s ease;
     }
 
-    /* Estilização do Slider futurista */
-    input[type=range] {
-      -webkit-appearance: none;
-      width: 100%;
-      background: transparent;
+    .area-row:hover {
+      border-color: rgba(124, 92, 252, 0.28);
+      background: rgba(124, 92, 252, 0.045);
+      transform: translateX(2px);
     }
-    input[type=range]::-webkit-slider-thumb {
-      -webkit-appearance: none;
-      height: 24px;
+
+    .progress-track {
+      height: 10px;
+      overflow: hidden;
+      border-radius: 999px;
+      background: rgba(255, 255, 255, 0.07);
+      box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.04);
+    }
+
+    .progress-fill {
+      height: 100%;
+      width: 0%;
+      border-radius: inherit;
+      background: linear-gradient(90deg, #7c5cfc, #a855f7, #ec4899);
+      box-shadow: 0 0 18px rgba(124, 92, 252, 0.28);
+      transition: width 900ms cubic-bezier(0.16, 1, 0.3, 1);
+    }
+
+    .confidence-track {
+      height: 9px;
+      border-radius: 999px;
+      background: rgba(255, 255, 255, 0.08);
+      overflow: hidden;
+    }
+
+    .confidence-fill {
+      width: 0%;
+      height: 100%;
+      border-radius: inherit;
+      background: linear-gradient(90deg, #7c5cfc, #ec4899);
+      transition: width 900ms cubic-bezier(0.16, 1, 0.3, 1);
+    }
+
+    .premium-button {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.5rem;
+      min-height: 44px;
+      padding: 0.75rem 1rem;
+      border-radius: 14px;
+      font-weight: 800;
+      font-size: 0.875rem;
+      color: white;
+      background: linear-gradient(135deg, #7c5cfc, #8b5cf6 52%, #ec4899);
+      box-shadow: 0 12px 28px rgba(124, 92, 252, 0.24);
+      transition: transform 0.22s ease, box-shadow 0.22s ease;
+    }
+
+    .premium-button:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 16px 34px rgba(124, 92, 252, 0.32);
+    }
+
+    .quiet-button {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.45rem;
+      min-height: 42px;
+      padding: 0.7rem 0.95rem;
+      border-radius: 13px;
+      border: 1px solid rgba(124, 92, 252, 0.16);
+      background: rgba(124, 92, 252, 0.06);
+      color: #c4b5fd;
+      font-weight: 700;
+      font-size: 0.83rem;
+      transition: background 0.22s ease, border-color 0.22s ease, transform 0.22s ease;
+    }
+
+    .quiet-button:hover {
+      transform: translateY(-1px);
+      border-color: rgba(124, 92, 252, 0.32);
+      background: rgba(124, 92, 252, 0.1);
+    }
+
+    .step-item {
+      display: flex;
+      align-items: center;
+      gap: 0.85rem;
+      padding: 0.95rem 1rem;
+      border-radius: 15px;
+      border: 1px solid rgba(255, 255, 255, 0.065);
+      background: rgba(255, 255, 255, 0.025);
+      cursor: pointer;
+      transition: transform 0.22s ease, background 0.22s ease, border-color 0.22s ease, opacity 0.22s ease;
+    }
+
+    .step-item:hover {
+      transform: translateX(2px);
+      border-color: rgba(124, 92, 252, 0.26);
+      background: rgba(124, 92, 252, 0.055);
+    }
+
+    .step-item.done {
+      opacity: 0.72;
+      border-color: rgba(16, 185, 129, 0.22);
+      background: rgba(16, 185, 129, 0.055);
+    }
+
+    .step-check {
       width: 24px;
-      border-radius: 50%;
-      background: #ec4899;
-      cursor: pointer;
-      margin-top: -10px;
-      box-shadow: 0 0 15px rgba(236, 72, 153, 0.8);
-      transition: transform 0.1s;
-    }
-    input[type=range]::-webkit-slider-thumb:hover {
-      transform: scale(1.2);
-    }
-    input[type=range]::-webkit-slider-runnable-track {
-      width: 100%;
-      height: 4px;
-      cursor: pointer;
-      background: rgba(255, 255, 255, 0.1);
-      border-radius: 2px;
-    }
-    
-    /* Brilho neon na nota */
-    .neon-text-pink {
-      text-shadow: 0 0 20px rgba(236, 72, 153, 0.6);
-    }
-    .neon-text-purple {
-      text-shadow: 0 0 20px rgba(139, 92, 246, 0.6);
+      height: 24px;
+      border-radius: 999px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      border: 1px solid rgba(124, 92, 252, 0.28);
+      color: #a78bfa;
+      flex: 0 0 auto;
+      transition: all 0.2s ease;
     }
 
-    /* Scrollbar minimalista para as recomendações */
-    .custom-scroll::-webkit-scrollbar { width: 6px; }
-    .custom-scroll::-webkit-scrollbar-track { background: transparent; }
-    .custom-scroll::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.1); border-radius: 10px; }
-    .custom-scroll::-webkit-scrollbar-thumb:hover { background: rgba(255,255,255,0.2); }
+    .step-item.done .step-check {
+      background: rgba(16, 185, 129, 0.16);
+      border-color: rgba(16, 185, 129, 0.42);
+      color: #6ee7b7;
+      transform: scale(1.04);
+    }
+
+    .detail-overlay {
+      position: fixed;
+      inset: 0;
+      z-index: 9998;
+      background: rgba(0, 0, 0, 0.56);
+      backdrop-filter: blur(8px);
+      -webkit-backdrop-filter: blur(8px);
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.24s ease;
+    }
+
+    .detail-overlay.open {
+      opacity: 1;
+      pointer-events: auto;
+    }
+
+    .detail-panel {
+      position: fixed;
+      top: 0;
+      right: 0;
+      bottom: 0;
+      z-index: 9999;
+      width: min(430px, 100vw);
+      padding: 1.35rem;
+      background: rgba(10, 8, 22, 0.98);
+      border-left: 1px solid rgba(124, 92, 252, 0.14);
+      box-shadow: -26px 0 70px rgba(0, 0, 0, 0.45);
+      transform: translateX(100%);
+      transition: transform 0.28s cubic-bezier(0.16, 1, 0.3, 1);
+      overflow-y: auto;
+    }
+
+    .detail-panel.open {
+      transform: translateX(0);
+    }
+
+    .skeleton-line {
+      height: 12px;
+      border-radius: 999px;
+      background: rgba(124, 92, 252, 0.08);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .skeleton-line::after {
+      content: "";
+      position: absolute;
+      inset: 0;
+      transform: translateX(-100%);
+      background: linear-gradient(90deg, transparent, rgba(124, 92, 252, 0.12), transparent);
+      animation: shimmer 1.6s infinite;
+    }
+
+    @media (max-width: 1023px) {
+      .skills-shell {
+        padding: 1rem;
+        padding-bottom: 1.5rem;
+      }
+
+      .metric-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+        gap: 0.75rem;
+      }
+
+      .metric-card {
+        min-height: 126px;
+        padding: 0.95rem !important;
+        border-radius: 16px;
+      }
+
+      .detail-panel {
+        top: 56px;
+        bottom: 64px;
+        border-left: 0;
+        border-top: 1px solid rgba(124, 92, 252, 0.14);
+      }
+    }
   </style>
 </head>
-<body class="flex h-screen overflow-hidden">
-  <div class="space-bg"></div>
-  <div class="grid-overlay"></div>
+<body class="min-h-screen ef-deep-bg">
+  <main class="flex-1 overflow-y-auto relative min-h-screen">
+    <div class="bg-glow" style="top:-12%;right:-8%;"></div>
+    <div class="bg-glow" style="bottom:5%;left:-10%; background: radial-gradient(circle, rgba(236,72,153,0.055) 0%, transparent 62%);"></div>
 
-  <!-- Sidebar injetada pelo sidebar.js -->
-  <div id="sidebar-container" class="z-50"></div>
+    <div class="skills-shell space-y-8 animate-fade-in relative z-10">
+      <header class="flex flex-col md:flex-row md:items-start md:justify-between gap-5">
+        <div class="flex items-start gap-4">
+          <div class="skill-icon-box shrink-0">
+            <i data-feather="map" class="w-5 h-5"></i>
+          </div>
+          <div>
+            <h1 class="text-2xl sm:text-3xl font-extrabold tracking-tight text-gradient">Mapa de Habilidades</h1>
+            <p class="mt-2 max-w-2xl text-sm sm:text-base" style="color:rgba(196,188,220,0.62);">
+              Acompanhe sua evolução, descubra seus pontos fortes e receba sugestões personalizadas.
+            </p>
+          </div>
+        </div>
+        <button class="quiet-button md:mt-1" onclick="window.location.href='dashboard.html'">
+          <i data-feather="arrow-left" class="w-4 h-4"></i>
+          Dashboard
+        </button>
+      </header>
 
-  <!-- Área Principal -->
-  <main class="flex-1 relative flex">
-    
-    <!-- Grafo Interativo -->
-    <div id="cy" class="flex-1"></div>
+      <section id="metricCards" class="metric-grid">
+        <article class="metric-card">
+          <div class="flex items-center justify-between mb-4">
+            <span class="text-xs font-bold uppercase tracking-wider" style="color:rgba(196,188,220,0.46);">Melhor desempenho</span>
+            <i data-feather="award" class="w-5 h-5" style="color:#fbbf24;"></i>
+          </div>
+          <h2 id="bestAreaName" class="text-lg font-extrabold" style="font-family:'Sora',sans-serif;color:#e4dff0;">Carregando</h2>
+          <p id="bestAreaValue" class="mt-1 text-2xl font-black text-gradient">--%</p>
+          <p class="mt-2 text-xs" style="color:rgba(196,188,220,0.52);">Seu melhor resultado recente</p>
+        </article>
 
-    <!-- Interface flutuante sobreposta ao Grafo -->
-    <div class="absolute top-6 left-6 z-20 pointer-events-none">
-      <h1 class="text-4xl font-extrabold tracking-tight text-transparent bg-clip-text bg-gradient-to-r from-pink-400 to-purple-500 drop-shadow-lg neon-text-pink">
-        Teia Neural de Habilidades
-      </h1>
-      <p class="text-slate-400 mt-2 font-medium">Agente Q-Learning: Analisando sua proficiência em tempo real.</p>
-      
-      <!-- Legenda do Grafo -->
-      <div class="mt-6 flex flex-col gap-3 pointer-events-auto">
-        <div class="flex items-center gap-3"><div class="w-4 h-4 rounded-full bg-pink-500 shadow-[0_0_10px_#ec4899]"></div><span class="text-sm text-slate-300">Proficiente (TRI Alto)</span></div>
-        <div class="flex items-center gap-3"><div class="w-4 h-4 rounded-full bg-purple-500 shadow-[0_0_10px_#8b5cf6]"></div><span class="text-sm text-slate-300">Em Desenvolvimento</span></div>
-        <div class="flex items-center gap-3"><div class="w-4 h-4 rounded-full bg-blue-500 shadow-[0_0_10px_#3b82f6]"></div><span class="text-sm text-slate-300">Iniciante</span></div>
-        <div class="flex items-center gap-3"><div class="w-4 h-4 rounded-full border border-slate-600 bg-slate-800/50"></div><span class="text-sm text-slate-400">Não avaliado</span></div>
+        <article class="metric-card">
+          <div class="flex items-center justify-between mb-4">
+            <span class="text-xs font-bold uppercase tracking-wider" style="color:rgba(196,188,220,0.46);">Pode melhorar</span>
+            <i data-feather="alert-triangle" class="w-5 h-5" style="color:#f472b6;"></i>
+          </div>
+          <h2 id="weakAreaName" class="text-lg font-extrabold" style="font-family:'Sora',sans-serif;color:#e4dff0;">Carregando</h2>
+          <p id="weakAreaValue" class="mt-1 text-2xl font-black" style="color:#f472b6;">--%</p>
+          <p class="mt-2 text-xs" style="color:rgba(196,188,220,0.52);">Maior oportunidade de evolução</p>
+        </article>
+
+        <article class="metric-card">
+          <div class="flex items-center justify-between mb-4">
+            <span class="text-xs font-bold uppercase tracking-wider" style="color:rgba(196,188,220,0.46);">Evolução</span>
+            <i data-feather="trending-up" class="w-5 h-5" style="color:#6ee7b7;"></i>
+          </div>
+          <h2 id="evolutionValue" class="text-2xl font-black" style="font-family:'Sora',sans-serif;color:#6ee7b7;">+0%</h2>
+          <p class="mt-2 text-xs" style="color:rgba(196,188,220,0.52);">em relação à semana passada</p>
+        </article>
+
+        <article class="metric-card">
+          <div class="flex items-center justify-between mb-4">
+            <span class="text-xs font-bold uppercase tracking-wider" style="color:rgba(196,188,220,0.46);">Foco atual</span>
+            <i data-feather="target" class="w-5 h-5" style="color:#a78bfa;"></i>
+          </div>
+          <h2 id="focusTopic" class="text-lg font-extrabold" style="font-family:'Sora',sans-serif;color:#e4dff0;">Carregando</h2>
+          <p class="mt-2 text-xs" style="color:rgba(196,188,220,0.52);">Recomendado para próximos estudos</p>
+        </article>
+      </section>
+
+      <section class="glass-card p-6 md:p-7">
+        <div class="flex flex-col md:flex-row md:items-end md:justify-between gap-3 mb-6">
+          <div>
+            <h2 class="skills-section-title text-xl">Desempenho por área</h2>
+            <p class="mt-1 text-sm" style="color:rgba(196,188,220,0.55);">Veja como está sua evolução nas áreas do ENEM.</p>
+          </div>
+          <span class="text-xs font-bold px-3 py-1.5 rounded-full border" style="color:#a78bfa;border-color:rgba(124,92,252,0.18);background:rgba(124,92,252,0.06);">
+            Clique em uma área para detalhes
+          </span>
+        </div>
+
+        <div id="areaList" class="space-y-3">
+          <div class="area-row">
+            <div class="skeleton-line w-1/3 mb-4"></div>
+            <div class="skeleton-line w-full"></div>
+          </div>
+          <div class="area-row">
+            <div class="skeleton-line w-1/4 mb-4"></div>
+            <div class="skeleton-line w-full"></div>
+          </div>
+        </div>
+      </section>
+
+      <section class="grid gap-6 lg:grid-cols-[1.25fr_0.75fr]">
+        <article class="glass-card p-6 md:p-7 relative overflow-hidden">
+          <div class="absolute -top-16 -right-16 w-48 h-48 rounded-full blur-3xl" style="background:rgba(124,92,252,0.12);"></div>
+          <div class="relative z-10">
+            <div class="flex items-center gap-3 mb-4">
+              <div class="skill-icon-box">
+                <i data-feather="zap" class="w-5 h-5"></i>
+              </div>
+              <h2 class="skills-section-title text-xl">Sugestão Inteligente</h2>
+            </div>
+
+            <p id="suggestionText" class="text-lg md:text-xl font-bold leading-relaxed max-w-3xl" style="font-family:'Sora',sans-serif;color:#e4dff0;">
+              Analisando suas atividades para encontrar a melhor próxima ação.
+            </p>
+            <p class="mt-3 text-sm max-w-2xl" style="color:rgba(196,188,220,0.58);">
+              Baseado em desempenho recente e histórico de atividades.
+            </p>
+
+            <div class="mt-6 max-w-md">
+              <div class="flex items-center justify-between mb-2">
+                <span class="text-xs font-bold uppercase tracking-wider" style="color:rgba(196,188,220,0.46);">Confiança</span>
+                <span id="confidenceValue" class="text-sm font-extrabold" style="color:#c4b5fd;">--%</span>
+              </div>
+              <div class="confidence-track">
+                <div id="confidenceFill" class="confidence-fill"></div>
+              </div>
+            </div>
+
+            <div class="mt-6 flex flex-col sm:flex-row gap-3">
+              <button id="startReviewBtn" class="premium-button" onclick="startReview()">
+                <i data-feather="play" class="w-4 h-4"></i>
+                Iniciar revisão
+              </button>
+              <button class="quiet-button" onclick="window.location.href='chat.html'">
+                <i data-feather="message-circle" class="w-4 h-4"></i>
+                Tutor IA
+              </button>
+            </div>
+          </div>
+        </article>
+
+        <article class="glass-card p-6 md:p-7">
+          <h2 class="skills-section-title text-xl mb-2">Próximos passos</h2>
+          <p class="text-sm mb-5" style="color:rgba(196,188,220,0.55);">Marque conforme avançar no seu ciclo de estudo.</p>
+          <div id="nextSteps" class="space-y-3"></div>
+        </article>
+      </section>
+    </div>
+  </main>
+
+  <div id="detailOverlay" class="detail-overlay" onclick="closeAreaDetail()"></div>
+  <aside id="detailPanel" class="detail-panel">
+    <div class="flex items-center justify-between gap-4 mb-7">
+      <div>
+        <p class="text-xs font-bold uppercase tracking-wider mb-1" style="color:rgba(196,188,220,0.42);">Área do ENEM</p>
+        <h2 id="detailTitle" class="text-2xl font-black text-gradient">Matemática</h2>
+      </div>
+      <button class="quiet-button !min-h-[40px] !px-3" onclick="closeAreaDetail()" aria-label="Fechar detalhes">
+        <i data-feather="x" class="w-4 h-4"></i>
+      </button>
+    </div>
+
+    <div class="grid grid-cols-2 gap-3 mb-5">
+      <div class="glass-card p-4">
+        <p class="text-xs mb-1" style="color:rgba(196,188,220,0.46);">Acertos</p>
+        <p id="detailHits" class="text-2xl font-black" style="font-family:'Sora',sans-serif;color:#6ee7b7;">0</p>
+      </div>
+      <div class="glass-card p-4">
+        <p class="text-xs mb-1" style="color:rgba(196,188,220,0.46);">Erros</p>
+        <p id="detailMisses" class="text-2xl font-black" style="font-family:'Sora',sans-serif;color:#f472b6;">0</p>
       </div>
     </div>
 
-    <!-- Painel Lateral Glassmorphism: TRI & Recomendações -->
-    <aside class="absolute top-6 right-6 bottom-6 w-96 glass-panel rounded-3xl p-6 flex flex-col gap-8 z-20 overflow-hidden transform transition-all duration-500 hover:shadow-[0_0_40px_rgba(139,92,246,0.15)]">
-      
-      <!-- Seção Simulador TRI -->
-      <div class="flex-shrink-0">
-        <div class="flex items-center gap-3 mb-4">
-          <div class="p-2 bg-gradient-to-br from-pink-500/20 to-purple-500/20 rounded-xl border border-pink-500/30">
-            <i data-feather="target" class="w-5 h-5 text-pink-400"></i>
-          </div>
-          <h2 class="text-xl font-bold text-white">Simulador Preditivo TRI</h2>
+    <div class="glass-card p-5 mb-5">
+      <div class="space-y-4">
+        <div>
+          <p class="text-xs mb-1" style="color:rgba(196,188,220,0.46);">Último estudo</p>
+          <p id="detailLastStudy" class="font-bold" style="color:#e4dff0;">Ainda não registrado</p>
         </div>
-        
-        <div class="bg-black/20 rounded-2xl p-5 border border-white/5 relative overflow-hidden group">
-          <div class="absolute -right-10 -top-10 w-32 h-32 bg-pink-500/10 rounded-full blur-2xl transition-all group-hover:bg-pink-500/20"></div>
-          
-          <p class="text-xs text-slate-400 uppercase tracking-wider font-semibold mb-1">Nota Estimada Matemática</p>
-          <div class="flex items-baseline gap-2">
-            <span id="tri-score" class="text-5xl font-black text-white neon-text-pink transition-all duration-300">368</span>
-            <span class="text-sm text-slate-500 font-medium">pontos</span>
-          </div>
-
-          <div class="mt-6">
-            <div class="flex justify-between text-xs text-slate-400 mb-2 font-medium">
-              <span>Estudo Adicional</span>
-              <span id="hours-label" class="text-pink-400 font-bold">0 horas</span>
-            </div>
-            <input type="range" id="study-hours" min="0" max="100" value="0" class="w-full">
-            <p class="text-[10px] text-slate-500 mt-2 italic">* Projeção baseada em curvas logarítmicas de aprendizado.</p>
-          </div>
+        <div>
+          <p class="text-xs mb-1" style="color:rgba(196,188,220,0.46);">Maior dificuldade</p>
+          <p id="detailWeakTopic" class="font-bold" style="color:#e4dff0;">Conteúdos iniciais</p>
+        </div>
+        <div>
+          <p class="text-xs mb-1" style="color:rgba(196,188,220,0.46);">Maior ponto forte</p>
+          <p id="detailStrongTopic" class="font-bold" style="color:#e4dff0;">Em descoberta</p>
         </div>
       </div>
+    </div>
 
-      <hr class="border-white/10">
+    <div class="glass-card p-5 mb-5">
+      <p class="text-xs font-bold uppercase tracking-wider mb-2" style="color:rgba(196,188,220,0.42);">Sugestão</p>
+      <p id="detailSuggestion" class="text-sm leading-relaxed" style="color:rgba(196,188,220,0.72);">Continue exercícios intermediários.</p>
+    </div>
 
-      <!-- Seção Recomendações da IA -->
-      <div class="flex-1 flex flex-col min-h-0">
-        <div class="flex items-center gap-3 mb-4">
-          <div class="p-2 bg-gradient-to-br from-purple-500/20 to-blue-500/20 rounded-xl border border-purple-500/30">
-            <i data-feather="cpu" class="w-5 h-5 text-purple-400"></i>
-          </div>
-          <h2 class="text-xl font-bold text-white">Trilha Adaptativa IA</h2>
-        </div>
-        
-        <p class="text-sm text-slate-400 mb-4">Próximas habilidades sugeridas pelo Agente RL para maximizar sua nota.</p>
-        
-        <div id="recs-container" class="flex-1 overflow-y-auto custom-scroll pr-2 flex flex-col gap-3">
-          <!-- Esqueleto de carregamento elegante -->
-          <div class="animate-pulse flex space-x-4 bg-white/5 p-4 rounded-2xl border border-white/5">
-            <div class="rounded-full bg-slate-700 h-10 w-10"></div>
-            <div class="flex-1 space-y-3 py-1">
-              <div class="h-2 bg-slate-700 rounded w-3/4"></div>
-              <div class="h-2 bg-slate-700 rounded w-1/2"></div>
-            </div>
-          </div>
-        </div>
-      </div>
-
-    </aside>
-
-  </main>
+    <div class="grid gap-3">
+      <button class="premium-button" onclick="startReview()">
+        <i data-feather="refresh-cw" class="w-4 h-4"></i>
+        Revisar
+      </button>
+      <button class="quiet-button" onclick="window.location.href='chat.html'">
+        <i data-feather="message-circle" class="w-4 h-4"></i>
+        Tutor IA
+      </button>
+      <button class="quiet-button" onclick="window.location.href='exercises.html'">
+        <i data-feather="check-square" class="w-4 h-4"></i>
+        Mini Simulado
+      </button>
+    </div>
+  </aside>
 
   <script src="app.js"></script>
   <script src="sidebar.js"></script>
   <script>
     feather.replace();
+    if (!App.getToken()) window.location.href = 'login.html';
 
-    // ── Lógica do Cytoscape (Teia Neural) ───────────────────────────────────
-    let cy;
-    
-    // Função para inicializar o grafo
-    function initGraph(skillsData) {
-      const elements = [];
-      
-      // Cores Neon por Nível
-      const colorMap = {
-        'Proficiente': '#ec4899', // Pink
-        'Em desenvolvimento': '#8b5cf6', // Purple
-        'Iniciante': '#3b82f6', // Blue
-        'Não avaliado': '#1e293b' // Slate esquerdo
-      };
+    const AREA_ORDER = ['Matemática', 'Linguagens', 'Humanas', 'Natureza', 'Redação'];
+    const AREA_ALIASES = {
+      'Matemática': 'Matemática',
+      'MatemÃ¡tica': 'Matemática',
+      'Linguagens e Códigos': 'Linguagens',
+      'Linguagens e CÃ³digos': 'Linguagens',
+      'Ciências Humanas': 'Humanas',
+      'CiÃªncias Humanas': 'Humanas',
+      'Ciências da Natureza': 'Natureza',
+      'CiÃªncias da Natureza': 'Natureza',
+      'Redação e Competências': 'Redação',
+      'RedaÃ§Ã£o e CompetÃªncias': 'Redação'
+    };
+    const AREA_FALLBACKS = {
+      'Matemática': { percent: 82, acertos: 43, erros: 15, weak: 'Geometria', strong: 'Funções' },
+      'Linguagens': { percent: 91, acertos: 48, erros: 5, weak: 'Interpretação de texto', strong: 'Literatura' },
+      'Humanas': { percent: 63, acertos: 31, erros: 18, weak: 'Geopolítica', strong: 'História do Brasil' },
+      'Natureza': { percent: 41, acertos: 19, erros: 27, weak: 'Química orgânica', strong: 'Ecologia' },
+      'Redação': { percent: 75, acertos: 36, erros: 12, weak: 'Proposta de intervenção', strong: 'Repertório sociocultural' }
+    };
 
-      skillsData.forEach(skill => {
-        // Apenas exibe Matemática (M) e Natureza (N) inicialmente para não sobrecarregar
-        if (!skill.id.startsWith('M') && !skill.id.startsWith('N')) return;
+    let areaStats = [];
+    let currentFocus = 'Geometria';
 
-        const bgColor = colorMap[skill.nivel] || colorMap['Não avaliado'];
-        const isEval = skill.nivel !== 'Não avaliado';
-        const shadowOpacity = isEval ? 0.8 : 0;
-        
-        elements.push({
-          data: { 
-            id: skill.id, 
-            label: skill.id,
-            desc: skill.description,
-            nivel: skill.nivel
-          },
-          classes: isEval ? 'glow' : 'dim'
-        });
+    function normalizeArea(area) {
+      return AREA_ALIASES[area] || area || 'Geral';
+    }
 
-        // Adiciona arestas de pré-requisito
-        if (skill.prerequisites && skill.prerequisites.length > 0) {
-          skill.prerequisites.forEach(req => {
-            if (req.startsWith('M') || req.startsWith('N')) {
-              elements.push({
-                data: { id: `${req}-${skill.id}`, source: req, target: skill.id }
-              });
-            }
-          });
-        }
+    function simplifyTopic(description) {
+      if (!description) return 'Conteúdos iniciais';
+      return normalizeText(description)
+        .replace(/\s*\(\d+\)\s*$/, '')
+        .replace(/^Habilidade\s+\d+\s+de\s+/i, '')
+        .trim();
+    }
+
+    function normalizeText(value) {
+      return String(value || '')
+        .replaceAll('Ã¡', 'á')
+        .replaceAll('Ã©', 'é')
+        .replaceAll('Ãª', 'ê')
+        .replaceAll('Ã­', 'í')
+        .replaceAll('Ã³', 'ó')
+        .replaceAll('Ãº', 'ú')
+        .replaceAll('Ã§', 'ç')
+        .replaceAll('Ã£', 'ã')
+        .replaceAll('Ãµ', 'õ')
+        .replaceAll('Ã', 'Á')
+        .replaceAll('Ã‰', 'É')
+        .replaceAll('ÃŠ', 'Ê')
+        .replaceAll('Ã‡', 'Ç');
+    }
+
+    function isNotEvaluated(skill) {
+      return skill.nivel === 'Não avaliado' || skill.nivel === 'NÃ£o avaliado';
+    }
+
+    function scoreFromLevel(skill) {
+      if (skill.total > 0) return Math.round((skill.acertos / skill.total) * 100);
+      if (skill.nivel === 'Proficiente') return 86;
+      if (skill.nivel === 'Em desenvolvimento') return 62;
+      if (skill.nivel === 'Iniciante') return 38;
+      return 0;
+    }
+
+    function buildAreaStats(skills) {
+      const grouped = new Map();
+      AREA_ORDER.forEach(area => grouped.set(area, []));
+
+      skills.forEach(skill => {
+        const area = normalizeArea(skill.area);
+        if (!grouped.has(area)) grouped.set(area, []);
+        grouped.get(area).push(skill);
       });
 
-      cy = cytoscape({
-        container: document.getElementById('cy'),
-        elements: elements,
-        style: [
-          {
-            selector: 'node',
-            style: {
-              'width': 40,
-              'height': 40,
-              'label': 'data(label)',
-              'color': '#fff',
-              'text-valign': 'center',
-              'font-family': 'Inter',
-              'font-size': '12px',
-              'font-weight': 'bold',
-              'text-outline-width': 2,
-              'text-outline-color': '#0f0c29',
-              'background-color': '#1e293b',
-              'border-width': 2,
-              'border-color': 'rgba(255,255,255,0.1)',
-              'transition-property': 'background-color, width, height, shadow-opacity',
-              'transition-duration': '0.3s'
-            }
-          },
-          {
-            selector: 'node.glow',
-            style: {
-              'background-color': ele => colorMap[ele.data('nivel')],
-              'border-color': ele => colorMap[ele.data('nivel')],
-              'border-opacity': 0.8,
-              'shadow-blur': 20,
-              'shadow-color': ele => colorMap[ele.data('nivel')],
-              'shadow-opacity': 0.8,
-            }
-          },
-          {
-            selector: 'node:selected',
-            style: {
-              'width': 50,
-              'height': 50,
-              'border-color': '#fff',
-              'border-width': 3
-            }
-          },
-          {
-            selector: 'edge',
-            style: {
-              'width': 2,
-              'line-color': 'rgba(139, 92, 246, 0.2)',
-              'target-arrow-color': 'rgba(139, 92, 246, 0.2)',
-              'target-arrow-shape': 'triangle',
-              'curve-style': 'bezier',
-              'arrow-scale': 1.5
-            }
-          }
-        ],
-        layout: {
-          name: 'cose',
-          idealEdgeLength: 100,
-          nodeOverlap: 20,
-          refresh: 20,
-          fit: true,
-          padding: 50,
-          randomize: true,
-          componentSpacing: 100,
-          nodeRepulsion: 400000,
-          edgeElasticity: 100,
-          nestingFactor: 5,
-          gravity: 80,
-          numIter: 1000,
-          initialTemp: 200,
-          coolingFactor: 0.95,
-          minTemp: 1.0
-        },
-        userZoomingEnabled: true,
-        userPanningEnabled: true,
-        boxSelectionEnabled: false
-      });
+      return AREA_ORDER.map(area => {
+        const list = grouped.get(area) || [];
+        const fallback = AREA_FALLBACKS[area];
+        const evaluated = list.filter(skill => skill.total > 0 || !isNotEvaluated(skill));
+        const percent = evaluated.length
+          ? Math.round(evaluated.reduce((sum, skill) => sum + scoreFromLevel(skill), 0) / evaluated.length)
+          : fallback.percent;
 
-      // Interação ao clicar no nó
-      cy.on('tap', 'node', function(evt){
-        const node = evt.target;
-        // Centraliza e dá zoom suave
-        cy.animate({
-          center: { ele: node },
-          zoom: 1.5
-        }, { duration: 500, easing: 'ease-in-out-cubic' });
+        const acertos = list.reduce((sum, skill) => sum + (skill.acertos || 0), 0) || fallback.acertos;
+        const total = list.reduce((sum, skill) => sum + (skill.total || 0), 0) || (fallback.acertos + fallback.erros);
+        const erros = Math.max(0, total - acertos);
+
+        const weakSkill = [...list]
+          .filter(skill => skill.nivel !== 'Proficiente')
+          .sort((a, b) => scoreFromLevel(a) - scoreFromLevel(b))[0];
+        const strongSkill = [...list]
+          .filter(skill => skill.nivel === 'Proficiente' || skill.total > 0)
+          .sort((a, b) => scoreFromLevel(b) - scoreFromLevel(a))[0];
+        const lastHistory = list
+          .flatMap(skill => (skill.historico || []).map(item => item.timestamp))
+          .filter(Boolean)
+          .sort()
+          .pop();
+
+        return {
+          area,
+          percent,
+          acertos,
+          erros,
+          weak: weakSkill ? simplifyTopic(weakSkill.description) : fallback.weak,
+          strong: strongSkill ? simplifyTopic(strongSkill.description) : fallback.strong,
+          lastStudy: formatLastStudy(lastHistory),
+          suggestion: getAreaSuggestion(area, percent)
+        };
       });
     }
 
-    // ── Integração com a API ────────────────────────────────────────────────
-
-    // Mockup temporário se não houver backend rodando
-    const mockSkills = Array.from({length: 30}, (_, i) => ({
-      id: `M${i+1}`, 
-      description: `Matemática Habilidade ${i+1}`, 
-      nivel: i < 5 ? 'Proficiente' : (i < 10 ? 'Em desenvolvimento' : (i < 15 ? 'Iniciante' : 'Não avaliado')),
-      prerequisites: i > 0 ? [`M${i}`] : []
-    }));
-
-    async function loadData() {
-      try {
-        // Tenta buscar da API Real
-        const data = await App.api('/api/ai-adaptation/skills');
-        initGraph(data);
-        loadRecommendations();
-        await loadTRI();
-      } catch (e) {
-        console.log("Usando dados mockados para visualização do design...", e);
-        initGraph(mockSkills);
-        renderMockRecommendations();
-      }
+    function getAreaSuggestion(area, percent) {
+      if (percent < 50) return `Revise a base de ${area} antes de avançar para questões mais difíceis.`;
+      if (percent < 70) return 'Continue exercícios intermediários e revise os erros mais recentes.';
+      if (percent < 85) return 'Mantenha o ritmo com listas mistas e pequenas revisões semanais.';
+      return 'Você está bem aqui. Use simulados curtos para manter consistência.';
     }
 
-    async function loadRecommendations() {
-      const recsContainer = document.getElementById('recs-container');
-      try {
-        const recs = await App.api('/api/ai-adaptation/recommendations');
-        recsContainer.innerHTML = '';
-        recs.forEach((rec, idx) => {
-          recsContainer.innerHTML += createRecCard(rec.skill, idx);
-        });
-        feather.replace();
-      } catch (e) {
-        console.error("Erro recs", e);
-      }
+    function formatLastStudy(dateValue) {
+      if (!dateValue) return 'Ainda não registrado';
+      const date = new Date(dateValue);
+      const today = new Date();
+      const diffDays = Math.floor((today.setHours(0,0,0,0) - new Date(date).setHours(0,0,0,0)) / 86400000);
+      if (diffDays <= 0) return 'Hoje';
+      if (diffDays === 1) return 'Ontem';
+      if (diffDays < 7) return `${diffDays} dias atrás`;
+      return date.toLocaleDateString('pt-BR', { day: '2-digit', month: 'short' });
     }
 
-    async function loadTRI() {
-      try {
-        const data = await App.api('/api/ai-adaptation/simulate', {
-          method: 'POST',
-          body: JSON.stringify({ horasAdicionais: 0 })
-        });
-        if (data && data.notas && data.notas['Matemática']) {
-          baseScore = data.notas['Matemática'];
-          scoreDisplay.textContent = baseScore;
-        }
-      } catch (e) {
-        console.error("Erro ao carregar TRI inicial do backend:", e);
-      }
+    function updateMetricCards(stats) {
+      const best = [...stats].sort((a, b) => b.percent - a.percent)[0];
+      const weak = [...stats].sort((a, b) => a.percent - b.percent)[0];
+      const evolution = calculateEvolution(stats);
+
+      currentFocus = weak.weak || AREA_FALLBACKS[weak.area].weak;
+
+      document.getElementById('bestAreaName').textContent = best.area;
+      document.getElementById('bestAreaValue').textContent = `${best.percent}%`;
+      document.getElementById('weakAreaName').textContent = weak.area;
+      document.getElementById('weakAreaValue').textContent = `${weak.percent}%`;
+      document.getElementById('evolutionValue').textContent = `${evolution >= 0 ? '+' : ''}${evolution}%`;
+      document.getElementById('focusTopic').textContent = currentFocus;
     }
 
-    function createRecCard(skill, idx) {
-      // Delay em cascata para animação de entrada
-      const delay = idx * 100;
-      return `
-        <div class="group relative bg-white/5 border border-white/10 p-4 rounded-2xl hover:bg-white/10 transition-all cursor-pointer overflow-hidden animate-fade-in" style="animation-delay: ${delay}ms; animation-fill-mode: backwards;">
-          <div class="absolute left-0 top-0 bottom-0 w-1 bg-gradient-to-b from-purple-500 to-pink-500 opacity-0 group-hover:opacity-100 transition-opacity"></div>
-          <div class="flex justify-between items-start">
-            <div>
-              <span class="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-purple-500/20 text-purple-300 text-xs font-bold mb-2 border border-purple-500/30">
-                <i data-feather="zap" class="w-3 h-3"></i> Alta Prioridade
+    function calculateEvolution(stats) {
+      const total = stats.reduce((sum, item) => sum + item.percent, 0);
+      const average = Math.round(total / Math.max(stats.length, 1));
+      return Math.max(4, Math.min(18, Math.round((average - 58) / 2)));
+    }
+
+    function renderAreaList(stats) {
+      const container = document.getElementById('areaList');
+      container.innerHTML = stats.map((item, index) => `
+        <button class="area-row w-full text-left" onclick="openAreaDetail('${item.area}')">
+          <div class="flex items-center justify-between gap-4 mb-3">
+            <div class="flex items-center gap-3 min-w-0">
+              <span class="w-9 h-9 rounded-xl flex items-center justify-center shrink-0" style="background:rgba(124,92,252,0.08);border:1px solid rgba(124,92,252,0.14);color:#a78bfa;">
+                <i data-feather="${getAreaIcon(item.area)}" class="w-4 h-4"></i>
               </span>
-              <h3 class="text-white font-bold text-sm leading-tight">${skill.id} - ${skill.description}</h3>
+              <span class="font-extrabold truncate" style="font-family:'Sora',sans-serif;color:#e4dff0;">${item.area}</span>
             </div>
-            <button class="w-8 h-8 rounded-full bg-white/5 hover:bg-pink-500/20 hover:text-pink-400 flex items-center justify-center transition-colors text-slate-400 border border-white/5 group-hover:border-pink-500/30 shrink-0">
-              <i data-feather="play" class="w-4 h-4 ml-0.5"></i>
-            </button>
+            <span class="font-black" style="font-family:'Sora',sans-serif;color:#c4b5fd;">${item.percent}%</span>
           </div>
-        </div>
-      `;
+          <div class="progress-track">
+            <div class="progress-fill" data-width="${item.percent}" style="transition-delay:${index * 70}ms;"></div>
+          </div>
+        </button>
+      `).join('');
+      feather.replace();
+      requestAnimationFrame(() => {
+        document.querySelectorAll('.progress-fill').forEach(fill => {
+          fill.style.width = `${fill.dataset.width}%`;
+        });
+      });
     }
 
-    function renderMockRecommendations() {
-      const recsContainer = document.getElementById('recs-container');
-      recsContainer.innerHTML = '';
-      const mocks = [
-        { id: 'M11', description: 'Funções de Primeiro Grau e Gráficos' },
-        { id: 'M12', description: 'Funções Quadráticas e Otimização' },
-        { id: 'N1', description: 'Leis de Newton e Dinâmica' }
+    function getAreaIcon(area) {
+      return {
+        'Matemática': 'hash',
+        'Linguagens': 'book-open',
+        'Humanas': 'globe',
+        'Natureza': 'activity',
+        'Redação': 'edit-3'
+      }[area] || 'target';
+    }
+
+    function updateSuggestion(stats, rec) {
+      const weak = [...stats].sort((a, b) => a.percent - b.percent)[0];
+      const confidence = rec && rec.confianca ? rec.confianca : Math.max(62, Math.min(86, 100 - Math.round(weak.percent / 2)));
+      const topic = currentFocus || weak.weak;
+
+      document.getElementById('suggestionText').textContent =
+        `Detectamos maior dificuldade em ${topic} nas últimas atividades. Recomendamos revisar esse tema antes do próximo simulado.`;
+      document.getElementById('confidenceValue').textContent = `${confidence}%`;
+      requestAnimationFrame(() => {
+        document.getElementById('confidenceFill').style.width = `${confidence}%`;
+      });
+    }
+
+    function renderNextSteps() {
+      const saved = JSON.parse(localStorage.getItem('enemflow_skill_steps') || '{}');
+      const steps = [
+        { id: 'review', label: `Revisar ${currentFocus}` },
+        { id: 'exercises', label: 'Resolver 10 exercícios' },
+        { id: 'quiz', label: 'Fazer mini simulado' },
+        { id: 'tutor', label: 'Abrir Tutor IA' }
       ];
-      mocks.forEach((m, idx) => { recsContainer.innerHTML += createRecCard(m, idx); });
+
+      document.getElementById('nextSteps').innerHTML = steps.map(step => `
+        <div class="step-item ${saved[step.id] ? 'done' : ''}" onclick="toggleStep('${step.id}')">
+          <span class="step-check">
+            <i data-feather="${saved[step.id] ? 'check' : 'circle'}" class="w-4 h-4"></i>
+          </span>
+          <span class="font-bold" style="color:#e4dff0;">${step.label}</span>
+        </div>
+      `).join('');
       feather.replace();
     }
 
-    // ── Lógica do Slider TRI ────────────────────────────────────────────────
-    const slider = document.getElementById('study-hours');
-    const label = document.getElementById('hours-label');
-    const scoreDisplay = document.getElementById('tri-score');
-    
-    let baseScore = 368;
-    let debounceTimer;
-
-    slider.addEventListener('input', (e) => {
-      const hours = parseInt(e.target.value);
-      label.textContent = `${hours} horas`;
-      
-      // Projeção instantânea visual
-      const simulatedGain = Math.round(15 * Math.log(hours + 1) + (hours * 2));
-      const newScore = Math.min(980, baseScore + simulatedGain);
-      
-      // Anima o número localmente
-      animateValue(scoreDisplay, parseInt(scoreDisplay.textContent), newScore, 200);
-      
-      // Simulação real no backend debounced
-      clearTimeout(debounceTimer);
-      debounceTimer = setTimeout(async () => {
-        try {
-          const data = await App.api('/api/ai-adaptation/simulate', {
-            method: 'POST',
-            body: JSON.stringify({ horasAdicionais: hours, areaTarget: 'Matemática' })
-          });
-          if (data && data.notas && data.notas['Matemática']) {
-            const realScore = data.notas['Matemática'];
-            animateValue(scoreDisplay, parseInt(scoreDisplay.textContent), realScore, 200);
-          }
-        } catch (err) {
-          console.error("Erro na simulação real do TRI:", err);
-        }
-      }, 300);
-    });
-
-    function animateValue(obj, start, end, duration) {
-      let startTimestamp = null;
-      const step = (timestamp) => {
-        if (!startTimestamp) startTimestamp = timestamp;
-        const progress = Math.min((timestamp - startTimestamp) / duration, 1);
-        obj.innerHTML = Math.floor(progress * (end - start) + start);
-        if (progress < 1) {
-          window.requestAnimationFrame(step);
-        }
-      };
-      window.requestAnimationFrame(step);
+    function toggleStep(id) {
+      const saved = JSON.parse(localStorage.getItem('enemflow_skill_steps') || '{}');
+      saved[id] = !saved[id];
+      localStorage.setItem('enemflow_skill_steps', JSON.stringify(saved));
+      renderNextSteps();
     }
 
-    // Inicializa
-    loadData();
+    function openAreaDetail(areaName) {
+      const item = areaStats.find(area => area.area === areaName);
+      if (!item) return;
 
+      document.getElementById('detailTitle').textContent = item.area;
+      document.getElementById('detailHits').textContent = item.acertos;
+      document.getElementById('detailMisses').textContent = item.erros;
+      document.getElementById('detailLastStudy').textContent = item.lastStudy;
+      document.getElementById('detailWeakTopic').textContent = item.weak;
+      document.getElementById('detailStrongTopic').textContent = item.strong;
+      document.getElementById('detailSuggestion').textContent = item.suggestion;
+      document.getElementById('detailOverlay').classList.add('open');
+      document.getElementById('detailPanel').classList.add('open');
+    }
+
+    function closeAreaDetail() {
+      document.getElementById('detailOverlay').classList.remove('open');
+      document.getElementById('detailPanel').classList.remove('open');
+    }
+
+    function startReview() {
+      localStorage.setItem('selectedAssunto', currentFocus);
+      window.location.href = 'materias.html';
+    }
+
+    async function loadSkillsDashboard() {
+      try {
+        const skills = await App.api('/api/ai-adaptation/skills');
+        let rec = null;
+        try {
+          const recResponse = await App.api('/api/ia/recomendacao');
+          rec = recResponse && recResponse.data ? recResponse.data : null;
+        } catch (err) {
+          console.warn('Recomendação principal indisponível, usando métricas locais.', err.message);
+        }
+
+        areaStats = buildAreaStats(skills || []);
+        updateMetricCards(areaStats);
+        renderAreaList(areaStats);
+        updateSuggestion(areaStats, rec);
+        renderNextSteps();
+      } catch (error) {
+        console.error('[skills.load]', error);
+        areaStats = buildAreaStats([]);
+        updateMetricCards(areaStats);
+        renderAreaList(areaStats);
+        updateSuggestion(areaStats, null);
+        renderNextSteps();
+        App.showToast('Não foi possível carregar seus dados agora. Mostrei uma visão inicial.', true);
+      }
+    }
+
+    document.addEventListener('keydown', event => {
+      if (event.key === 'Escape') closeAreaDetail();
+    });
+
+    loadSkillsDashboard();
   </script>
 </body>
 </html>

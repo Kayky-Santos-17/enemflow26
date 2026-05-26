@@ -13,7 +13,11 @@ async function getSkills(req, res) {
       return {
         ...skill,
         nivel: prog ? prog.nivel : 'Não avaliado',
-        qValue: prog ? prog.qValue : 0
+        qValue: prog ? prog.qValue : 0,
+        acertos: prog ? prog.acertos : 0,
+        total: prog ? prog.total : 0,
+        tempoEstudado: prog ? prog.tempoEstudado : 0,
+        historico: prog ? prog.historico : []
       };
     });
 
