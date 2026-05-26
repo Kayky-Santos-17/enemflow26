@@ -111,6 +111,75 @@
 
       </div>
 
+      <!-- IA Personalizada Q-Learning -->
+      <div>
+        <div class="flex items-center justify-between mb-6 pb-4" style="border-bottom:1px solid rgba(124,92,252,0.08);">
+          <h2 class="text-xl font-bold flex items-center gap-2" style="font-family:'Sora',sans-serif; color:#e4dff0;">
+            <svg class="w-5 h-5" style="color:rgba(167,139,250,0.8);" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/>
+            </svg>
+            IA Personalizada
+          </h2>
+          <span class="flex items-center gap-1.5 text-[10px] font-bold px-2 py-1 rounded-md uppercase tracking-wider bg-violet-500/10 text-violet-400 border border-violet-500/20">
+            Q-Learning Ativo
+          </span>
+        </div>
+
+        <div id="aiRecommendationContainer" class="glass-card p-6 relative overflow-hidden group">
+          <!-- Glow interno do card -->
+          <div class="absolute -top-10 -right-10 w-40 h-40 bg-violet-500/10 rounded-full blur-3xl group-hover:bg-violet-500/20 transition-all duration-500"></div>
+          
+          <!-- Skeleton Loader -->
+          <div id="aiSkeleton" class="flex flex-col md:flex-row gap-6 animate-pulse">
+            <div class="w-16 h-16 rounded-2xl bg-violet-500/10 shrink-0"></div>
+            <div class="flex-1 space-y-3">
+              <div class="h-4 bg-violet-500/10 rounded w-1/4"></div>
+              <div class="h-3 bg-violet-500/10 rounded w-3/4"></div>
+              <div class="h-3 bg-violet-500/10 rounded w-1/2"></div>
+            </div>
+          </div>
+
+          <!-- Conteúdo Real (Escondido inicialmente) -->
+          <div id="aiContent" class="hidden flex-col md:flex-row gap-6 items-start md:items-center relative z-10">
+            <div class="w-16 h-16 rounded-2xl flex items-center justify-center shrink-0 border border-violet-500/30 bg-violet-500/10 shadow-[0_0_20px_rgba(124,92,252,0.15)]">
+              <svg class="w-8 h-8 text-violet-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <circle cx="12" cy="12" r="10"></circle>
+                <path d="M12 16v-4"></path>
+                <path d="M12 8h.01"></path>
+              </svg>
+            </div>
+            
+            <div class="flex-1">
+              <div class="flex flex-wrap items-center gap-3 mb-2">
+                <h3 id="aiTarget" class="text-lg font-bold text-white" style="font-family:'Sora',sans-serif;">Carregando...</h3>
+                <span id="aiLevel" class="text-xs px-2 py-0.5 rounded-full bg-pink-500/10 text-pink-400 border border-pink-500/20 font-medium">Nível</span>
+                <span id="aiConfidence" class="text-xs px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 font-medium flex items-center gap-1">
+                  <svg class="w-3 h-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                  Confiança
+                </span>
+              </div>
+              
+              <p id="aiReason" class="text-sm text-slate-400 leading-relaxed max-w-2xl">
+                Analisando seu perfil de estudos...
+              </p>
+              
+              <div class="mt-4 flex gap-3">
+                <button id="aiActionBtn" onclick="window.location.href='materias.html'" class="px-5 py-2 rounded-xl text-sm font-bold text-white transition-all transform hover:-translate-y-0.5 shadow-lg flex items-center gap-2" style="background:linear-gradient(135deg,#7c5cfc,#ec4899); box-shadow:0 4px 15px rgba(124,92,252,0.25);">
+                  <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="5 3 19 12 5 21 5 3"></polygon></svg>
+                  Iniciar Recomendação
+                </button>
+              </div>
+            </div>
+          </div>
+          
+          <!-- Estado de Erro -->
+          <div id="aiError" class="hidden text-center py-4">
+            <p class="text-sm text-red-400 mb-2">Não foi possível carregar a recomendação da IA.</p>
+            <button onclick="fetchAIRecommendation()" class="text-xs text-violet-400 hover:text-violet-300 underline">Tentar novamente</button>
+          </div>
+        </div>
+      </div>
+
       <!-- Recentes -->
       <div>
         <div class="flex items-center justify-between mb-6 pb-4" style="border-bottom:1px solid rgba(124,92,252,0.08);">
@@ -167,6 +236,54 @@
     // Calculate XP level
     function getLevel(xp) {
       return Math.floor(xp / 100) + 1;
+    }
+
+    async function fetchAIRecommendation() {
+      const skeleton = document.getElementById('aiSkeleton');
+      const content = document.getElementById('aiContent');
+      const errorDiv = document.getElementById('aiError');
+
+      skeleton.classList.remove('hidden');
+      skeleton.classList.add('flex');
+      content.classList.add('hidden');
+      errorDiv.classList.add('hidden');
+
+      try {
+        const response = await App.api('/api/ia/recomendacao');
+        if (response && response.data) {
+          const rec = response.data;
+          
+          document.getElementById('aiTarget').textContent = rec.materiaRecomendada;
+          document.getElementById('aiLevel').textContent = rec.nivel;
+          document.getElementById('aiConfidence').innerHTML = `<svg class="w-3 h-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"></polyline></svg> ${rec.confianca}% Confiança`;
+          document.getElementById('aiReason').textContent = rec.motivo;
+          
+          // Action button config
+          const btn = document.getElementById('aiActionBtn');
+          if (rec.acao.type === 'materia' || rec.acao.type === 'reforco') {
+            btn.innerHTML = `<svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="5 3 19 12 5 21 5 3"></polygon></svg> Iniciar Estudo`;
+            btn.onclick = () => window.location.href = 'materias.html';
+          } else if (rec.acao.type === 'simulado') {
+            btn.innerHTML = `<svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg> Ir para Simulado`;
+            btn.onclick = () => window.location.href = 'exercises.html';
+          } else {
+            btn.innerHTML = `<svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg> Abrir Tutor IA`;
+            btn.onclick = () => window.location.href = 'chat.html';
+          }
+
+          skeleton.classList.add('hidden');
+          skeleton.classList.remove('flex');
+          content.classList.remove('hidden');
+          content.classList.add('flex');
+        } else {
+          throw new Error("No data");
+        }
+      } catch (err) {
+        console.error(err);
+        skeleton.classList.add('hidden');
+        skeleton.classList.remove('flex');
+        errorDiv.classList.remove('hidden');
+      }
     }
 
     async function loadDashboard() {
@@ -247,6 +364,9 @@
         if(err.message.includes('Token')) App.logout();
         else App.showToast(err.message, true);
       }
+      
+      // Load AI Recommendation
+      fetchAIRecommendation();
     }
 
     loadDashboard();
