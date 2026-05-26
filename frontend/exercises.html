@@ -10,6 +10,7 @@
   <link rel="stylesheet" href="style.css">
   <script src="https://unpkg.com/feather-icons"></script>
   <script src="sidebar.js" defer></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
   <script>
     tailwind.config = {
       darkMode: 'class',
@@ -298,6 +299,10 @@
                 <i data-feather="file-text" class="w-4 h-4"></i>
                 PDF com gabarito
               </button>
+              <button onclick="saveSimuladoPdf()" id="savePdfBtn" class="exam-action exam-action-secondary">
+                <i data-feather="save" class="w-4 h-4"></i>
+                Salvar PDF
+              </button>
             </div>
           </div>
 
@@ -305,6 +310,8 @@
             <h3 class="font-black text-lg" style="font-family:'Sora',sans-serif;color:#6ee7b7;">Correção automática</h3>
             <p id="scoreText" class="mt-1 text-sm" style="color:rgba(196,188,220,0.72);"></p>
           </div>
+
+          <div id="pdfStatus" class="hidden mb-6 p-4 rounded-2xl border text-sm" style="border-color:rgba(124,92,252,0.18);background:rgba(124,92,252,0.06);color:#c4b5fd;"></div>
 
           <div id="questionsList" class="space-y-5"></div>
         </div>
@@ -339,6 +346,7 @@
   <section id="printSheet" class="print-sheet"></section>
 
   <script src="app.js"></script>
+  <script src="pdf-tools.js"></script>
   <script>
     feather.replace();
     if (!App.getToken()) window.location.href = 'login.html';
@@ -395,8 +403,10 @@
       if (!currentSimulado) return;
       document.getElementById('simuladoContainer').classList.remove('hidden');
       document.getElementById('scoreSummary').classList.add('hidden');
+      document.getElementById('pdfStatus').classList.add('hidden');
       document.getElementById('simuladoTitle').textContent = currentSimulado.titulo;
-      document.getElementById('simuladoInstructions').textContent = currentSimulado.instrucoes;
+      const confidence = currentSimulado.validacaoTema ? Math.round(currentSimulado.validacaoTema.confidence * 100) : 100;
+      document.getElementById('simuladoInstructions').textContent = `${currentSimulado.instrucoes} Tema validado: ${confidence}% de aderencia.`;
 
       document.getElementById('questionsList').innerHTML = currentSimulado.questoes.map(question => `
         <article class="question-card" id="question-${question.id}">
@@ -405,7 +415,8 @@
             <span class="text-xs font-bold px-2.5 py-1 rounded-full border" style="color:#c4b5fd;border-color:rgba(124,92,252,0.18);background:rgba(124,92,252,0.06);">${escapeHtml(question.dificuldade || 'Média')}</span>
           </div>
           <p class="text-sm leading-relaxed mb-3" style="color:rgba(196,188,220,0.72);">${escapeHtml(question.contexto)}</p>
-          <p class="font-bold leading-relaxed mb-4" style="color:#e4dff0;">${escapeHtml(question.enunciado)}</p>
+          ${question.interpretacao ? `<p class="text-sm leading-relaxed mb-3" style="color:rgba(196,188,220,0.6);"><strong>Interpretacao:</strong> ${escapeHtml(question.interpretacao)}</p>` : ''}
+          <p class="font-bold leading-relaxed mb-4" style="color:#e4dff0;">${escapeHtml(question.pergunta || question.enunciado)}</p>
           <div class="space-y-3">
             ${question.alternativas.map(option => `
               <label class="option-row" data-question="${question.id}" data-letter="${option.letra}">
@@ -501,6 +512,77 @@
       if (!currentSimulado) return App.showToast('Gere um simulado primeiro.', true);
       buildPrintSheet(includeAnswers);
       window.print();
+    }
+
+    function setPdfStatus(message, isError = false) {
+      const status = document.getElementById('pdfStatus');
+      status.classList.remove('hidden');
+      status.style.borderColor = isError ? 'rgba(248,113,113,0.28)' : 'rgba(124,92,252,0.18)';
+      status.style.background = isError ? 'rgba(248,113,113,0.08)' : 'rgba(124,92,252,0.06)';
+      status.style.color = isError ? '#fca5a5' : '#c4b5fd';
+      status.textContent = message;
+    }
+
+    function buildSimuladoPdfSections() {
+      if (!currentSimulado || !Array.isArray(currentSimulado.questoes) || !currentSimulado.questoes.length) {
+        throw new Error('Simulado sem questoes validas.');
+      }
+      return [
+        {
+          title: 'Resumo do simulado',
+          content: `${currentSimulado.instrucoes || ''}\nMateria: ${currentSimulado.materia || ''}\nTema: ${currentSimulado.assunto || ''}\nQuestoes: ${currentSimulado.questoes.length}`
+        },
+        {
+          title: 'Questoes',
+          content: currentSimulado.questoes.map(question => {
+            const alternativas = question.alternativas.map(option => `${option.letra}) ${option.texto}`).join('\n');
+            return `Questao ${question.id}\nTema: ${question.tema || currentSimulado.assunto || ''}\nArea: ${question.area || ''}\nModelo TRI: ${question.modeloTri || ''}\n\n${question.contexto}\n\n${question.pergunta || question.enunciado}\n${alternativas}`;
+          }).join('\n\n')
+        },
+        {
+          title: 'Gabarito e explicacoes',
+          content: currentSimulado.questoes.map(question => `Questao ${question.id}: ${question.respostaCorreta}\n${question.resolucao || question.explicacao || ''}`).join('\n\n')
+        }
+      ];
+    }
+
+    async function saveSimuladoPdf() {
+      if (!currentSimulado) return App.showToast('Gere um simulado primeiro.', true);
+      const btn = document.getElementById('savePdfBtn');
+      btn.disabled = true;
+      btn.innerHTML = '<i data-feather="loader" class="w-4 h-4 animate-spin"></i> Salvando...';
+      feather.replace();
+      setPdfStatus('Gerando PDF com conteudo validado...');
+
+      try {
+        const filename = EnemFlowPdfTools.sanitizeFileName(`${currentSimulado.titulo || 'Simulado EnemFlow'}.pdf`);
+        const html = EnemFlowPdfTools.buildPdfHtml({
+          title: currentSimulado.titulo,
+          theme: currentSimulado.assunto || currentSimulado.materia,
+          materia: currentSimulado.materia,
+          sections: buildSimuladoPdfSections()
+        });
+        const blob = await EnemFlowPdfTools.generatePdfBlob(html, filename);
+        await EnemFlowPdfTools.savePdfRecord({
+          id: crypto.randomUUID(),
+          name: filename,
+          materia: currentSimulado.materia || 'Simulado',
+          createdAt: new Date().toISOString(),
+          size: blob.size,
+          blob
+        });
+        EnemFlowPdfTools.openBlob(blob);
+        setPdfStatus(`PDF salvo neste dispositivo: ${filename} • ${EnemFlowPdfTools.formatBytes(blob.size)}`);
+        App.showToast('PDF salvo neste dispositivo.');
+      } catch (error) {
+        console.error('[Simulado PDF]', error);
+        setPdfStatus('Não foi possível gerar o PDF. Tente novamente.', true);
+        App.showToast('Não foi possível gerar o PDF. Tente novamente.', true);
+      } finally {
+        btn.disabled = false;
+        btn.innerHTML = '<i data-feather="save" class="w-4 h-4"></i> Salvar PDF';
+        feather.replace();
+      }
     }
 
     function buildPrintSheet(includeAnswers) {

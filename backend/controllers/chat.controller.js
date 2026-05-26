@@ -5,6 +5,36 @@ const { chatCompletion } = require('../services/openrouter.service');
 
 const CHAT_LIMIT = 30;
 const VALID_LETTERS = ['A', 'B', 'C', 'D', 'E'];
+const VALID_DIFFICULTIES = ['facil', 'media', 'dificil'];
+const STOPWORDS = new Set([
+  'a', 'o', 'as', 'os', 'um', 'uma', 'de', 'da', 'do', 'das', 'dos', 'em', 'no', 'na', 'nos', 'nas',
+  'para', 'por', 'com', 'sem', 'sobre', 'entre', 'tema', 'assunto', 'enem', 'questao', 'questoes',
+  'simulado', 'materia', 'disciplina', 'geral'
+]);
+const TOPIC_KEYWORDS = {
+  geometria: ['geometria', 'geometrico', 'geometrica', 'area', 'perimetro', 'volume', 'angulo', 'triangulo', 'quadrado', 'retangulo', 'circulo', 'circunferencia', 'poligono', 'plano cartesiano', 'semelhanca'],
+  algebra: ['algebra', 'equacao', 'funcao', 'inequacao', 'sistema', 'polinomio', 'raiz', 'coeficiente'],
+  estatistica: ['estatistica', 'media', 'mediana', 'moda', 'probabilidade', 'grafico', 'tabela', 'amostra'],
+  termodinamica: ['termodinamica', 'calor', 'temperatura', 'energia interna', 'gas', 'pressao', 'volume'],
+  'era vargas': ['era vargas', 'getulio', 'estado novo', 'trabalhismo', 'clt', 'industrializacao'],
+  redacao: ['redacao', 'tese', 'argumento', 'intervencao', 'competencia', 'dissertativo']
+};
+const AREA_BY_MATERIA = {
+  matematica: 'Matematica e suas Tecnologias',
+  fisica: 'Ciencias da Natureza e suas Tecnologias',
+  quimica: 'Ciencias da Natureza e suas Tecnologias',
+  biologia: 'Ciencias da Natureza e suas Tecnologias',
+  historia: 'Ciencias Humanas e suas Tecnologias',
+  geografia: 'Ciencias Humanas e suas Tecnologias',
+  filosofia: 'Ciencias Humanas e suas Tecnologias',
+  sociologia: 'Ciencias Humanas e suas Tecnologias',
+  literatura: 'Linguagens, Codigos e suas Tecnologias',
+  portugues: 'Linguagens, Codigos e suas Tecnologias',
+  artes: 'Linguagens, Codigos e suas Tecnologias',
+  ingles: 'Linguagens, Codigos e suas Tecnologias',
+  espanhol: 'Linguagens, Codigos e suas Tecnologias',
+  redacao: 'Redacao'
+};
 
 /** Garante que o usuário não tenha mais de 30 conversas */
 async function enforceLimit(usuarioId) {
@@ -32,6 +62,87 @@ function extractJsonObject(text) {
   }
 }
 
+function stripDiacritics(value) {
+  return String(value || '')
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .toLowerCase()
+    .trim();
+}
+
+function tokenize(value) {
+  return stripDiacritics(value)
+    .replace(/[^a-z0-9\s-]/g, ' ')
+    .split(/\s+/)
+    .filter(token => token.length >= 3 && !STOPWORDS.has(token));
+}
+
+function uniqueTokens(values) {
+  return [...new Set(values.flatMap(tokenize))];
+}
+
+function getTopicKeywords(materia, assunto) {
+  const normalizedAssunto = stripDiacritics(assunto);
+  const exact = TOPIC_KEYWORDS[normalizedAssunto] || [];
+  const partial = Object.entries(TOPIC_KEYWORDS)
+    .filter(([key]) => normalizedAssunto && (normalizedAssunto.includes(key) || key.includes(normalizedAssunto)))
+    .flatMap(([, keywords]) => keywords);
+  return uniqueTokens([materia, assunto, ...exact, ...partial]);
+}
+
+function getAreaFromMateria(materia) {
+  return AREA_BY_MATERIA[stripDiacritics(materia)] || 'Area do ENEM';
+}
+
+function normalizeDifficulty(value) {
+  const normalized = stripDiacritics(value || 'media');
+  if (VALID_DIFFICULTIES.includes(normalized)) return normalized;
+  if (normalized.includes('fac')) return 'facil';
+  if (normalized.includes('dif')) return 'dificil';
+  return 'media';
+}
+
+function questionSearchText(question) {
+  return [
+    question.contexto,
+    question.textoMotivador,
+    question.enunciado,
+    question.pergunta,
+    question.resolucao,
+    question.habilidade,
+    question.competencia,
+    question.tema,
+    question.area,
+    ...(question.alternativas || []).map(alt => alt.texto)
+  ].join(' ');
+}
+
+function scoreQuestionTopic(question, materia, assunto) {
+  const topicTokens = getTopicKeywords(materia, assunto);
+  if (!assunto || topicTokens.length === 0) return { score: 1, matched: [] };
+
+  const textTokens = new Set(tokenize(questionSearchText(question)));
+  const matched = topicTokens.filter(token => textTokens.has(token));
+  return { score: matched.length / Math.max(topicTokens.length, 1), matched };
+}
+
+function validateThemeCoverage(questoes, materia, assunto) {
+  if (!assunto || !String(assunto).trim()) {
+    return { ok: true, confidence: 1, matchedQuestions: questoes.length, scores: [] };
+  }
+
+  const scores = questoes.map(question => scoreQuestionTopic(question, materia, assunto));
+  const matchedQuestions = scores.filter(item => item.score >= 0.18 || item.matched.length >= 2).length;
+  const confidence = matchedQuestions / Math.max(questoes.length, 1);
+
+  return {
+    ok: confidence >= 0.7,
+    confidence,
+    matchedQuestions,
+    scores: scores.map(item => ({ score: Number(item.score.toFixed(3)), matched: item.matched.slice(0, 8) }))
+  };
+}
+
 function normalizeQuestion(question, index, materia, assunto) {
   const alternativas = Array.isArray(question.alternativas)
     ? question.alternativas
@@ -46,18 +157,30 @@ function normalizeQuestion(question, index, materia, assunto) {
   });
 
   const respostaCorreta = String(question.respostaCorreta || question.gabarito || '').trim().toUpperCase();
+  const pergunta = String(question.pergunta || question.enunciado || '').trim();
+  const resolucao = String(question.resolucao || question.explicacao || '').trim();
+  const area = String(question.area || getAreaFromMateria(materia)).trim();
 
   return {
     id: index + 1,
     materia,
-    assunto: assunto || question.assunto || 'Geral',
+    assunto: assunto || question.assunto || question.tema || 'Geral',
     contexto: String(question.contexto || '').trim(),
-    enunciado: String(question.enunciado || '').trim(),
+    textoMotivador: String(question.textoMotivador || question.texto_motivador || question.contexto || '').trim(),
+    imagemSugerida: String(question.imagemSugerida || question.imagem || '').trim(),
+    interpretacao: String(question.interpretacao || '').trim(),
+    enunciado: pergunta,
+    pergunta,
     alternativas: normalizedAlternativas,
     respostaCorreta: VALID_LETTERS.includes(respostaCorreta) ? respostaCorreta : 'A',
-    resolucao: String(question.resolucao || question.explicacao || '').trim(),
+    resolucao,
+    explicacao: String(question.explicacao || resolucao).trim(),
+    competencia: String(question.competencia || '').trim(),
     habilidade: String(question.habilidade || '').trim(),
-    dificuldade: String(question.dificuldade || 'Média').trim()
+    tema: String(question.tema || assunto || 'Geral').trim(),
+    area,
+    modeloTri: String(question.modeloTri || question.modelo_TRI || question.tri || '').trim(),
+    dificuldade: normalizeDifficulty(question.dificuldade)
   };
 }
 
@@ -76,15 +199,32 @@ function validateSimuladoPayload(payload, quantidade, materia, assunto) {
 
   const invalidQuestion = questoes.find(question =>
     !question.contexto ||
+    question.contexto.length < 120 ||
+    !question.textoMotivador ||
+    !question.pergunta ||
+    question.pergunta.length < 30 ||
     !question.enunciado ||
     question.alternativas.length !== 5 ||
     question.alternativas.some(alt => !alt.texto) ||
     !VALID_LETTERS.includes(question.respostaCorreta) ||
-    !question.resolucao
+    !question.resolucao ||
+    !question.competencia ||
+    !question.habilidade ||
+    !question.tema ||
+    !question.area ||
+    !question.modeloTri
   );
 
   if (invalidQuestion) {
     throw new Error('A IA retornou questões incompletas. Tente gerar novamente.');
+  }
+
+  const coverage = validateThemeCoverage(questoes, materia, assunto);
+  if (!coverage.ok) {
+    const err = new Error('Poucas questões encontradas para este tema.');
+    err.statusCode = 422;
+    err.details = coverage;
+    throw err;
   }
 
   return {
@@ -92,6 +232,7 @@ function validateSimuladoPayload(payload, quantidade, materia, assunto) {
     materia,
     assunto: assunto || 'Geral',
     instrucoes: String(payload.instrucoes || 'Leia cada questão com atenção e marque apenas uma alternativa.').trim(),
+    validacaoTema: coverage,
     questoes
   };
 }
@@ -225,30 +366,40 @@ A questão DEVE seguir este formato EXATO:
 exports.generateSimulado = async (req, res) => {
   try {
     const { materia, assunto, quantidade } = req.body;
-    if (!materia) return res.status(400).json({ error: 'Campo "materia" é obrigatório.' });
+    if (!materia) return res.status(400).json({ error: 'Campo "materia" e obrigatorio.' });
 
     const safeQuantidade = Math.max(3, Math.min(parseInt(quantidade, 10) || 5, 12));
     const tema = assunto ? `${materia} - ${assunto}` : materia;
 
     const prompt = `Crie um simulado completo do ENEM sobre: ${tema}.
 
-Regras obrigatórias:
-- Gere exatamente ${safeQuantidade} questões.
-- Cada questão deve ter contexto, enunciado, cinco alternativas plausíveis e apenas uma resposta correta.
-- Evite fatos inventados, datas duvidosas, números sem necessidade e fontes inexistentes.
-- Quando houver cálculo, confira a conta antes de responder.
-- As alternativas incorretas devem ser plausíveis, mas claramente refutáveis pela resolução.
+Regras obrigatorias:
+- Gere exatamente ${safeQuantidade} questoes.
+- O tema principal de TODAS as questoes deve ser "${assunto || materia}". Nao use questoes genericas que apenas citam a materia.
+- Cada questao deve parecer uma questao real do ENEM: situacao-problema, texto motivador, interpretacao, comando claro e alternativas plausiveis.
+- O contexto/texto motivador deve ter pelo menos 120 caracteres e nunca ser uma frase curta.
+- Cada pergunta deve exigir interpretacao, leitura, raciocinio ou aplicacao. Nao use perguntas diretas como "quanto e 2+2".
+- Cada questao deve ter contexto, textoMotivador, interpretacao, pergunta, cinco alternativas plausiveis e apenas uma resposta correta.
+- Evite fatos inventados, datas duvidosas, numeros sem necessidade e fontes inexistentes.
+- Quando houver calculo, confira a conta antes de responder.
+- As alternativas incorretas devem ser plausiveis, mas claramente refutaveis pela resolucao.
+- Classifique dificuldade apenas como: facil, media ou dificil.
+- Preencha metadata pedagogica: competencia, habilidade, tema, area e modeloTri.
 - Use linguagem de prova, sem mencionar IA, modelo, prompt ou algoritmo.
-- Não inclua markdown. Não inclua comentários fora do JSON.
+- Nao inclua markdown. Nao inclua comentarios fora do JSON.
 
-Retorne somente um JSON válido no formato:
+Retorne somente um JSON valido no formato:
 {
   "titulo": "Simulado EnemFlow - ${tema}",
   "instrucoes": "texto curto",
   "questoes": [
     {
-      "contexto": "texto motivador",
-      "enunciado": "pergunta",
+      "contexto": "texto motivador com situacao-problema em estilo ENEM",
+      "textoMotivador": "texto de apoio da questao",
+      "imagemSugerida": "descricao curta de imagem/tabela/grafico se necessario, ou string vazia",
+      "interpretacao": "o que o aluno precisa interpretar para resolver",
+      "pergunta": "comando da questao",
+      "enunciado": "mesmo texto de pergunta",
       "alternativas": [
         { "letra": "A", "texto": "alternativa" },
         { "letra": "B", "texto": "alternativa" },
@@ -257,24 +408,34 @@ Retorne somente um JSON válido no formato:
         { "letra": "E", "texto": "alternativa" }
       ],
       "respostaCorreta": "A",
-      "resolucao": "explicação objetiva e conferida",
-      "habilidade": "tema/habilidade em linguagem simples",
-      "dificuldade": "Fácil | Média | Difícil"
+      "resolucao": "explicacao objetiva e conferida",
+      "explicacao": "explicacao opcional para estudo",
+      "competencia": "competencia do ENEM em linguagem simples",
+      "habilidade": "habilidade do ENEM em linguagem simples",
+      "tema": "${assunto || materia}",
+      "area": "${getAreaFromMateria(materia)}",
+      "modeloTri": "baixa | media | alta discriminacao, com justificativa curta",
+      "dificuldade": "facil | media | dificil"
     }
   ]
 }`;
 
-    const systemPrompt = `Você é um elaborador sênior de simulados do ENEM e revisor pedagógico.
-Sua prioridade é precisão, coerência e formato estruturado.
-Antes de responder, faça uma revisão silenciosa:
-1. há exatamente cinco alternativas por questão;
-2. só existe uma alternativa correta;
-3. a resposta correta bate com a resolução;
-4. não há afirmações factuais duvidosas;
-5. o JSON é válido.
+    const systemPrompt = `Voce e um elaborador senior de simulados do ENEM e revisor pedagogico.
+Sua prioridade e precisao, coerencia, aderencia ao tema e formato estruturado.
+Antes de responder, faca uma revisao silenciosa:
+1. ha exatamente cinco alternativas por questao;
+2. so existe uma alternativa correta;
+3. a resposta correta bate com a resolucao;
+4. nao ha afirmacoes factuais duvidosas;
+5. o tema solicitado aparece de forma central em contexto, pergunta, resolucao ou metadata;
+6. o JSON e valido.
 Responda somente o JSON final.`;
 
-    const raw = await chatCompletion([{ role: 'user', content: prompt }], systemPrompt);
+    const raw = await chatCompletion(
+      [{ role: 'user', content: prompt }],
+      systemPrompt,
+      { maxTokens: 4096, temperature: 0.45 }
+    );
     const parsed = extractJsonObject(raw);
     const simulado = validateSimuladoPayload(parsed, safeQuantidade, materia, assunto);
 
@@ -291,11 +452,13 @@ Responda somente o JSON final.`;
 
     res.json({ chatId: chat._id, simulado });
   } catch (error) {
-    console.error('[chat.generateSimulado]', error.message);
-    res.status(500).json({ error: error.message || 'Erro ao gerar simulado.' });
+    console.error('[chat.generateSimulado]', error.message, error.details || '');
+    res.status(error.statusCode || 500).json({
+      error: error.message || 'Erro ao gerar simulado.',
+      details: error.details
+    });
   }
 };
-
 // POST /api/chat/content-context — inicia conversa usando o texto extraido de um material
 exports.startContentContextChat = async (req, res) => {
   try {
@@ -373,4 +536,3 @@ exports.clearAllChats = async (req, res) => {
     res.status(500).json({ error: 'Erro ao excluir todas as conversas.' });
   }
 };
-

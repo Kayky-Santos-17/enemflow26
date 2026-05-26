@@ -12,6 +12,7 @@
   <script src="sidebar.js" defer></script>
   <!-- Biblioteca para renderizar Markdown retornado pela IA -->
   <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
   <script>
     tailwind.config = {
       darkMode: 'class',
@@ -79,12 +80,24 @@
       <button onclick="clearAllChats()" class="w-full py-2 px-4 bg-red-500/5 hover:bg-red-500/10 text-red-500 hover:text-red-400 rounded-xl font-semibold transition-colors flex items-center justify-center gap-2 border border-red-500/15 text-xs">
         <i data-feather="trash-2" class="w-3.5 h-3.5"></i> Limpar Histórico
       </button>
+      <button onclick="openPdfComposer()" class="w-full py-2.5 px-4 bg-purple-500/5 hover:bg-purple-500/10 text-purple-300 rounded-xl font-semibold transition-colors flex items-center justify-center gap-2 border border-purple-500/15 text-xs">
+        <i data-feather="file-text" class="w-3.5 h-3.5"></i> Gerar PDF
+      </button>
     </div>
 
     <div class="flex-1 overflow-y-auto p-4 space-y-1" id="historyList">
       <!-- Preenchido via JS -->
       <div class="skeleton w-full h-10 rounded-lg mb-2"></div>
       <div class="skeleton w-full h-10 rounded-lg"></div>
+    </div>
+    <div class="border-t border-white/10 p-4">
+      <div class="flex items-center justify-between gap-2 mb-3">
+        <p class="text-xs font-black uppercase tracking-wider" style="color:rgba(196,188,220,0.5);">Neste dispositivo</p>
+        <button onclick="renderDevicePdfs()" class="p-1.5 rounded-lg hover:bg-white/5 text-slate-400" title="Atualizar"><i data-feather="refresh-cw" class="w-3.5 h-3.5"></i></button>
+      </div>
+      <input id="devicePdfSearch" type="text" oninput="renderDevicePdfs()" placeholder="Pesquisar PDFs..." class="w-full mb-2 text-xs">
+      <select id="devicePdfSort" onchange="renderDevicePdfs()" class="w-full mb-3 text-xs"><option value="recent">Mais recentes</option><option value="name">Nome</option><option value="size">Tamanho</option></select>
+      <div id="devicePdfList" class="space-y-2 text-xs"></div>
     </div>
   </aside>
 
@@ -139,7 +152,33 @@
 
   </main>
 
+  <div id="pdfComposerModal" class="fixed inset-0 hidden items-center justify-center z-[9998] p-4" style="background:rgba(7,6,14,0.82);backdrop-filter:blur(10px);">
+    <div class="glass w-full max-w-2xl rounded-2xl p-6 max-h-[90vh] overflow-y-auto">
+      <div class="flex items-start justify-between gap-4 mb-5">
+        <div>
+          <h2 class="text-xl font-black text-gradient" style="font-family:'Sora',sans-serif;">Gerar PDF inteligente</h2>
+          <p class="text-sm mt-1" style="color:rgba(196,188,220,0.58);">Escolha o que deseja transformar em PDF.</p>
+        </div>
+        <button onclick="closePdfComposer()" class="p-2 rounded-xl hover:bg-white/5 text-slate-400"><i data-feather="x" class="w-5 h-5"></i></button>
+      </div>
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-3 mb-4" id="pdfComposerOptions"></div>
+      <div class="space-y-2 mb-4">
+        <label class="text-sm font-bold" style="color:rgba(196,188,220,0.72);">Texto especifico</label>
+        <textarea id="pdfSpecificText" rows="4" class="w-full" placeholder="Cole aqui um texto para incluir no PDF..."></textarea>
+      </div>
+      <div class="space-y-2 mb-5">
+        <label class="text-sm font-bold" style="color:rgba(196,188,220,0.72);">Nome do arquivo</label>
+        <input id="pdfFileName" type="text" value="PDF ENEMFlow.pdf" class="w-full">
+      </div>
+      <div id="pdfComposerStatus" class="hidden mb-4 p-3 rounded-xl border text-sm" style="border-color:rgba(124,92,252,0.18);background:rgba(124,92,252,0.06);color:#c4b5fd;"></div>
+      <div class="flex flex-col sm:flex-row gap-3">
+        <button onclick="generateTutorPdf()" id="generateTutorPdfBtn" class="flex-1 py-3 px-4 rounded-xl font-black text-white flex items-center justify-center gap-2" style="background:linear-gradient(135deg,#7c5cfc,#ec4899);"><i data-feather="file-text" class="w-4 h-4"></i> Gerar e salvar PDF</button>
+        <button onclick="closePdfComposer()" class="py-3 px-4 rounded-xl font-bold border" style="border-color:rgba(124,92,252,0.18);color:#c4b5fd;background:rgba(124,92,252,0.06);">Cancelar</button>
+      </div>
+    </div>
+  </div>
   <script src="app.js"></script>
+  <script src="pdf-tools.js"></script>
   <script>
     feather.replace();
     if(!App.getToken()) window.location.href = 'login.html';
@@ -150,6 +189,22 @@
     const chatBox = document.getElementById('chatBox');
     const msgInput = document.getElementById('msgInput');
     const welcomeMessage = document.getElementById('welcomeMessage');
+    let lastChatsCache = [];
+
+    function sanitizeRenderedHtml(html) {
+      const template = document.createElement('template');
+      template.innerHTML = html;
+      template.content.querySelectorAll('script,style,iframe,object,embed,link,meta').forEach(el => el.remove());
+      template.content.querySelectorAll('*').forEach(el => {
+        [...el.attributes].forEach(attr => {
+          const value = String(attr.value || '').toLowerCase();
+          if (/^on/i.test(attr.name) || attr.name === 'srcdoc' || value.startsWith('javascript:')) {
+            el.removeAttribute(attr.name);
+          }
+        });
+      });
+      return template.innerHTML;
+    }
 
     // Auto-resize do textarea
     msgInput.addEventListener('input', function() {
@@ -202,7 +257,7 @@
               </svg>
             </div>
             <div class="glass border border-slate-200 dark:border-white/10 rounded-3xl rounded-tl-sm px-6 py-4 shadow-sm text-slate-800 dark:text-slate-200 prose prose-sm md:prose-base dark:prose-invert">
-              ${marked.parse(content)}
+              ${sanitizeRenderedHtml(marked.parse(content))}
             </div>
           </div>
         `;
@@ -327,6 +382,7 @@
       try {
         const list = document.getElementById('historyList');
         const chats = await App.api('/api/chat');
+        lastChatsCache = chats || [];
         
         if (chats.length === 0) {
           list.innerHTML = '<p class="text-xs text-slate-500 text-center mt-4">Nenhuma conversa recente.</p>';
@@ -341,6 +397,194 @@
         `).join('');
         feather.replace();
       } catch (err) {}
+    }
+
+    function getSavedSimulados() {
+      try {
+        return JSON.parse(localStorage.getItem('enemflow_simulados') || '[]');
+      } catch {
+        return [];
+      }
+    }
+
+    function getSavedSummaries() {
+      const keys = ['enemflow_last_summary', 'ultimoResumo', 'summary_result'];
+      return keys.map(key => localStorage.getItem(key)).filter(Boolean);
+    }
+
+    async function buildPdfComposerOptions() {
+      const options = [];
+      if (currentChatId) options.push({ id: 'current-chat', label: 'Chat atual', description: 'Inclui a conversa aberta agora.' });
+      options.push({ id: 'last-chats', label: 'Ultimos chats', description: 'Inclui conversas recentes do Tutor.' });
+      options.push({ id: 'specific-text', label: 'Texto especifico', description: 'Inclui o texto digitado abaixo.' });
+      if (getSavedSummaries().length) options.push({ id: 'summary', label: 'Resumo', description: 'Inclui o ultimo resumo salvo.' });
+      if (getSavedSimulados().length) options.push({ id: 'simulado', label: 'Simulado', description: 'Inclui o ultimo simulado salvo.' });
+      options.push({ id: 'manual', label: 'Selecionar manualmente', description: 'Usa as selecoes marcadas nesta janela.' });
+
+      const container = document.getElementById('pdfComposerOptions');
+      container.innerHTML = options.map((option, index) => `
+        <label class="p-4 rounded-2xl border cursor-pointer transition-all hover:-translate-y-0.5" style="border-color:rgba(255,255,255,0.08);background:rgba(255,255,255,0.025);">
+          <input type="checkbox" class="mr-2" value="${option.id}" ${index === 0 ? 'checked' : ''}>
+          <span class="font-black" style="color:#e4dff0;">${option.label}</span>
+          <p class="text-xs mt-1" style="color:rgba(196,188,220,0.52);">${option.description}</p>
+        </label>
+      `).join('');
+    }
+
+    async function openPdfComposer() {
+      document.getElementById('pdfComposerModal').classList.remove('hidden');
+      document.getElementById('pdfComposerModal').classList.add('flex');
+      document.getElementById('pdfComposerStatus').classList.add('hidden');
+      await buildPdfComposerOptions();
+      feather.replace();
+    }
+
+    function closePdfComposer() {
+      document.getElementById('pdfComposerModal').classList.add('hidden');
+      document.getElementById('pdfComposerModal').classList.remove('flex');
+    }
+
+    function setPdfComposerStatus(message, isError = false) {
+      const status = document.getElementById('pdfComposerStatus');
+      status.classList.remove('hidden');
+      status.style.borderColor = isError ? 'rgba(248,113,113,0.28)' : 'rgba(124,92,252,0.18)';
+      status.style.background = isError ? 'rgba(248,113,113,0.08)' : 'rgba(124,92,252,0.06)';
+      status.style.color = isError ? '#fca5a5' : '#c4b5fd';
+      status.textContent = message;
+    }
+
+    async function collectTutorPdfSections(selected) {
+      const sections = [];
+      if (selected.includes('current-chat') && currentChatId) {
+        const chat = await App.api(`/api/chat/${currentChatId}`);
+        sections.push({
+          title: `Chat atual: ${chat.titulo || 'Tutor IA'}`,
+          content: chat.mensagens.map(m => `${m.role === 'user' ? 'Aluno' : 'Tutor'}: ${m.content}`).join('\n\n')
+        });
+      }
+      if (selected.includes('last-chats')) {
+        const chats = (lastChatsCache.length ? lastChatsCache : await App.api('/api/chat')).filter(c => c.tipo === 'chat').slice(0, 3);
+        for (const chatItem of chats) {
+          const chat = await App.api(`/api/chat/${chatItem._id}`);
+          sections.push({
+            title: `Conversa: ${chat.titulo}`,
+            content: chat.mensagens.slice(-8).map(m => `${m.role === 'user' ? 'Aluno' : 'Tutor'}: ${m.content}`).join('\n\n')
+          });
+        }
+      }
+      const specificText = document.getElementById('pdfSpecificText').value.trim();
+      if (selected.includes('specific-text') && specificText) {
+        sections.push({ title: 'Texto especifico', content: specificText });
+      }
+      if (selected.includes('summary')) {
+        sections.push({ title: 'Resumo', content: getSavedSummaries()[0] || '' });
+      }
+      if (selected.includes('simulado')) {
+        const simulado = getSavedSimulados()[0];
+        if (simulado) {
+          sections.push({
+            title: simulado.titulo || 'Simulado',
+            content: `${simulado.instrucoes || ''}\n\n${simulado.questoes.map(q => `Questao ${q.id}: ${q.contexto}\n${q.pergunta || q.enunciado}\n${q.alternativas.map(a => `${a.letra}) ${a.texto}`).join('\n')}\nResposta: ${q.respostaCorreta}\nResolucao: ${q.resolucao}`).join('\n\n')}`
+          });
+        }
+      }
+      return sections;
+    }
+
+    async function generateTutorPdf() {
+      const btn = document.getElementById('generateTutorPdfBtn');
+      const selected = [...document.querySelectorAll('#pdfComposerOptions input:checked')].map(input => input.value);
+      if (!selected.length) return setPdfComposerStatus('Selecione ao menos uma fonte para gerar o PDF.', true);
+
+      btn.disabled = true;
+      btn.innerHTML = '<i data-feather="loader" class="w-4 h-4 animate-spin"></i> Gerando PDF...';
+      feather.replace();
+      setPdfComposerStatus('Organizando conteudo e validando PDF...');
+
+      try {
+        const sections = await collectTutorPdfSections(selected);
+        const filename = EnemFlowPdfTools.sanitizeFileName(document.getElementById('pdfFileName').value || 'PDF ENEMFlow.pdf');
+        const html = EnemFlowPdfTools.buildPdfHtml({
+          title: filename.replace(/\\.pdf$/i, ''),
+          theme: 'Tutor IA + estudos inteligentes',
+          sections
+        });
+        const blob = await EnemFlowPdfTools.generatePdfBlob(html, filename);
+        const record = await EnemFlowPdfTools.savePdfRecord({
+          id: crypto.randomUUID(),
+          name: filename,
+          materia: 'Tutor IA',
+          createdAt: new Date().toISOString(),
+          size: blob.size,
+          blob
+        });
+        EnemFlowPdfTools.openBlob(record.blob);
+        setPdfComposerStatus(`PDF salvo neste dispositivo (${EnemFlowPdfTools.formatBytes(blob.size)}).`);
+        App.showToast('PDF salvo neste dispositivo.');
+        renderDevicePdfs();
+      } catch (error) {
+        console.error('[Tutor PDF]', error);
+        setPdfComposerStatus('Não foi possível gerar o PDF. Tente novamente.', true);
+        App.showToast('Não foi possível gerar o PDF. Tente novamente.', true);
+      } finally {
+        btn.disabled = false;
+        btn.innerHTML = '<i data-feather="file-text" class="w-4 h-4"></i> Gerar e salvar PDF';
+        feather.replace();
+      }
+    }
+
+    async function renderDevicePdfs() {
+      const container = document.getElementById('devicePdfList');
+      if (!container || !window.EnemFlowPdfTools) return;
+      const query = (document.getElementById('devicePdfSearch')?.value || '').toLowerCase();
+      const sort = document.getElementById('devicePdfSort')?.value || 'recent';
+      let records = await EnemFlowPdfTools.listPdfRecords();
+      records = records.filter(record => record.name.toLowerCase().includes(query) || String(record.materia || '').toLowerCase().includes(query));
+      if (sort === 'name') records.sort((a, b) => a.name.localeCompare(b.name));
+      if (sort === 'size') records.sort((a, b) => (b.size || 0) - (a.size || 0));
+      if (!records.length) {
+        container.innerHTML = '<p class="text-center py-3" style="color:rgba(196,188,220,0.45);">Nenhum PDF salvo.</p>';
+        return;
+      }
+      container.innerHTML = records.map(record => `
+        <div class="p-3 rounded-xl border" style="border-color:rgba(255,255,255,0.07);background:rgba(255,255,255,0.025);">
+          <button class="w-full text-left" onclick="openDevicePdf('${record.id}')">
+            <p class="font-bold truncate" style="color:#e4dff0;">${EnemFlowPdfTools.escapeHtml(record.name)}</p>
+            <p style="color:rgba(196,188,220,0.5);">${EnemFlowPdfTools.relativeDate(record.createdAt)} • ${EnemFlowPdfTools.formatBytes(record.size)}${record.materia ? ' • ' + EnemFlowPdfTools.escapeHtml(record.materia) : ''}</p>
+          </button>
+          <div class="flex gap-1 mt-2">
+            <button onclick="renameDevicePdf('${record.id}')" class="px-2 py-1 rounded-lg hover:bg-white/5" title="Renomear"><i data-feather="edit-2" class="w-3 h-3"></i></button>
+            <button onclick="downloadDevicePdf('${record.id}')" class="px-2 py-1 rounded-lg hover:bg-white/5" title="Baixar"><i data-feather="download" class="w-3 h-3"></i></button>
+            <button onclick="deleteDevicePdf('${record.id}')" class="px-2 py-1 rounded-lg hover:bg-red-500/10 text-red-400" title="Excluir"><i data-feather="trash" class="w-3 h-3"></i></button>
+          </div>
+        </div>
+      `).join('');
+      feather.replace();
+    }
+
+    async function openDevicePdf(id) {
+      const record = await EnemFlowPdfTools.getPdfRecord(id);
+      if (record?.blob) EnemFlowPdfTools.openBlob(record.blob);
+    }
+
+    async function downloadDevicePdf(id) {
+      const record = await EnemFlowPdfTools.getPdfRecord(id);
+      if (record?.blob) EnemFlowPdfTools.downloadBlob(record.blob, record.name);
+    }
+
+    async function renameDevicePdf(id) {
+      const record = await EnemFlowPdfTools.getPdfRecord(id);
+      if (!record) return;
+      const name = prompt('Novo nome do PDF:', record.name);
+      if (!name) return;
+      await EnemFlowPdfTools.renamePdfRecord(id, name);
+      renderDevicePdfs();
+    }
+
+    async function deleteDevicePdf(id) {
+      if (!confirm('Excluir este PDF salvo neste dispositivo?')) return;
+      await EnemFlowPdfTools.deletePdfRecord(id);
+      renderDevicePdfs();
     }
 
     // Carregar Conversa Específica
@@ -374,6 +618,7 @@
 
 
     loadHistoryList();
+    renderDevicePdfs();
     if (currentChatId) loadCurrentChat();
 
     // Handle PDF context from study.html "Enviar para Tutor IA"

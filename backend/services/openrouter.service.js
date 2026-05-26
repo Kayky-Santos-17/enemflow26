@@ -90,7 +90,7 @@ async function getRelevantContentContext(messages) {
  * @param {string} [systemOverride] - System prompt customizado (opcional)
  * @returns {Promise<string>} Texto da resposta
  */
-async function chatCompletion(messages, systemOverride) {
+async function chatCompletion(messages, systemOverride, options = {}) {
   // Verifica se a última mensagem é off-topic
   const lastUserMsg = [...messages].reverse().find(m => m.role === 'user');
   if (lastUserMsg && isOffTopic(lastUserMsg.content)) {
@@ -122,8 +122,8 @@ async function chatCompletion(messages, systemOverride) {
     body: JSON.stringify({
       model: process.env.OPENROUTER_MODEL || 'openai/gpt-4.1-nano',
       messages: [systemMsg, ...messages],
-      max_tokens: 2048,
-      temperature: 0.7,
+      max_tokens: options.maxTokens || 2048,
+      temperature: options.temperature ?? 0.7,
     }),
   });
 
