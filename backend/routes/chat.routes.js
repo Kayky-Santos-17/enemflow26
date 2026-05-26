@@ -1,5 +1,14 @@
 const router = require('express').Router();
-const { sendMessage, listChats, getChat, deleteChat, generateExercise, generateSimulado, clearAllChats } = require('../controllers/chat.controller');
+const {
+  sendMessage,
+  listChats,
+  getChat,
+  deleteChat,
+  generateExercise,
+  generateSimulado,
+  startContentContextChat,
+  clearAllChats
+} = require('../controllers/chat.controller');
 const auth = require('../middlewares/auth');
 const { aiLimiter } = require('../middlewares/rateLimiter');
 
@@ -11,6 +20,7 @@ router.get('/:id', getChat);
 router.post('/', aiLimiter, sendMessage);
 router.post('/exercise', aiLimiter, generateExercise);
 router.post('/simulado', aiLimiter, generateSimulado);
+router.post('/content-context', aiLimiter, startContentContextChat);
 router.delete('/', clearAllChats);
 router.delete('/:id', deleteChat);
 

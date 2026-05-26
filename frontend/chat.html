@@ -381,20 +381,22 @@
       const params = new URLSearchParams(window.location.search);
       if (params.get('pdfContext') === 'true') {
         const pdfTitle = localStorage.getItem('pdfContextTitle') || 'PDF';
-        const pdfUrl = localStorage.getItem('pdfContextUrl') || '';
+        const contentId = localStorage.getItem('pdfContextContentId') || '';
         localStorage.removeItem('pdfContextTitle');
+        localStorage.removeItem('pdfContextContentId');
         localStorage.removeItem('pdfContextUrl');
         window.history.replaceState({}, '', 'chat.html');
 
-        if (pdfTitle) {
+        if (pdfTitle && contentId) {
           welcomeMessage.style.display = 'none';
-          appendMessage('user', `Estou estudando o material: "${pdfTitle}". Me ajude com dúvidas sobre este conteúdo.`);
+          appendMessage('user', `Estou estudando o material: "${pdfTitle}". Analise o PDF e me ajude com dúvidas sobre este conteúdo.`);
           showTyping();
 
-          App.api('/api/chat', {
+          App.api('/api/chat/content-context', {
             method: 'POST',
             body: JSON.stringify({
-              mensagem: `O aluno está estudando o material "${pdfTitle}" e tem dúvidas sobre o conteúdo. Apresente-se como tutor e pergunte como pode ajudar sobre esse tema específico.`
+              contentId,
+              pergunta: `Analise o PDF "${pdfTitle}" e explique os pontos principais em formato claro para estudo do ENEM. Depois, pergunte qual dúvida específica o aluno quer aprofundar.`
             })
           }).then(data => {
             removeTyping();
@@ -408,6 +410,8 @@
             removeTyping();
             App.showToast(err.message, true);
           });
+        } else {
+          App.showToast('Não foi possível identificar o PDF selecionado.', true);
         }
       }
     })();

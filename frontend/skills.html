@@ -510,15 +510,10 @@
     const AREA_ORDER = ['Matemática', 'Linguagens', 'Humanas', 'Natureza', 'Redação'];
     const AREA_ALIASES = {
       'Matemática': 'Matemática',
-      'MatemÃ¡tica': 'Matemática',
       'Linguagens e Códigos': 'Linguagens',
-      'Linguagens e CÃ³digos': 'Linguagens',
       'Ciências Humanas': 'Humanas',
-      'CiÃªncias Humanas': 'Humanas',
       'Ciências da Natureza': 'Natureza',
-      'CiÃªncias da Natureza': 'Natureza',
-      'Redação e Competências': 'Redação',
-      'RedaÃ§Ã£o e CompetÃªncias': 'Redação'
+      'Redação e Competências': 'Redação'
     };
     const AREA_FALLBACKS = {
       'Matemática': { percent: 82, acertos: 43, erros: 15, weak: 'Geometria', strong: 'Funções' },
@@ -544,24 +539,11 @@
     }
 
     function normalizeText(value) {
-      return String(value || '')
-        .replaceAll('Ã¡', 'á')
-        .replaceAll('Ã©', 'é')
-        .replaceAll('Ãª', 'ê')
-        .replaceAll('Ã­', 'í')
-        .replaceAll('Ã³', 'ó')
-        .replaceAll('Ãº', 'ú')
-        .replaceAll('Ã§', 'ç')
-        .replaceAll('Ã£', 'ã')
-        .replaceAll('Ãµ', 'õ')
-        .replaceAll('Ã', 'Á')
-        .replaceAll('Ã‰', 'É')
-        .replaceAll('ÃŠ', 'Ê')
-        .replaceAll('Ã‡', 'Ç');
+      return String(value || '').normalize('NFC');
     }
 
     function isNotEvaluated(skill) {
-      return skill.nivel === 'Não avaliado' || skill.nivel === 'NÃ£o avaliado';
+      return normalizeText(skill.nivel) === 'Não avaliado';
     }
 
     function scoreFromLevel(skill) {

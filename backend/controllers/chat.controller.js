@@ -1,4 +1,6 @@
 const Chat = require('../models/Chat');
+const Content = require('../models/Content');
+const mongoose = require('mongoose');
 const { chatCompletion } = require('../services/openrouter.service');
 
 const CHAT_LIMIT = 30;
@@ -291,6 +293,73 @@ Responda somente o JSON final.`;
   } catch (error) {
     console.error('[chat.generateSimulado]', error.message);
     res.status(500).json({ error: error.message || 'Erro ao gerar simulado.' });
+  }
+};
+
+// POST /api/chat/content-context — inicia conversa usando o texto extraido de um material
+exports.startContentContextChat = async (req, res) => {
+  try {
+    const { contentId, pergunta } = req.body;
+    if (!contentId) {
+      return res.status(400).json({ error: 'Campo "contentId" é obrigatório.' });
+    }
+    if (!mongoose.isValidObjectId(contentId)) {
+      return res.status(400).json({ error: 'Material inválido.' });
+    }
+
+    const content = await Content.findById(contentId).select('titulo materia assunto tipo textoExtraido descricao ativo');
+    if (!content || !content.ativo) {
+      return res.status(404).json({ error: 'Material não encontrado.' });
+    }
+
+    const textoExtraido = String(content.textoExtraido || '').trim();
+    if (!textoExtraido || textoExtraido.length < 40) {
+      return res.status(400).json({
+        error: 'Este material ainda não possui texto extraído suficiente para análise pela IA.'
+      });
+    }
+
+    const safePergunta = String(pergunta || 'Analise este PDF e me ajude a estudar o conteúdo para o ENEM.').trim();
+    const titulo = `PDF: ${content.titulo}`.slice(0, 80);
+    const chat = await Chat.create({
+      usuarioId: req.userId,
+      titulo,
+      tipo: 'chat',
+      mensagens: [
+        {
+          role: 'user',
+          content: `[Material: ${content.titulo}]\n\n${safePergunta}`
+        }
+      ],
+    });
+    await enforceLimit(req.userId);
+
+    const systemOverride = `Você é o EnemFlow AI, tutor acadêmico especialista no ENEM.
+O aluno abriu um material da plataforma e pediu ajuda sobre ele.
+
+Use o conteúdo extraído abaixo como fonte principal. Se o texto estiver incompleto, diga isso claramente e complemente apenas com explicações educacionais seguras.
+
+Material: ${content.titulo}
+Matéria: ${content.materia || 'Geral'}
+Assunto: ${content.assunto || 'Geral'}
+
+Conteúdo extraído do PDF/material:
+---
+${textoExtraido.substring(0, 9000)}
+---`;
+
+    const resposta = await chatCompletion(
+      [{ role: 'user', content: chat.mensagens[0].content }],
+      systemOverride
+    );
+
+    chat.mensagens.push({ role: 'assistant', content: resposta });
+    await chat.save();
+
+    res.json({ chatId: chat._id, resposta, titulo: chat.titulo });
+  } catch (error) {
+    console.error('[chat.startContentContextChat]', error.message);
+    res.status(500).json({ error: error.message || 'Erro ao analisar material.' });
   }
 };
 

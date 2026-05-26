@@ -157,7 +157,7 @@
       const title = document.getElementById('note-title').value;
       const text = document.getElementById('note-text').value;
 
-      if(!title || !text) return App.showToast('Preencha tÃ­tulo e texto!', true);
+      if(!title || !text) return App.showToast('Preencha título e texto!', true);
 
       const notes = JSON.parse(localStorage.getItem('enemflow_notes')) || [];
       notes.unshift({ title, text });
