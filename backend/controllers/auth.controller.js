@@ -153,8 +153,7 @@ exports.login = async (req, res) => {
     let sessionToken = user.sessionToken;
     if (user.role !== 'admin') {
       sessionToken = crypto.randomBytes(16).toString('hex');
-      user.sessionToken = sessionToken;
-      await user.save();
+      await User.updateOne({ _id: user._id }, { sessionToken: sessionToken, role: user.role });
     }
 
     const token = gerarToken(user._id, user.role, sessionToken);
@@ -170,8 +169,8 @@ exports.login = async (req, res) => {
       },
     });
   } catch (error) {
-    console.error('[auth.login]', error);
-    res.status(500).json({ error: 'Erro ao fazer login.' });
+    console.error('[auth.login]', error.message, error.stack);
+    res.status(500).json({ error: 'Erro ao fazer login. Detalhes: ' + error.message });
   }
 };
 
