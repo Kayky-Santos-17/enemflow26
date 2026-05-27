@@ -221,6 +221,44 @@
     `;
   }
 
+  function buildSimuladoPdfSections(simulado) {
+    if (!simulado || !Array.isArray(simulado.questoes) || !simulado.questoes.length) {
+      throw new Error('Simulado sem questoes validas.');
+    }
+
+    const questoes = simulado.questoes.map((question, index) => ({
+      id: question.id || index + 1,
+      contexto: question.contexto || question.textoMotivador || '',
+      pergunta: question.pergunta || question.enunciado || '',
+      alternativas: Array.isArray(question.alternativas) ? question.alternativas : [],
+      respostaCorreta: question.respostaCorreta || '',
+      resolucao: question.resolucao || question.explicacao || '',
+      tema: question.tema || simulado.assunto || '',
+      area: question.area || '',
+      modeloTri: question.modeloTri || ''
+    }));
+
+    return [
+      {
+        title: 'Resumo do simulado',
+        content: `${simulado.instrucoes || ''}\nMateria: ${simulado.materia || ''}\nTema: ${simulado.assunto || ''}\nQuestoes: ${questoes.length}`
+      },
+      {
+        title: 'Questoes',
+        content: questoes.map(question => {
+          const alternativas = question.alternativas
+            .map((option, optionIndex) => `${option.letra || String.fromCharCode(65 + optionIndex)}) ${option.texto || option}`)
+            .join('\n');
+          return `Questao ${question.id}\nTema: ${question.tema}\nArea: ${question.area}\nModelo TRI: ${question.modeloTri}\n\n${question.contexto}\n\n${question.pergunta}\n${alternativas}`;
+        }).join('\n\n')
+      },
+      {
+        title: 'Gabarito e explicacoes',
+        content: questoes.map(question => `Questao ${question.id}: ${question.respostaCorreta}\n${question.resolucao}`).join('\n\n')
+      }
+    ];
+  }
+
   function injectPdfStyles(container) {
     const style = document.createElement('style');
     style.textContent = `
@@ -283,6 +321,7 @@
     sanitizeMarkdownToText,
     stripHtml,
     buildPdfHtml,
+    buildSimuladoPdfSections,
     generatePdfBlob,
     savePdfRecord,
     listPdfRecords,

@@ -524,26 +524,7 @@
     }
 
     function buildSimuladoPdfSections() {
-      if (!currentSimulado || !Array.isArray(currentSimulado.questoes) || !currentSimulado.questoes.length) {
-        throw new Error('Simulado sem questoes validas.');
-      }
-      return [
-        {
-          title: 'Resumo do simulado',
-          content: `${currentSimulado.instrucoes || ''}\nMateria: ${currentSimulado.materia || ''}\nTema: ${currentSimulado.assunto || ''}\nQuestoes: ${currentSimulado.questoes.length}`
-        },
-        {
-          title: 'Questoes',
-          content: currentSimulado.questoes.map(question => {
-            const alternativas = question.alternativas.map(option => `${option.letra}) ${option.texto}`).join('\n');
-            return `Questao ${question.id}\nTema: ${question.tema || currentSimulado.assunto || ''}\nArea: ${question.area || ''}\nModelo TRI: ${question.modeloTri || ''}\n\n${question.contexto}\n\n${question.pergunta || question.enunciado}\n${alternativas}`;
-          }).join('\n\n')
-        },
-        {
-          title: 'Gabarito e explicacoes',
-          content: currentSimulado.questoes.map(question => `Questao ${question.id}: ${question.respostaCorreta}\n${question.resolucao || question.explicacao || ''}`).join('\n\n')
-        }
-      ];
+      return EnemFlowPdfTools.buildSimuladoPdfSections(currentSimulado);
     }
 
     async function saveSimuladoPdf() {

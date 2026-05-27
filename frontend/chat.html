@@ -482,10 +482,7 @@
       if (selected.includes('simulado')) {
         const simulado = getSavedSimulados()[0];
         if (simulado) {
-          sections.push({
-            title: simulado.titulo || 'Simulado',
-            content: `${simulado.instrucoes || ''}\n\n${simulado.questoes.map(q => `Questao ${q.id}: ${q.contexto}\n${q.pergunta || q.enunciado}\n${q.alternativas.map(a => `${a.letra}) ${a.texto}`).join('\n')}\nResposta: ${q.respostaCorreta}\nResolucao: ${q.resolucao}`).join('\n\n')}`
-          });
+          sections.push(...EnemFlowPdfTools.buildSimuladoPdfSections(simulado));
         }
       }
       return sections;
