@@ -194,16 +194,25 @@
     return `<section class="ef-pdf-section">${title}${content}${items}</section>`;
   }
 
-  function buildPdfHtml({ title, theme, materia, sections = [], footer = 'ENEMFlow' }) {
+  function buildPdfHtml({ title, theme, materia, sections = [], footer = 'EnemFlow26' }) {
     const safeSections = sections.filter(section => section && (section.content || section.items || section.html)).map(renderSection).join('');
     if (!safeSections.trim()) throw new Error('PDF sem conteudo validado.');
     return `
       <article class="ef-pdf-doc">
         <header class="ef-pdf-cover">
-          <div class="ef-pdf-brand">ENEMFlow</div>
+          <div class="ef-pdf-brand-row">
+            <span class="ef-pdf-logo"><img src="favicon.svg" alt=""></span>
+            <div>
+              <div class="ef-pdf-brand">EnemFlow26</div>
+              <small>Plataforma de estudo inteligente para o ENEM</small>
+            </div>
+          </div>
           <h1>${escapeHtml(title || 'Material ENEMFlow')}</h1>
           <p>${escapeHtml(theme || materia || 'Estudo inteligente')}</p>
-          <small>${new Date().toLocaleString('pt-BR')}</small>
+          <div class="ef-pdf-cover-meta">
+            <span>${escapeHtml(materia || 'Estudo')}</span>
+            <span>${new Date().toLocaleString('pt-BR')}</span>
+          </div>
         </header>
         ${safeSections}
         <footer>${escapeHtml(footer)} - Gerado neste dispositivo</footer>
@@ -223,7 +232,7 @@
           <span>Questoes: ${simulado.questoes.length}</span>
         </div>
         ${simulado.descricao ? `<p>${escapeHtml(simulado.descricao)}</p>` : ''}
-        <p>${escapeHtml(simulado.instrucoes || 'Leia cada questao com atencao e marque apenas uma alternativa.')}</p>
+        <p>${escapeHtml(simulado.instrucoes || 'Leia cada questão com atenção e marque apenas uma alternativa.')}</p>
       `
     };
     const questions = simulado.questoes.map((question, index) => {
@@ -257,22 +266,41 @@
   function injectPdfStyles(container) {
     const style = document.createElement('style');
     style.textContent = `
-      .ef-pdf-doc{width:794px;min-height:1123px;background:#fff;color:#171427;font-family:Inter,Arial,sans-serif;padding:42px;box-sizing:border-box;}
-      .ef-pdf-cover{border-bottom:3px solid #7c5cfc;margin-bottom:22px;padding-bottom:18px;break-after:avoid;}
-      .ef-pdf-brand{display:inline-block;background:linear-gradient(135deg,#7c5cfc,#ec4899);color:#fff;font-weight:800;border-radius:10px;padding:7px 11px;margin-bottom:14px;}
-      .ef-pdf-doc h1{font-family:Sora,Inter,Arial,sans-serif;font-size:28px;line-height:1.15;margin:0 0 8px;color:#171427;}
-      .ef-pdf-doc h2{font-family:Sora,Inter,Arial,sans-serif;font-size:16px;margin:0 0 10px;color:#31265f;}
-      .ef-pdf-doc p,.ef-pdf-doc li,.ef-pdf-doc span{font-size:11.8px;line-height:1.55;color:#2f2a3f;}
-      .ef-pdf-section{break-inside:avoid;page-break-inside:avoid;border-bottom:1px solid #ebe7ff;padding:0 0 12px;margin:0 0 16px;}
+      .ef-pdf-doc{width:794px;min-height:1123px;background:#fff;color:#171427;font-family:Inter,Arial,sans-serif;padding:46px 48px 54px;box-sizing:border-box;}
+      .ef-pdf-cover{border-bottom:3px solid #7c5cfc;margin-bottom:24px;padding-bottom:18px;break-after:avoid;page-break-after:avoid;}
+      .ef-pdf-brand-row{display:flex;align-items:center;gap:12px;margin-bottom:18px;}
+      .ef-pdf-logo{width:44px;height:44px;border-radius:14px;display:inline-flex;align-items:center;justify-content:center;background:#f4f1ff;border:1px solid #e5dcff;}
+      .ef-pdf-logo img{width:28px;height:28px;object-fit:contain;}
+      .ef-pdf-brand{font-family:Sora,Inter,Arial,sans-serif;font-size:15px;color:#31265f;font-weight:900;letter-spacing:.01em;}
+      .ef-pdf-cover small{font-size:10px;color:#756a9a;font-weight:700;}
+      .ef-pdf-cover-meta{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px;}
+      .ef-pdf-cover-meta span{background:#f5f3ff;border:1px solid #e8e2ff;border-radius:999px;padding:5px 9px;font-size:10px;font-weight:800;color:#5c4b95;}
+      .ef-pdf-doc h1{font-family:Sora,Inter,Arial,sans-serif;font-size:30px;line-height:1.13;margin:0 0 8px;color:#171427;letter-spacing:0;}
+      .ef-pdf-doc h2{font-family:Sora,Inter,Arial,sans-serif;font-size:16px;margin:0 0 10px;color:#31265f;letter-spacing:0;}
+      .ef-pdf-doc p,.ef-pdf-doc li,.ef-pdf-doc span{font-size:11.6px;line-height:1.58;color:#2f2a3f;}
+      .ef-pdf-section{break-inside:auto;page-break-inside:auto;border-bottom:1px solid #ebe7ff;padding:0 0 13px;margin:0 0 17px;}
       .ef-pdf-options{padding-left:22px;margin:8px 0 0;}
       .ef-pdf-options li{margin:5px 0;}
       .ef-pdf-meta{display:grid;grid-template-columns:1fr 1fr;gap:6px 12px;margin-bottom:10px;}
       .ef-pdf-meta span{background:#f5f3ff;border:1px solid #e8e2ff;border-radius:8px;padding:6px 8px;font-weight:700;}
       .ef-pdf-question-meta{font-size:10.5px!important;color:#6d5ba8!important;text-transform:uppercase;font-weight:800;letter-spacing:.02em;}
       .ef-pdf-answer{break-inside:avoid;page-break-inside:avoid;border:1px solid #e8e2ff;border-radius:10px;padding:8px 10px;margin:8px 0;background:#fbfaff;}
-      .ef-pdf-doc footer{margin-top:24px;color:#6f6790;font-size:10px;text-align:center;}
+      .ef-pdf-doc footer{margin-top:24px;color:#6f6790;font-size:10px;text-align:center;border-top:1px solid #ebe7ff;padding-top:12px;}
     `;
     container.appendChild(style);
+  }
+
+  async function waitForPdfAssets(container) {
+    if (document.fonts?.ready) await document.fonts.ready.catch(() => {});
+    const images = [...container.querySelectorAll('img')];
+    await Promise.all(images.map(img => {
+      if (img.complete && img.naturalWidth) return Promise.resolve();
+      if (img.decode) return img.decode().catch(() => {});
+      return new Promise(resolve => {
+        img.onload = resolve;
+        img.onerror = resolve;
+      });
+    }));
   }
 
   async function generatePdfBlob(html, filename) {
@@ -287,14 +315,16 @@
     document.body.appendChild(wrapper);
     try {
       if (!window.html2pdf) throw new Error('Biblioteca de PDF nao carregada.');
+      await waitForPdfAssets(wrapper);
+      const canvasScale = window.matchMedia && window.matchMedia('(max-width: 700px)').matches ? 1.45 : 2;
       const worker = window.html2pdf()
         .set({
           margin: [18, 14, 28, 14],
           filename: sanitizeFileName(filename),
           image: { type: 'jpeg', quality: 0.98 },
-          html2canvas: { scale: 2, useCORS: true, backgroundColor: '#ffffff', logging: false },
+          html2canvas: { scale: canvasScale, useCORS: true, backgroundColor: '#ffffff', logging: false, letterRendering: true },
           jsPDF: { unit: 'pt', format: 'a4', orientation: 'portrait', compress: true },
-          pagebreak: { mode: ['css', 'legacy'], avoid: ['.ef-pdf-section', '.ef-pdf-answer'] }
+          pagebreak: { mode: ['css', 'legacy'], avoid: ['.ef-pdf-answer', '.ef-pdf-cover'] }
         })
         .from(wrapper)
         .toPdf();
@@ -302,9 +332,16 @@
       const pages = pdf.internal.getNumberOfPages();
       for (let page = 1; page <= pages; page += 1) {
         pdf.setPage(page);
+        const width = pdf.internal.pageSize.getWidth();
+        const height = pdf.internal.pageSize.getHeight();
+        pdf.setDrawColor(232, 226, 255);
+        pdf.setLineWidth(0.4);
+        pdf.line(38, 24, width - 38, 24);
+        pdf.line(38, height - 30, width - 38, height - 30);
         pdf.setFontSize(9);
         pdf.setTextColor(110, 103, 144);
-        pdf.text(`Pagina ${page} de ${pages}`, pdf.internal.pageSize.getWidth() - 86, pdf.internal.pageSize.getHeight() - 14);
+        pdf.text('EnemFlow26', 42, height - 14);
+        pdf.text(`Pagina ${page} de ${pages}`, width - 86, height - 14);
       }
       const blob = await worker.outputPdf('blob');
       if (!blob || blob.size < 800) throw new Error('PDF gerado sem conteudo valido.');

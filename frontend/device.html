@@ -12,9 +12,12 @@
   <script src="sidebar.js" defer></script>
   <script>tailwind.config={darkMode:'class',theme:{extend:{fontFamily:{sans:['Inter','sans-serif'],sora:['Sora','sans-serif']}}}};</script>
   <style>
-    body{font-family:'Inter',sans-serif}.device-shell{max-width:1180px;margin:0 auto;padding:2rem}.device-card{background:rgba(12,10,22,.88);border:1px solid rgba(255,255,255,.075);border-radius:18px;box-shadow:0 12px 36px rgba(0,0,0,.28)}
+    body{font-family:'Inter',sans-serif}.device-shell{max-width:980px;margin:0 auto;padding:2rem}.device-card{background:rgba(12,10,22,.88);border:1px solid rgba(255,255,255,.075);border-radius:18px;box-shadow:0 12px 36px rgba(0,0,0,.28)}
     .device-action{display:inline-flex;align-items:center;justify-content:center;gap:.5rem;min-height:40px;padding:.65rem .9rem;border-radius:12px;font-weight:800;font-size:.82rem;color:#c4b5fd;border:1px solid rgba(124,92,252,.18);background:rgba(124,92,252,.065);transition:transform .2s ease}.device-action:hover{transform:translateY(-1px)}
-    .subject-block{border-radius:18px;border:1px solid rgba(255,255,255,.075);background:rgba(255,255,255,.025);overflow:hidden}.subject-head{padding:1rem 1.1rem;border-bottom:1px solid rgba(255,255,255,.07);background:rgba(124,92,252,.045)}.file-card{border-radius:14px;border:1px solid rgba(255,255,255,.075);background:rgba(255,255,255,.025);padding:1rem}.chip{display:inline-flex;padding:.3rem .55rem;border-radius:999px;border:1px solid rgba(124,92,252,.16);background:rgba(124,92,252,.06);color:#c4b5fd;font-size:.7rem;font-weight:800}
+    .device-file-card{border-radius:16px;border:1px solid rgba(255,255,255,.075);background:rgba(255,255,255,.025);padding:1rem;transition:transform .25s ease,border-color .25s ease,background .25s ease}.device-file-card:hover{transform:translateY(-2px);border-color:var(--subject-color-alpha);background:rgba(124,92,252,.045)}
+    .chip{display:inline-flex;align-items:center;gap:.3rem;padding:.3rem .55rem;border-radius:999px;border:1px solid rgba(124,92,252,.16);background:rgba(124,92,252,.06);color:#c4b5fd;font-size:.7rem;font-weight:800}
+    .device-empty{border:1px solid rgba(124,92,252,.1);background:rgba(124,92,252,.035);border-radius:18px}
+    @keyframes fadeSlideIn{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:translateY(0)}}
     @media(max-width:1023px){.device-shell{padding:1rem;padding-bottom:1.5rem}.device-action{width:100%}}
   </style>
   <link rel="icon" type="image/png" href="favicon.png?v=2">
@@ -23,17 +26,17 @@
   <main class="flex-1 overflow-y-auto relative min-h-screen">
     <div class="bg-glow" style="top:5%;right:5%;"></div>
     <div class="device-shell space-y-8 relative z-10 animate-fade-in">
-      <header class="flex flex-col md:flex-row md:items-start md:justify-between gap-5">
+      <header class="pb-5 flex flex-col md:flex-row md:items-start md:justify-between gap-5" style="border-bottom:1px solid rgba(124,92,252,0.08);">
         <div>
           <h1 class="text-2xl sm:text-3xl font-extrabold tracking-tight text-gradient" style="font-family:'Sora',sans-serif;">Neste dispositivo</h1>
-          <p class="mt-2 max-w-2xl text-sm sm:text-base" style="color:rgba(196,188,220,.62);">PDFs e materiais gerados pela IA, organizados por materia, assunto, topico e data.</p>
+          <p class="mt-2 max-w-2xl text-sm sm:text-base" style="color:rgba(196,188,220,.62);">PDFs e materiais gerados pela IA, organizados com a mesma trilha visual de matérias, assuntos e tópicos.</p>
         </div>
         <button onclick="window.location.href='exercises.html'" class="device-action"><i data-feather="zap" class="w-4 h-4"></i>Gerar simulado</button>
       </header>
 
-      <section class="device-card p-5 md:p-6">
+      <section class="glass-card p-5 md:p-6 border border-purple-500/10 shadow-[0_8px_32px_rgba(0,0,0,0.2)]">
         <div class="grid grid-cols-1 md:grid-cols-[1fr_180px] gap-3">
-          <input id="searchInput" type="text" class="ef-input" placeholder="Buscar por arquivo, materia, assunto ou topico..." oninput="renderFiles()">
+          <input id="searchInput" type="text" class="ef-input" placeholder="Buscar por arquivo, matéria, assunto ou tópico..." oninput="renderFiles()">
           <select id="sortSelect" class="ef-select" onchange="renderFiles()">
             <option value="recent">Mais recentes</option>
             <option value="name">Nome</option>
@@ -52,6 +55,12 @@
     feather.replace();
     if(!App.getToken()) window.location.href='login.html';
 
+    const coresMaterias={
+      "Matemática":"#8c52ff","Física":"#ff66c4","Química":"#00e5ff","Biologia":"#00ffaa","História":"#ff914d","Geografia":"#38b6ff","Sociologia":"#ff57a0","Filosofia":"#cb6ce6","Artes":"#ff00ff","Literatura":"#b388ff","Inglês":"#0080ff","Redação":"#ff007f","Português":"#8b5cf6","Espanhol":"#f97316","Geral":"#7c5cfc"
+    };
+    function gerarCor(nome){let hash=0;for(let i=0;i<nome.length;i++)hash=nome.charCodeAt(i)+((hash<<5)-hash);return`hsl(${Math.abs(hash)%360}, 70%, 55%)`}
+    function getCorMateria(nome){return coresMaterias[nome]||gerarCor(nome||'Geral')}
+
     async function renderFiles(){
       const container=document.getElementById('deviceContent');
       if(!window.EnemFlowPdfTools){container.innerHTML=emptyState('Ferramentas de PDF indisponiveis.');return}
@@ -63,13 +72,19 @@
       if(sort==='size') records.sort((a,b)=>(b.size||0)-(a.size||0));
       if(!records.length){container.innerHTML=emptyState('Nenhum arquivo salvo neste dispositivo.');return}
       const grouped=groupRecords(records);
-      container.innerHTML=Object.entries(grouped).map(([materia,assuntos])=>`
-        <article class="subject-block">
-          <div class="subject-head flex items-center justify-between gap-3">
-            <h2 class="font-black text-lg" style="font-family:'Sora',sans-serif;color:#e4dff0;">${escapeHtml(materia)}</h2>
-            <span class="chip">${countNested(assuntos)} arquivos</span>
+      container.innerHTML=Object.entries(grouped).map(([materia,assuntos],idx)=>{
+        const color=getCorMateria(materia);
+        return `
+        <article class="subject-card-premium group" style="--subject-color:${color};--subject-color-alpha:${hexToRgba(color,.25)};--subject-color-glow:${hexToRgba(color,.15)};animation:fadeSlideIn .6s ease-out forwards;animation-delay:${idx*.04}s;opacity:0;">
+          <div class="materia-orb absolute -top-10 -right-10 w-32 h-32 rounded-full pointer-events-none" style="background:var(--subject-color);filter:blur(40px);"></div>
+          <div class="flex flex-col md:flex-row md:items-end md:justify-between gap-4 relative z-10 mb-5">
+            <div class="min-w-0">
+              <h2 style="background:linear-gradient(135deg,var(--subject-color) 15%,#f3f0ff 90%);-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;color:transparent!important;font-size:1.45rem;font-weight:800;font-family:'Sora',sans-serif;letter-spacing:-.03em;">${escapeHtml(materia)}</h2>
+              <div class="relative w-full max-w-xs h-[3px] rounded-full mt-2 overflow-hidden" style="background:rgba(255,255,255,.03);"><div class="materia-line absolute top-0 left-0 h-full rounded-full" style="background-color:var(--subject-color);width:34px;"></div></div>
+            </div>
+            <span class="chip"><i data-feather="file-text" class="w-3.5 h-3.5"></i>${countNested(assuntos)} arquivos</span>
           </div>
-          <div class="p-4 md:p-5 space-y-5">
+          <div class="space-y-5 relative z-10">
             ${Object.entries(assuntos).map(([assunto,topicos])=>`
               <section>
                 <h3 class="font-black mb-3" style="font-family:'Sora',sans-serif;color:#c4b5fd;">${escapeHtml(assunto)}</h3>
@@ -81,7 +96,7 @@
                         <span class="chip">${files.length}</span>
                       </div>
                       <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
-                        ${files.map(fileCard).join('')}
+                        ${files.map(file=>fileCard(file,color)).join('')}
                       </div>
                     </div>
                   `).join('')}
@@ -90,7 +105,7 @@
             `).join('')}
           </div>
         </article>
-      `).join('');
+      `}).join('');
       feather.replace();
     }
 
@@ -102,8 +117,8 @@
       },{});
     }
     function countNested(assuntos){return Object.values(assuntos).flatMap(topicos=>Object.values(topicos).flat()).length}
-    function fileCard(record){return`
-      <div class="file-card">
+    function fileCard(record,color){return`
+      <div class="device-file-card" style="--subject-color:${color};--subject-color-alpha:${hexToRgba(color,.25)};">
         <div class="flex items-start justify-between gap-3">
           <div class="min-w-0">
             <p class="font-black truncate" style="font-family:'Sora',sans-serif;color:#e4dff0;">${escapeHtml(record.name)}</p>
@@ -117,11 +132,12 @@
           <button class="device-action" style="color:#fca5a5;border-color:rgba(248,113,113,.2);background:rgba(248,113,113,.07);" onclick="deleteDevicePdf('${record.id}')"><i data-feather="trash" class="w-3.5 h-3.5"></i>Excluir</button>
         </div>
       </div>`}
-    function emptyState(text){return`<div class="device-card p-10 text-center" style="color:rgba(196,188,220,.58);">${text}</div>`}
+    function emptyState(text){return`<div class="device-empty p-10 text-center" style="color:rgba(196,188,220,.58);"><i data-feather="folder" class="w-8 h-8 mx-auto mb-3" style="color:#a78bfa;"></i>${text}</div>`}
     async function openDevicePdf(id){const record=await EnemFlowPdfTools.getPdfRecord(id);if(record?.blob)EnemFlowPdfTools.openBlob(record.blob)}
     async function downloadDevicePdf(id){const record=await EnemFlowPdfTools.getPdfRecord(id);if(record?.blob)EnemFlowPdfTools.downloadBlob(record.blob,record.name)}
     async function deleteDevicePdf(id){if(!confirm('Excluir este arquivo deste dispositivo?'))return;await EnemFlowPdfTools.deletePdfRecord(id);renderFiles()}
     function escapeHtml(value){return EnemFlowPdfTools.escapeHtml(value)}
+    function hexToRgba(hex,alpha){if(!String(hex).startsWith('#'))return hex;const n=parseInt(hex.slice(1),16),r=(n>>16)&255,g=(n>>8)&255,b=n&255;return`rgba(${r},${g},${b},${alpha})`}
     renderFiles();
   </script>
 </body>

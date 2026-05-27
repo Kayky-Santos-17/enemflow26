@@ -1,4 +1,4 @@
-const Chat = require('../models/Chat');
+﻿const Chat = require('../models/Chat');
 const Content = require('../models/Content');
 const mongoose = require('mongoose');
 const { chatCompletion } = require('../services/openrouter.service');
@@ -186,6 +186,7 @@ function normalizeQuestion(question, index, materia, assunto, topico) {
 }
 
 function validateSimuladoPayload(payload, quantidade, materia, assunto, topico, descricao) {
+  const effectiveTopico = topico || assunto || 'Geral';
   if (!payload || !Array.isArray(payload.questoes)) {
     throw new Error('A IA retornou um simulado em formato inválido.');
   }
@@ -220,7 +221,7 @@ function validateSimuladoPayload(payload, quantidade, materia, assunto, topico, 
     throw new Error('A IA retornou questões incompletas. Tente gerar novamente.');
   }
 
-  const coverage = validateThemeCoverage(questoes, materia, topico || assunto);
+  const coverage = validateThemeCoverage(questoes, materia, effectiveTopico);
   if (!coverage.ok) {
     const err = new Error('Poucas questões encontradas para este tema.');
     err.statusCode = 422;
@@ -232,7 +233,7 @@ function validateSimuladoPayload(payload, quantidade, materia, assunto, topico, 
     titulo: String(payload.titulo || `Simulado EnemFlow - ${materia}`).trim(),
     materia,
     assunto: assunto || 'Geral',
-    topico: topico || assunto || 'Geral',
+    topico: effectiveTopico,
     descricao: descricao || '',
     instrucoes: String(payload.instrucoes || 'Leia cada questão com atenção e marque apenas uma alternativa.').trim(),
     validacaoTema: coverage,
@@ -240,7 +241,7 @@ function validateSimuladoPayload(payload, quantidade, materia, assunto, topico, 
   };
 }
 
-// POST /api/chat — Envia mensagem e recebe resposta da IA
+// POST /api/chat - Envia mensagem e recebe resposta da IA
 exports.sendMessage = async (req, res) => {
   try {
     const { mensagem, chatId } = req.body;
@@ -279,7 +280,7 @@ exports.sendMessage = async (req, res) => {
   }
 };
 
-// GET /api/chat — Lista conversas do usuário
+// GET /api/chat - Lista conversas do usuário
 exports.listChats = async (req, res) => {
   try {
     const chats = await Chat.find({ usuarioId: req.userId })
@@ -293,7 +294,7 @@ exports.listChats = async (req, res) => {
   }
 };
 
-// GET /api/chat/:id — Detalhes de uma conversa
+// GET /api/chat/:id - Detalhes de uma conversa
 exports.getChat = async (req, res) => {
   try {
     const chat = await Chat.findOne({ _id: req.params.id, usuarioId: req.userId });
@@ -305,7 +306,7 @@ exports.getChat = async (req, res) => {
   }
 };
 
-// DELETE /api/chat/:id — Deleta uma conversa
+// DELETE /api/chat/:id - Deleta uma conversa
 exports.deleteChat = async (req, res) => {
   try {
     await Chat.findOneAndDelete({ _id: req.params.id, usuarioId: req.userId });
@@ -316,7 +317,7 @@ exports.deleteChat = async (req, res) => {
   }
 };
 
-// POST /api/chat/exercise — Gera questão estilo ENEM
+// POST /api/chat/exercise - Gera questão estilo ENEM
 exports.generateExercise = async (req, res) => {
   try {
     const { materia, assunto } = req.body;
@@ -365,22 +366,27 @@ A questão DEVE seguir este formato EXATO:
   }
 };
 
-// POST /api/chat/simulado — Gera um simulado completo estruturado
+// POST /api/chat/simulado - Gera um simulado completo estruturado
 exports.generateSimulado = async (req, res) => {
   try {
     const { materia, assunto, topico, descricao, quantidade } = req.body;
-    if (!materia) return res.status(400).json({ error: 'Campo "materia" e obrigatorio.' });
+    if (!materia) return res.status(400).json({ error: 'Campo "materia" é obrigatório.' });
+    if (!assunto) return res.status(400).json({ error: 'Campo "assunto" é obrigatório. Tópico e breve descrição são opcionais.' });
 
     const safeQuantidade = Math.max(1, Math.min(parseInt(quantidade, 10) || 10, 30));
-    const tema = [materia, assunto, topico].filter(Boolean).join(' - ');
+    const safeTopico = String(topico || '').trim();
+    const safeDescricao = String(descricao || '').trim();
+    const temaCentral = safeTopico || assunto;
+    const tema = [materia, assunto, safeTopico].filter(Boolean).join(' - ');
 
     const prompt = `Crie um simulado completo do ENEM sobre: ${tema}.
 
 Regras obrigatorias:
 - Gere exatamente ${safeQuantidade} questoes.
-- Siga exatamente a hierarquia: Materia "${materia}", Assunto "${assunto || 'Geral'}", Topico "${topico || assunto || materia}".
-- A descricao opcional do aluno e: "${descricao || 'sem descricao adicional'}".
-- O topico principal de TODAS as questoes deve ser "${topico || assunto || materia}". Nao use questoes genericas que apenas citam a materia.
+- Siga exatamente a hierarquia: Materia "${materia}", Assunto "${assunto}", Topico "${temaCentral}".
+- O campo Topico e opcional; quando ele vier vazio, use o assunto como foco principal.
+- A descricao opcional do aluno e: "${safeDescricao || 'sem descricao adicional'}".
+- O foco principal de TODAS as questoes deve ser "${temaCentral}". Nao use questoes genericas que apenas citam a materia.
 - Cada questao deve parecer uma questao real do ENEM: situacao-problema, texto motivador, interpretacao, comando claro e alternativas plausiveis.
 - O contexto/texto motivador deve ter pelo menos 120 caracteres e nunca ser uma frase curta.
 - Cada pergunta deve exigir interpretacao, leitura, raciocinio ou aplicacao. Nao use perguntas diretas como "quanto e 2+2".
@@ -397,8 +403,6 @@ Retorne somente um JSON valido no formato:
 {
   "titulo": "Simulado EnemFlow - ${tema}",
   "instrucoes": "texto curto",
-  "topico": "${topico || assunto || materia}",
-  "descricao": "${descricao || ''}",
   "questoes": [
     {
       "contexto": "texto motivador com situacao-problema em estilo ENEM",
@@ -419,8 +423,8 @@ Retorne somente um JSON valido no formato:
       "explicacao": "explicacao opcional para estudo",
       "competencia": "competencia do ENEM em linguagem simples",
       "habilidade": "habilidade do ENEM em linguagem simples",
-      "tema": "${topico || assunto || materia}",
-      "topico": "${topico || assunto || materia}",
+      "tema": "${temaCentral}",
+      "topico": "${temaCentral}",
       "area": "${getAreaFromMateria(materia)}",
       "modeloTri": "baixa | media | alta discriminacao, com justificativa curta",
       "dificuldade": "facil | media | dificil"
@@ -445,7 +449,7 @@ Responda somente o JSON final.`;
       { maxTokens: Math.min(12000, Math.max(4096, safeQuantidade * 850)), temperature: 0.42 }
     );
     const parsed = extractJsonObject(raw);
-    const simulado = validateSimuladoPayload(parsed, safeQuantidade, materia, assunto, topico, descricao);
+    const simulado = validateSimuladoPayload(parsed, safeQuantidade, materia, assunto, safeTopico, safeDescricao);
 
     const chat = await Chat.create({
       usuarioId: req.userId,
@@ -467,7 +471,7 @@ Responda somente o JSON final.`;
     });
   }
 };
-// POST /api/chat/content-context — inicia conversa usando o texto extraido de um material
+// POST /api/chat/content-context - inicia conversa usando o texto extraído de um material
 exports.startContentContextChat = async (req, res) => {
   try {
     const { contentId, pergunta } = req.body;
@@ -534,7 +538,7 @@ ${textoExtraido.substring(0, 9000)}
   }
 };
 
-// DELETE /api/chat — Limpa todo o histórico de conversas do próprio estudante
+// DELETE /api/chat - Limpa todo o histórico de conversas do próprio estudante
 exports.clearAllChats = async (req, res) => {
   try {
     await Chat.deleteMany({ usuarioId: req.userId });
@@ -544,3 +548,7 @@ exports.clearAllChats = async (req, res) => {
     res.status(500).json({ error: 'Erro ao excluir todas as conversas.' });
   }
 };
+
+
+
+
