@@ -9,655 +9,78 @@
   <link href="https://fonts.googleapis.com/css2?family=Sora:wght@300;400;500;600;700;800&family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="style.css">
   <script src="https://unpkg.com/feather-icons"></script>
-  <script src="sidebar.js" defer></script>
-  <!-- Biblioteca para renderizar Markdown retornado pela IA -->
   <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
-  <script>
-    tailwind.config = {
-      darkMode: 'class',
-      theme: { extend: { fontFamily: { sans: ['Inter', 'sans-serif'] } } }
-    }
-  </script>
+  <script>tailwind.config={darkMode:'class',theme:{extend:{fontFamily:{sans:['Inter','sans-serif'],sora:['Sora','sans-serif']}}}};</script>
   <style>
-    /* Estilos para o Markdown renderizado */
-    .prose h1, .prose h2, .prose h3 { font-weight: 700; margin-top: 1em; margin-bottom: 0.5em; color: currentColor; }
-    .prose p { margin-bottom: 1em; }
-    .prose ul { list-style-type: disc; padding-left: 1.5em; margin-bottom: 1em; }
-    .prose ol { list-style-type: decimal; padding-left: 1.5em; margin-bottom: 1em; }
-    .prose strong { font-weight: 700; color: currentColor; }
-    .prose blockquote { border-left: 4px solid #6366f1; padding-left: 1em; font-style: italic; opacity: 0.8; }
-    .prose code { background: rgba(128,128,128,0.2); padding: 0.2em 0.4em; border-radius: 4px; font-family: monospace; font-size: 0.9em; }
+    body{font-family:'Inter',sans-serif}.chat-shell{background:var(--ef-bg-deep,#07060e)}.chat-sidebar{width:18rem;background:rgba(12,10,22,.9);border-right:1px solid rgba(255,255,255,.08);backdrop-filter:blur(24px)}.chat-btn{display:flex;align-items:center;justify-content:center;gap:.5rem;width:100%;min-height:42px;border-radius:14px;font-weight:800;font-size:.82rem;border:1px solid rgba(124,92,252,.16);background:rgba(124,92,252,.06);color:#c4b5fd}.chat-btn.primary{background:linear-gradient(135deg,#7c5cfc,#ec4899);color:#fff;border:0}.message-user{background:#6366f1;color:white;border-radius:24px 24px 6px 24px}.message-ai{background:rgba(12,10,22,.86);border:1px solid rgba(255,255,255,.08);border-radius:6px 24px 24px 24px;color:#e4dff0}.history-link{display:block;padding:.7rem .8rem;border-radius:12px;color:rgba(228,223,240,.74);font-size:.86rem}.history-link:hover,.history-link.active{background:rgba(124,92,252,.1);color:#c4b5fd}.prose p{margin-bottom:.8em}.prose ul{list-style:disc;padding-left:1.25rem}.prose ol{list-style:decimal;padding-left:1.25rem}.typing-dot{width:7px;height:7px;border-radius:999px;background:#a78bfa;animation:typing 1.2s infinite ease-in-out}.typing-dot:nth-child(2){animation-delay:.15s}.typing-dot:nth-child(3){animation-delay:.3s}@keyframes typing{0%,80%,100%{opacity:.35;transform:scale(.75)}40%{opacity:1;transform:scale(1)}}@media(max-width:1023px){.chat-sidebar{display:none}.chat-main{padding-top:58px}}
   </style>
   <link rel="icon" type="image/png" href="favicon.png?v=2">
 </head>
-<body class="ef-chat-page flex h-screen overflow-hidden" style="background:var(--ef-bg-deep,#07060e);font-family:'Inter',sans-serif;">
-
-  <!-- Top Bar Mobile -->
-  <div class="lg:hidden fixed top-0 w-full glass z-40 px-4 py-3 flex items-center justify-between border-b">
-    <button onclick="window.location.href='dashboard.html'" class="p-2 bg-slate-100 dark:bg-white/5 rounded-lg">
-      <i data-feather="arrow-left" class="w-5 h-5"></i>
-    </button>
-    <div class="flex items-center gap-2 cursor-pointer group" onclick="toggleChatSidebar()">
-      <svg class="w-8 h-8 shrink-0 transition-transform group-hover:scale-110" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-        <defs>
-          <linearGradient id="chatHeaderBoltMob" x1="0%" y1="0%" x2="100%" y2="100%">
-            <stop offset="0%" stop-color="#7c5cfc" />
-            <stop offset="100%" stop-color="#ec4899" />
-          </linearGradient>
-        </defs>
-        <path d="M13 2L5.5 13H11.5L9.5 22L18.5 11H12.5L13 2Z" fill="url(#chatHeaderBoltMob)" />
-      </svg>
-      <span class="text-2xl font-extrabold tracking-tight text-gradient" style="font-family:'Sora',sans-serif;">Tutor IA</span>
-    </div>
-    <div class="w-9"></div> <!-- Spacer -->
+<body class="chat-shell flex h-screen overflow-hidden">
+  <div class="lg:hidden fixed top-0 inset-x-0 z-40 px-4 py-3 flex items-center justify-between" style="background:rgba(7,6,14,.92);border-bottom:1px solid rgba(255,255,255,.08);backdrop-filter:blur(18px);">
+    <button onclick="window.location.href='dashboard.html'" class="p-2 rounded-xl bg-white/5"><i data-feather="arrow-left" class="w-5 h-5"></i></button>
+    <strong class="text-gradient text-xl" style="font-family:'Sora',sans-serif;">Tutor IA</strong>
+    <button onclick="openExamFromChat()" class="p-2 rounded-xl bg-white/5"><i data-feather="zap" class="w-5 h-5"></i></button>
   </div>
 
-  <!-- Sidebar (Desktop Only) -->
-  <aside id="chatSidebar" class="hidden lg:flex flex-col w-72 glass border-r z-50 h-full relative transition-all duration-300">
-    <div class="p-6 flex items-center gap-3 border-b border-slate-200 dark:border-white/10 overflow-hidden">
-      <button onclick="window.location.href='dashboard.html'" class="p-2 bg-slate-100 dark:bg-white/5 rounded-lg hover:bg-slate-200 dark:hover:bg-white/10 transition-colors flex-shrink-0">
-        <i data-feather="arrow-left" class="w-4 h-4 text-slate-500"></i>
-      </button>
-      <div class="flex items-center gap-2 cursor-pointer group whitespace-nowrap" onclick="toggleChatSidebar()" title="Recolher/Expandir menu">
-        <svg class="w-8 h-8 shrink-0 transition-transform group-hover:scale-110" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-          <defs>
-            <linearGradient id="chatHeaderBolt" x1="0%" y1="0%" x2="100%" y2="100%">
-              <stop offset="0%" stop-color="#7c5cfc" />
-              <stop offset="100%" stop-color="#ec4899" />
-            </linearGradient>
-          </defs>
-          <path d="M13 2L5.5 13H11.5L9.5 22L18.5 11H12.5L13 2Z" fill="url(#chatHeaderBolt)" />
-        </svg>
-        <span class="text-2xl font-extrabold tracking-tight text-gradient sidebar-text" style="font-family:'Sora',sans-serif; transition:opacity 0.2s;">Tutor IA</span>
-      </div>
+  <aside class="chat-sidebar hidden lg:flex flex-col h-full">
+    <div class="p-5 border-b border-white/10 flex items-center gap-3">
+      <button onclick="window.location.href='dashboard.html'" class="p-2 rounded-xl bg-white/5"><i data-feather="arrow-left" class="w-4 h-4"></i></button>
+      <strong class="text-gradient text-2xl" style="font-family:'Sora',sans-serif;">Tutor IA</strong>
     </div>
-
     <div class="p-4 space-y-2">
-      <button onclick="newChat()" class="w-full py-2.5 px-4 bg-indigo-50 dark:bg-indigo-500/10 hover:bg-indigo-100 dark:hover:bg-indigo-500/20 text-indigo-600 dark:text-indigo-400 rounded-xl font-medium transition-colors flex items-center justify-center gap-2 border border-indigo-200 dark:border-indigo-500/20 text-sm">
-        <i data-feather="plus" class="w-4 h-4"></i> Nova Conversa
-      </button>
-      <button onclick="clearAllChats()" class="w-full py-2 px-4 bg-red-500/5 hover:bg-red-500/10 text-red-500 hover:text-red-400 rounded-xl font-semibold transition-colors flex items-center justify-center gap-2 border border-red-500/15 text-xs">
-        <i data-feather="trash-2" class="w-3.5 h-3.5"></i> Limpar Histórico
-      </button>
-      <button onclick="openPdfComposer()" class="w-full py-2.5 px-4 bg-purple-500/5 hover:bg-purple-500/10 text-purple-300 rounded-xl font-semibold transition-colors flex items-center justify-center gap-2 border border-purple-500/15 text-xs">
-        <i data-feather="file-text" class="w-3.5 h-3.5"></i> Gerar PDF
-      </button>
+      <button onclick="newChat()" class="chat-btn primary"><i data-feather="plus" class="w-4 h-4"></i>Nova conversa</button>
+      <button onclick="openExamFromChat()" class="chat-btn"><i data-feather="zap" class="w-4 h-4"></i>Gerar simulado</button>
+      <button onclick="generateCurrentChatPdf()" class="chat-btn"><i data-feather="file-text" class="w-4 h-4"></i>Salvar chat em PDF</button>
+      <button onclick="window.location.href='device.html'" class="chat-btn"><i data-feather="folder" class="w-4 h-4"></i>Neste dispositivo</button>
+      <button onclick="clearAllChats()" class="chat-btn" style="color:#fca5a5;border-color:rgba(248,113,113,.18);background:rgba(248,113,113,.06);"><i data-feather="trash-2" class="w-4 h-4"></i>Limpar historico</button>
     </div>
-
-    <div class="flex-1 overflow-y-auto p-4 space-y-1" id="historyList">
-      <!-- Preenchido via JS -->
-      <div class="skeleton w-full h-10 rounded-lg mb-2"></div>
-      <div class="skeleton w-full h-10 rounded-lg"></div>
-    </div>
-    <div class="border-t border-white/10 p-4">
-      <div class="flex items-center justify-between gap-2 mb-3">
-        <p class="text-xs font-black uppercase tracking-wider" style="color:rgba(196,188,220,0.5);">Neste dispositivo</p>
-        <button onclick="renderDevicePdfs()" class="p-1.5 rounded-lg hover:bg-white/5 text-slate-400" title="Atualizar"><i data-feather="refresh-cw" class="w-3.5 h-3.5"></i></button>
-      </div>
-      <input id="devicePdfSearch" type="text" oninput="renderDevicePdfs()" placeholder="Pesquisar PDFs..." class="w-full mb-2 text-xs">
-      <select id="devicePdfSort" onchange="renderDevicePdfs()" class="w-full mb-3 text-xs"><option value="recent">Mais recentes</option><option value="name">Nome</option><option value="size">Tamanho</option></select>
-      <div id="devicePdfList" class="space-y-2 text-xs"></div>
-    </div>
+    <div id="historyList" class="flex-1 overflow-y-auto p-4 space-y-1"></div>
   </aside>
 
-  <!-- Chat Area -->
-  <main class="flex-1 flex flex-col pt-16 lg:pt-0 overflow-hidden">
-    <div class="bg-glow top-[20%] left-[20%]"></div>
-    
-    <!-- Messages Container -->
-    <div id="chatBox" class="flex-1 overflow-y-auto p-4 md:p-8 space-y-6 scroll-smooth">
-      
-      <!-- Welcome Message (vazio) -->
-      <div id="welcomeMessage" class="flex flex-col items-center justify-center h-full opacity-50 animate-fade-in">
-        <div class="w-20 h-20 rounded-2xl flex items-center justify-center mb-6 shadow-xl shadow-indigo-500/30 border border-violet-500/20" style="background: rgba(15,12,30,0.6);">
-          <svg class="w-10 h-10" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-            <defs>
-              <linearGradient id="welcomeBoltGrad" x1="0%" y1="0%" x2="100%" y2="100%">
-                <stop offset="0%" stop-color="#7c5cfc" />
-                <stop offset="100%" stop-color="#ec4899" />
-              </linearGradient>
-            </defs>
-            <path d="M13 2L5.5 13H11.5L9.5 22L18.5 11H12.5L13 2Z" fill="url(#welcomeBoltGrad)" />
-          </svg>
-        </div>
-        <h2 class="text-2xl font-bold mb-2" style="font-family:'Sora',sans-serif;color:#e4dff0;">Como posso ajudar?</h2>
-        <p class="text-center max-w-sm text-sm" style="color:rgba(196,188,220,0.45);">Sou seu professor particular. Tire dúvidas, peça resumos ou dicas sobre qualquer assunto do ENEM.</p>
+  <main class="chat-main flex-1 flex flex-col min-w-0">
+    <div id="chatBox" class="flex-1 overflow-y-auto p-4 md:p-8 space-y-5">
+      <div id="welcomeMessage" class="h-full flex flex-col items-center justify-center text-center opacity-70">
+        <div class="w-16 h-16 rounded-2xl flex items-center justify-center mb-5 border border-violet-500/20" style="background:rgba(15,12,30,.75);"><img src="favicon.svg" class="w-9 h-9" alt=""></div>
+        <h1 class="text-2xl font-black text-gradient" style="font-family:'Sora',sans-serif;">Como posso ajudar?</h1>
+        <p class="max-w-md mt-2 text-sm" style="color:rgba(196,188,220,.55);">Tire duvidas, aprofunde um assunto e gere simulados a partir da conversa.</p>
       </div>
-
     </div>
-
-    <!-- Input Area -->
-    <div class="shrink-0 border-t border-white/10 px-4 md:px-8 py-4">
+    <div class="border-t border-white/10 px-4 md:px-8 py-4">
       <div class="max-w-4xl mx-auto">
-        
-        <!-- Upload Form (Escondido, acionado pelo botão clip) -->
         <input type="file" id="fileUpload" class="hidden" accept=".pdf,.png,.jpg,.jpeg,.txt" onchange="handleFileUpload(event)">
-        
-        <form id="chatForm" class="flex items-end gap-2 bg-black/30 border border-white/10 rounded-2xl p-2 shadow-lg focus-within:ring-2 focus-within:ring-indigo-500/50 focus-within:border-indigo-500/30 transition-all">
-          
-          <button type="button" onclick="document.getElementById('fileUpload').click()" class="p-3 text-slate-400 hover:text-indigo-400 transition-colors rounded-xl hover:bg-white/5 shrink-0" title="Anexar Arquivo (PDF, Imagem, TXT)">
-            <i data-feather="paperclip" class="w-5 h-5"></i>
-          </button>
-          
-          <textarea id="msgInput" rows="1" class="flex-1 bg-transparent border-none outline-none resize-none max-h-32 py-3 px-2 text-white placeholder:text-slate-500" placeholder="Digite sua dúvida ou cole um texto..."></textarea>
-          
-          <button type="submit" id="sendBtn" class="p-3 shrink-0 rounded-xl transition-all shadow-md disabled:opacity-50 disabled:cursor-not-allowed" style="background: linear-gradient(135deg, #7c5cfc, #ec4899);">
-            <i data-feather="send" class="w-5 h-5 text-white"></i>
-          </button>
+        <form id="chatForm" class="flex items-end gap-2 bg-black/30 border border-white/10 rounded-2xl p-2 shadow-lg focus-within:ring-2 focus-within:ring-indigo-500/50">
+          <button type="button" onclick="document.getElementById('fileUpload').click()" class="p-3 text-slate-400 hover:text-indigo-400 rounded-xl hover:bg-white/5"><i data-feather="paperclip" class="w-5 h-5"></i></button>
+          <textarea id="msgInput" rows="1" class="flex-1 bg-transparent border-none outline-none resize-none max-h-32 py-3 px-2 text-white placeholder:text-slate-500" placeholder="Digite sua duvida ou cole um texto..."></textarea>
+          <button type="submit" id="sendBtn" class="p-3 rounded-xl disabled:opacity-50" style="background:linear-gradient(135deg,#7c5cfc,#ec4899);"><i data-feather="send" class="w-5 h-5 text-white"></i></button>
         </form>
-        <p class="text-center text-[10px] text-slate-600 mt-2">A Inteligência Artificial pode cometer erros. Verifique informações importantes.</p>
+        <p class="text-center text-[10px] text-slate-600 mt-2">A IA pode cometer erros. Verifique informacoes importantes.</p>
       </div>
     </div>
-
   </main>
 
-  <div id="pdfComposerModal" class="fixed inset-0 hidden items-center justify-center z-[9998] p-4" style="background:rgba(7,6,14,0.82);backdrop-filter:blur(10px);">
-    <div class="glass w-full max-w-2xl rounded-2xl p-6 max-h-[90vh] overflow-y-auto">
-      <div class="flex items-start justify-between gap-4 mb-5">
-        <div>
-          <h2 class="text-xl font-black text-gradient" style="font-family:'Sora',sans-serif;">Gerar PDF inteligente</h2>
-          <p class="text-sm mt-1" style="color:rgba(196,188,220,0.58);">Escolha o que deseja transformar em PDF.</p>
-        </div>
-        <button onclick="closePdfComposer()" class="p-2 rounded-xl hover:bg-white/5 text-slate-400"><i data-feather="x" class="w-5 h-5"></i></button>
-      </div>
-      <div class="grid grid-cols-1 md:grid-cols-2 gap-3 mb-4" id="pdfComposerOptions"></div>
-      <div class="space-y-2 mb-4">
-        <label class="text-sm font-bold" style="color:rgba(196,188,220,0.72);">Texto especifico</label>
-        <textarea id="pdfSpecificText" rows="4" class="w-full" placeholder="Cole aqui um texto para incluir no PDF..."></textarea>
-      </div>
-      <div class="space-y-2 mb-5">
-        <label class="text-sm font-bold" style="color:rgba(196,188,220,0.72);">Nome do arquivo</label>
-        <input id="pdfFileName" type="text" value="PDF ENEMFlow.pdf" class="w-full">
-      </div>
-      <div id="pdfComposerStatus" class="hidden mb-4 p-3 rounded-xl border text-sm" style="border-color:rgba(124,92,252,0.18);background:rgba(124,92,252,0.06);color:#c4b5fd;"></div>
-      <div class="flex flex-col sm:flex-row gap-3">
-        <button onclick="generateTutorPdf()" id="generateTutorPdfBtn" class="flex-1 py-3 px-4 rounded-xl font-black text-white flex items-center justify-center gap-2" style="background:linear-gradient(135deg,#7c5cfc,#ec4899);"><i data-feather="file-text" class="w-4 h-4"></i> Gerar e salvar PDF</button>
-        <button onclick="closePdfComposer()" class="py-3 px-4 rounded-xl font-bold border" style="border-color:rgba(124,92,252,0.18);color:#c4b5fd;background:rgba(124,92,252,0.06);">Cancelar</button>
-      </div>
-    </div>
-  </div>
   <script src="app.js"></script>
   <script src="pdf-tools.js"></script>
   <script>
-    feather.replace();
-    if(!App.getToken()) window.location.href = 'login.html';
-
-    const urlParams = new URLSearchParams(window.location.search);
-    let currentChatId = urlParams.get('id') || null;
-
-    const chatBox = document.getElementById('chatBox');
-    const msgInput = document.getElementById('msgInput');
-    const welcomeMessage = document.getElementById('welcomeMessage');
-    let lastChatsCache = [];
-
-    function sanitizeRenderedHtml(html) {
-      const template = document.createElement('template');
-      template.innerHTML = html;
-      template.content.querySelectorAll('script,style,iframe,object,embed,link,meta').forEach(el => el.remove());
-      template.content.querySelectorAll('*').forEach(el => {
-        [...el.attributes].forEach(attr => {
-          const value = String(attr.value || '').toLowerCase();
-          if (/^on/i.test(attr.name) || attr.name === 'srcdoc' || value.startsWith('javascript:')) {
-            el.removeAttribute(attr.name);
-          }
-        });
-      });
-      return template.innerHTML;
-    }
-
-    // Auto-resize do textarea
-    msgInput.addEventListener('input', function() {
-      this.style.height = 'auto';
-      this.style.height = (this.scrollHeight) + 'px';
-      if(this.value === '') this.style.height = 'auto';
-    });
-
-    // Enviar no Enter (sem shift)
-    msgInput.addEventListener('keydown', function(e) {
-      if (e.key === 'Enter' && !e.shiftKey) {
-        e.preventDefault();
-        document.getElementById('chatForm').dispatchEvent(new Event('submit'));
-      }
-    });
-
-    function newChat() {
-      currentChatId = null;
-      chatBox.innerHTML = '';
-      chatBox.appendChild(welcomeMessage);
-      welcomeMessage.style.display = 'flex';
-      window.history.pushState({}, '', 'chat.html');
-    }
-
-    // Renderiza uma mensagem no chat
-    function appendMessage(role, content) {
-      welcomeMessage.style.display = 'none';
-      
-      const div = document.createElement('div');
-      div.className = `flex w-full animate-fade-in ${role === 'user' ? 'justify-end' : 'justify-start'} max-w-4xl mx-auto`;
-      
-      if (role === 'user') {
-        div.innerHTML = `
-          <div class="max-w-[85%] md:max-w-[70%] bg-indigo-500 text-white rounded-3xl rounded-tr-sm px-6 py-4 shadow-md">
-            <p class="whitespace-pre-wrap">${content.replace(/</g, '&lt;').replace(/>/g, '&gt;')}</p>
-          </div>
-        `;
-      } else {
-        div.innerHTML = `
-          <div class="flex gap-4 max-w-[95%] md:max-w-[85%]">
-            <div class="w-8 h-8 rounded-xl flex items-center justify-center shrink-0 shadow-lg border border-violet-500/20 mt-1" style="background: rgba(15,12,30,0.8);">
-              <svg class="w-4.5 h-4.5" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                <defs>
-                  <linearGradient id="msgTutorBolt" x1="0%" y1="0%" x2="100%" y2="100%">
-                    <stop offset="0%" stop-color="#7c5cfc" />
-                    <stop offset="100%" stop-color="#ec4899" />
-                  </linearGradient>
-                </defs>
-                <path d="M13 2L5.5 13H11.5L9.5 22L18.5 11H12.5L13 2Z" fill="url(#msgTutorBolt)" />
-              </svg>
-            </div>
-            <div class="glass border border-slate-200 dark:border-white/10 rounded-3xl rounded-tl-sm px-6 py-4 shadow-sm text-slate-800 dark:text-slate-200 prose prose-sm md:prose-base dark:prose-invert">
-              ${sanitizeRenderedHtml(marked.parse(content))}
-            </div>
-          </div>
-        `;
-      }
-      
-      chatBox.appendChild(div);
-      feather.replace();
-      chatBox.scrollTop = chatBox.scrollHeight;
-    }
-
-    // Efeito digitando
-    function showTyping() {
-      welcomeMessage.style.display = 'none';
-      const div = document.createElement('div');
-      div.id = 'typingIndicator';
-      div.className = `flex w-full justify-start animate-fade-in max-w-4xl mx-auto`;
-      div.innerHTML = `
-        <div class="flex gap-4 max-w-[85%]">
-          <div class="w-8 h-8 rounded-xl flex items-center justify-center shrink-0 border border-white/5 mt-1" style="background: rgba(15,12,30,0.6);">
-            <svg class="w-4.5 h-4.5" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-              <defs>
-                <linearGradient id="typingTutorBolt" x1="0%" y1="0%" x2="100%" y2="100%">
-                  <stop offset="0%" stop-color="#7c5cfc" />
-                  <stop offset="100%" stop-color="#ec4899" />
-                </linearGradient>
-              </defs>
-              <path d="M13 2L5.5 13H11.5L9.5 22L18.5 11H12.5L13 2Z" fill="url(#typingTutorBolt)" />
-            </svg>
-          </div>
-          <div class="glass rounded-3xl rounded-tl-sm px-6 py-4 flex items-center gap-1 h-[52px]">
-            <div class="w-2 h-2 rounded-full bg-slate-400 typing-dot"></div>
-            <div class="w-2 h-2 rounded-full bg-slate-400 typing-dot"></div>
-            <div class="w-2 h-2 rounded-full bg-slate-400 typing-dot"></div>
-          </div>
-        </div>
-      `;
-      chatBox.appendChild(div);
-      feather.replace();
-      chatBox.scrollTop = chatBox.scrollHeight;
-    }
-
-    function removeTyping() {
-      const el = document.getElementById('typingIndicator');
-      if (el) el.remove();
-    }
-
-    document.getElementById('chatForm').addEventListener('submit', async (e) => {
-      e.preventDefault();
-      
-      const texto = msgInput.value.trim();
-      if (!texto) return;
-
-      const btn = document.getElementById('sendBtn');
-      msgInput.value = '';
-      msgInput.style.height = 'auto';
-      btn.disabled = true;
-
-      appendMessage('user', texto);
-      showTyping();
-
-      try {
-        const payload = { mensagem: texto };
-        if (currentChatId) payload.chatId = currentChatId;
-
-        const data = await App.api('/api/chat', {
-          method: 'POST',
-          body: JSON.stringify(payload)
-        });
-
-        removeTyping();
-        appendMessage('assistant', data.resposta);
-        
-        if (!currentChatId) {
-          currentChatId = data.chatId;
-          window.history.replaceState({}, '', `chat.html?id=${currentChatId}`);
-          loadHistoryList();
-        }
-
-      } catch (err) {
-        removeTyping();
-        App.showToast(err.message, true);
-      } finally {
-        btn.disabled = false;
-        msgInput.focus();
-      }
-    });
-
-    // Upload Dinâmico de Arquivos
-    async function handleFileUpload(e) {
-      const file = e.target.files[0];
-      if (!file) return;
-
-      App.showToast(`Processando arquivo: ${file.name}...`);
-      showTyping();
-
-      const formData = new FormData();
-      formData.append('file', file);
-      formData.append('pergunta', 'Extraia os dados principais e me dê um resumo ou análise para estudos do ENEM.');
-
-      try {
-        const data = await App.api('/upload/analyze', {
-          method: 'POST',
-          body: formData
-        });
-
-        // Simula a mensagem do usuário (O que foi extraído)
-        appendMessage('user', `[Arquivo Anexado: ${file.name}]\n\nPor favor, analise este conteúdo.`);
-        removeTyping();
-        
-        // Resposta da IA
-        appendMessage('assistant', data.resposta);
-
-      } catch (err) {
-        removeTyping();
-        App.showToast(err.message, true);
-      }
-      e.target.value = ''; // Reset
-    }
-
-    // Carregar Sidebar de Histórico
-    async function loadHistoryList() {
-      try {
-        const list = document.getElementById('historyList');
-        const chats = await App.api('/api/chat');
-        lastChatsCache = chats || [];
-        
-        if (chats.length === 0) {
-          list.innerHTML = '<p class="text-xs text-slate-500 text-center mt-4">Nenhuma conversa recente.</p>';
-          return;
-        }
-
-        list.innerHTML = chats.filter(c => c.tipo === 'chat').map(c => `
-          <a href="chat.html?id=${c._id}" class="block w-full text-left px-3 py-2.5 rounded-xl hover:bg-slate-100 dark:hover:bg-white/5 transition-colors text-sm text-slate-700 dark:text-slate-300 truncate ${c._id === currentChatId ? 'bg-indigo-50 dark:bg-indigo-500/10 font-medium text-indigo-600 dark:text-indigo-400' : ''}">
-            <i data-feather="message-square" class="w-3.5 h-3.5 inline mr-2 opacity-50"></i>
-            ${c.titulo}
-          </a>
-        `).join('');
-        feather.replace();
-      } catch (err) {}
-    }
-
-    function getSavedSimulados() {
-      try {
-        return JSON.parse(localStorage.getItem('enemflow_simulados') || '[]');
-      } catch {
-        return [];
-      }
-    }
-
-    function getSavedSummaries() {
-      const keys = ['enemflow_last_summary', 'ultimoResumo', 'summary_result'];
-      return keys.map(key => localStorage.getItem(key)).filter(Boolean);
-    }
-
-    async function buildPdfComposerOptions() {
-      const options = [];
-      if (currentChatId) options.push({ id: 'current-chat', label: 'Chat atual', description: 'Inclui a conversa aberta agora.' });
-      options.push({ id: 'last-chats', label: 'Ultimos chats', description: 'Inclui conversas recentes do Tutor.' });
-      options.push({ id: 'specific-text', label: 'Texto especifico', description: 'Inclui o texto digitado abaixo.' });
-      if (getSavedSummaries().length) options.push({ id: 'summary', label: 'Resumo', description: 'Inclui o ultimo resumo salvo.' });
-      if (getSavedSimulados().length) options.push({ id: 'simulado', label: 'Simulado', description: 'Inclui o ultimo simulado salvo.' });
-      options.push({ id: 'manual', label: 'Selecionar manualmente', description: 'Usa as selecoes marcadas nesta janela.' });
-
-      const container = document.getElementById('pdfComposerOptions');
-      container.innerHTML = options.map((option, index) => `
-        <label class="p-4 rounded-2xl border cursor-pointer transition-all hover:-translate-y-0.5" style="border-color:rgba(255,255,255,0.08);background:rgba(255,255,255,0.025);">
-          <input type="checkbox" class="mr-2" value="${option.id}" ${index === 0 ? 'checked' : ''}>
-          <span class="font-black" style="color:#e4dff0;">${option.label}</span>
-          <p class="text-xs mt-1" style="color:rgba(196,188,220,0.52);">${option.description}</p>
-        </label>
-      `).join('');
-    }
-
-    async function openPdfComposer() {
-      document.getElementById('pdfComposerModal').classList.remove('hidden');
-      document.getElementById('pdfComposerModal').classList.add('flex');
-      document.getElementById('pdfComposerStatus').classList.add('hidden');
-      await buildPdfComposerOptions();
-      feather.replace();
-    }
-
-    function closePdfComposer() {
-      document.getElementById('pdfComposerModal').classList.add('hidden');
-      document.getElementById('pdfComposerModal').classList.remove('flex');
-    }
-
-    function setPdfComposerStatus(message, isError = false) {
-      const status = document.getElementById('pdfComposerStatus');
-      status.classList.remove('hidden');
-      status.style.borderColor = isError ? 'rgba(248,113,113,0.28)' : 'rgba(124,92,252,0.18)';
-      status.style.background = isError ? 'rgba(248,113,113,0.08)' : 'rgba(124,92,252,0.06)';
-      status.style.color = isError ? '#fca5a5' : '#c4b5fd';
-      status.textContent = message;
-    }
-
-    async function collectTutorPdfSections(selected) {
-      const sections = [];
-      if (selected.includes('current-chat') && currentChatId) {
-        const chat = await App.api(`/api/chat/${currentChatId}`);
-        sections.push({
-          title: `Chat atual: ${chat.titulo || 'Tutor IA'}`,
-          content: chat.mensagens.map(m => `${m.role === 'user' ? 'Aluno' : 'Tutor'}: ${m.content}`).join('\n\n')
-        });
-      }
-      if (selected.includes('last-chats')) {
-        const chats = (lastChatsCache.length ? lastChatsCache : await App.api('/api/chat')).filter(c => c.tipo === 'chat').slice(0, 3);
-        for (const chatItem of chats) {
-          const chat = await App.api(`/api/chat/${chatItem._id}`);
-          sections.push({
-            title: `Conversa: ${chat.titulo}`,
-            content: chat.mensagens.slice(-8).map(m => `${m.role === 'user' ? 'Aluno' : 'Tutor'}: ${m.content}`).join('\n\n')
-          });
-        }
-      }
-      const specificText = document.getElementById('pdfSpecificText').value.trim();
-      if (selected.includes('specific-text') && specificText) {
-        sections.push({ title: 'Texto especifico', content: specificText });
-      }
-      if (selected.includes('summary')) {
-        sections.push({ title: 'Resumo', content: getSavedSummaries()[0] || '' });
-      }
-      if (selected.includes('simulado')) {
-        const simulado = getSavedSimulados()[0];
-        if (simulado) {
-          sections.push(...EnemFlowPdfTools.buildSimuladoPdfSections(simulado));
-        }
-      }
-      return sections;
-    }
-
-    async function generateTutorPdf() {
-      const btn = document.getElementById('generateTutorPdfBtn');
-      const selected = [...document.querySelectorAll('#pdfComposerOptions input:checked')].map(input => input.value);
-      if (!selected.length) return setPdfComposerStatus('Selecione ao menos uma fonte para gerar o PDF.', true);
-
-      btn.disabled = true;
-      btn.innerHTML = '<i data-feather="loader" class="w-4 h-4 animate-spin"></i> Gerando PDF...';
-      feather.replace();
-      setPdfComposerStatus('Organizando conteudo e validando PDF...');
-
-      try {
-        const sections = await collectTutorPdfSections(selected);
-        const filename = EnemFlowPdfTools.sanitizeFileName(document.getElementById('pdfFileName').value || 'PDF ENEMFlow.pdf');
-        const html = EnemFlowPdfTools.buildPdfHtml({
-          title: filename.replace(/\\.pdf$/i, ''),
-          theme: 'Tutor IA + estudos inteligentes',
-          sections
-        });
-        const blob = await EnemFlowPdfTools.generatePdfBlob(html, filename);
-        const record = await EnemFlowPdfTools.savePdfRecord({
-          id: crypto.randomUUID(),
-          name: filename,
-          materia: 'Tutor IA',
-          createdAt: new Date().toISOString(),
-          size: blob.size,
-          blob
-        });
-        EnemFlowPdfTools.openBlob(record.blob);
-        setPdfComposerStatus(`PDF salvo neste dispositivo (${EnemFlowPdfTools.formatBytes(blob.size)}).`);
-        App.showToast('PDF salvo neste dispositivo.');
-        renderDevicePdfs();
-      } catch (error) {
-        console.error('[Tutor PDF]', error);
-        setPdfComposerStatus('Não foi possível gerar o PDF. Tente novamente.', true);
-        App.showToast('Não foi possível gerar o PDF. Tente novamente.', true);
-      } finally {
-        btn.disabled = false;
-        btn.innerHTML = '<i data-feather="file-text" class="w-4 h-4"></i> Gerar e salvar PDF';
-        feather.replace();
-      }
-    }
-
-    async function renderDevicePdfs() {
-      const container = document.getElementById('devicePdfList');
-      if (!container || !window.EnemFlowPdfTools) return;
-      const query = (document.getElementById('devicePdfSearch')?.value || '').toLowerCase();
-      const sort = document.getElementById('devicePdfSort')?.value || 'recent';
-      let records = await EnemFlowPdfTools.listPdfRecords();
-      records = records.filter(record => record.name.toLowerCase().includes(query) || String(record.materia || '').toLowerCase().includes(query));
-      if (sort === 'name') records.sort((a, b) => a.name.localeCompare(b.name));
-      if (sort === 'size') records.sort((a, b) => (b.size || 0) - (a.size || 0));
-      if (!records.length) {
-        container.innerHTML = '<p class="text-center py-3" style="color:rgba(196,188,220,0.45);">Nenhum PDF salvo.</p>';
-        return;
-      }
-      container.innerHTML = records.map(record => `
-        <div class="p-3 rounded-xl border" style="border-color:rgba(255,255,255,0.07);background:rgba(255,255,255,0.025);">
-          <button class="w-full text-left" onclick="openDevicePdf('${record.id}')">
-            <p class="font-bold truncate" style="color:#e4dff0;">${EnemFlowPdfTools.escapeHtml(record.name)}</p>
-            <p style="color:rgba(196,188,220,0.5);">${EnemFlowPdfTools.relativeDate(record.createdAt)} • ${EnemFlowPdfTools.formatBytes(record.size)}${record.materia ? ' • ' + EnemFlowPdfTools.escapeHtml(record.materia) : ''}</p>
-          </button>
-          <div class="flex gap-1 mt-2">
-            <button onclick="renameDevicePdf('${record.id}')" class="px-2 py-1 rounded-lg hover:bg-white/5" title="Renomear"><i data-feather="edit-2" class="w-3 h-3"></i></button>
-            <button onclick="downloadDevicePdf('${record.id}')" class="px-2 py-1 rounded-lg hover:bg-white/5" title="Baixar"><i data-feather="download" class="w-3 h-3"></i></button>
-            <button onclick="deleteDevicePdf('${record.id}')" class="px-2 py-1 rounded-lg hover:bg-red-500/10 text-red-400" title="Excluir"><i data-feather="trash" class="w-3 h-3"></i></button>
-          </div>
-        </div>
-      `).join('');
-      feather.replace();
-    }
-
-    async function openDevicePdf(id) {
-      const record = await EnemFlowPdfTools.getPdfRecord(id);
-      if (record?.blob) EnemFlowPdfTools.openBlob(record.blob);
-    }
-
-    async function downloadDevicePdf(id) {
-      const record = await EnemFlowPdfTools.getPdfRecord(id);
-      if (record?.blob) EnemFlowPdfTools.downloadBlob(record.blob, record.name);
-    }
-
-    async function renameDevicePdf(id) {
-      const record = await EnemFlowPdfTools.getPdfRecord(id);
-      if (!record) return;
-      const name = prompt('Novo nome do PDF:', record.name);
-      if (!name) return;
-      await EnemFlowPdfTools.renamePdfRecord(id, name);
-      renderDevicePdfs();
-    }
-
-    async function deleteDevicePdf(id) {
-      if (!confirm('Excluir este PDF salvo neste dispositivo?')) return;
-      await EnemFlowPdfTools.deletePdfRecord(id);
-      renderDevicePdfs();
-    }
-
-    // Carregar Conversa Específica
-    async function loadCurrentChat() {
-      if (!currentChatId) return;
-      
-      try {
-        welcomeMessage.style.display = 'none';
-        const data = await App.api(`/api/chat/${currentChatId}`);
-        
-        chatBox.innerHTML = '';
-        data.mensagens.forEach(m => appendMessage(m.role, m.content));
-      } catch (err) {
-        App.showToast('Erro ao carregar conversa.', true);
-        newChat();
-      }
-    }
-
-    // Limpar Todo o Histórico de Conversas
-    async function clearAllChats() {
-      if (!confirm('Deseja realmente apagar todo o seu histórico de conversas com o Tutor? Esta ação é definitiva.')) return;
-      try {
-        await App.api('/api/chat', { method: 'DELETE' });
-        App.showToast('Histórico limpo com sucesso.');
-        newChat();
-        loadHistoryList();
-      } catch (err) {
-        App.showToast(err.message, true);
-      }
-    }
-
-
-    loadHistoryList();
-    renderDevicePdfs();
-    if (currentChatId) loadCurrentChat();
-
-    // Handle PDF context from study.html "Enviar para Tutor IA"
-    (function handlePdfContext() {
-      const params = new URLSearchParams(window.location.search);
-      if (params.get('pdfContext') === 'true') {
-        const pdfTitle = localStorage.getItem('pdfContextTitle') || 'PDF';
-        const contentId = localStorage.getItem('pdfContextContentId') || '';
-        localStorage.removeItem('pdfContextTitle');
-        localStorage.removeItem('pdfContextContentId');
-        localStorage.removeItem('pdfContextUrl');
-        window.history.replaceState({}, '', 'chat.html');
-
-        if (pdfTitle && contentId) {
-          welcomeMessage.style.display = 'none';
-          appendMessage('user', `Estou estudando o material: "${pdfTitle}". Analise o PDF e me ajude com dúvidas sobre este conteúdo.`);
-          showTyping();
-
-          App.api('/api/chat/content-context', {
-            method: 'POST',
-            body: JSON.stringify({
-              contentId,
-              pergunta: `Analise o PDF "${pdfTitle}" e explique os pontos principais em formato claro para estudo do ENEM. Depois, pergunte qual dúvida específica o aluno quer aprofundar.`
-            })
-          }).then(data => {
-            removeTyping();
-            appendMessage('assistant', data.resposta);
-            if (!currentChatId && data.chatId) {
-              currentChatId = data.chatId;
-              window.history.replaceState({}, '', `chat.html?id=${currentChatId}`);
-              loadHistoryList();
-            }
-          }).catch(err => {
-            removeTyping();
-            App.showToast(err.message, true);
-          });
-        } else {
-          App.showToast('Não foi possível identificar o PDF selecionado.', true);
-        }
-      }
-    })();
-
+    feather.replace();if(!App.getToken())window.location.href='login.html';
+    const urlParams=new URLSearchParams(window.location.search);let currentChatId=urlParams.get('id')||null;let lastMessages=[];const chatBox=document.getElementById('chatBox'),msgInput=document.getElementById('msgInput'),welcomeMessage=document.getElementById('welcomeMessage');
+    msgInput.addEventListener('input',function(){this.style.height='auto';this.style.height=this.scrollHeight+'px';if(!this.value)this.style.height='auto'});msgInput.addEventListener('keydown',e=>{if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();document.getElementById('chatForm').dispatchEvent(new Event('submit'))}});
+    function sanitizeRenderedHtml(html){const t=document.createElement('template');t.innerHTML=html;t.content.querySelectorAll('script,style,iframe,object,embed,link,meta').forEach(el=>el.remove());t.content.querySelectorAll('*').forEach(el=>[...el.attributes].forEach(a=>{const v=String(a.value||'').toLowerCase();if(/^on/i.test(a.name)||a.name==='srcdoc'||v.startsWith('javascript:'))el.removeAttribute(a.name)}));return t.innerHTML}
+    function appendMessage(role,content){welcomeMessage.style.display='none';lastMessages.push({role,content});const wrap=document.createElement('div');wrap.className=`flex w-full max-w-4xl mx-auto animate-fade-in ${role==='user'?'justify-end':'justify-start'}`;if(role==='user'){wrap.innerHTML=`<div class="message-user max-w-[85%] md:max-w-[70%] px-6 py-4 shadow-md"><p class="whitespace-pre-wrap">${escapeHtml(content)}</p></div>`}else{wrap.innerHTML=`<div class="message-ai prose prose-sm md:prose-base dark:prose-invert max-w-[95%] md:max-w-[82%] px-6 py-4 shadow-sm">${sanitizeRenderedHtml(marked.parse(content))}</div>`}chatBox.appendChild(wrap);chatBox.scrollTop=chatBox.scrollHeight;feather.replace()}
+    function showTyping(){welcomeMessage.style.display='none';const div=document.createElement('div');div.id='typingIndicator';div.className='flex w-full justify-start max-w-4xl mx-auto';div.innerHTML='<div class="message-ai px-6 py-4 flex gap-1"><span class="typing-dot"></span><span class="typing-dot"></span><span class="typing-dot"></span></div>';chatBox.appendChild(div);chatBox.scrollTop=chatBox.scrollHeight}function removeTyping(){document.getElementById('typingIndicator')?.remove()}
+    document.getElementById('chatForm').addEventListener('submit',async e=>{e.preventDefault();const texto=msgInput.value.trim();if(!texto)return;msgInput.value='';msgInput.style.height='auto';document.getElementById('sendBtn').disabled=true;appendMessage('user',texto);showTyping();try{const payload={mensagem:texto};if(currentChatId)payload.chatId=currentChatId;const data=await App.api('/api/chat',{method:'POST',body:JSON.stringify(payload)});removeTyping();appendMessage('assistant',data.resposta);if(!currentChatId){currentChatId=data.chatId;window.history.replaceState({},'',`chat.html?id=${currentChatId}`);loadHistoryList()}}catch(err){removeTyping();App.showToast(err.message,true)}finally{document.getElementById('sendBtn').disabled=false;msgInput.focus()}});
+    async function handleFileUpload(e){const file=e.target.files[0];if(!file)return;App.showToast(`Processando arquivo: ${file.name}...`);showTyping();const formData=new FormData();formData.append('file',file);formData.append('pergunta','Extraia os dados principais e me de uma analise para estudos do ENEM.');try{const data=await App.api('/upload/analyze',{method:'POST',body:formData});appendMessage('user',`[Arquivo anexado: ${file.name}]\\n\\nAnalise este conteudo.`);removeTyping();appendMessage('assistant',data.resposta);if(data.chatId){currentChatId=data.chatId;window.history.replaceState({},'',`chat.html?id=${currentChatId}`);loadHistoryList()}}catch(err){removeTyping();App.showToast(err.message,true)}e.target.value=''}
+    function newChat(){currentChatId=null;lastMessages=[];chatBox.innerHTML='';chatBox.appendChild(welcomeMessage);welcomeMessage.style.display='flex';window.history.pushState({},'','chat.html')}async function loadHistoryList(){try{const list=document.getElementById('historyList');const chats=await App.api('/api/chat');const visible=(chats||[]).filter(c=>c.tipo==='chat');if(!visible.length){list.innerHTML='<p class="text-xs text-center mt-4" style="color:rgba(196,188,220,.45);">Nenhuma conversa recente.</p>';return}list.innerHTML=visible.map(c=>`<a class="history-link ${c._id===currentChatId?'active':''}" href="chat.html?id=${c._id}"><i data-feather="message-square" class="w-3.5 h-3.5 inline mr-2 opacity-60"></i>${escapeHtml(c.titulo)}</a>`).join('');feather.replace()}catch(err){}}
+    async function loadCurrentChat(){if(!currentChatId)return;try{const data=await App.api(`/api/chat/${currentChatId}`);chatBox.innerHTML='';lastMessages=[];(data.mensagens||[]).forEach(m=>appendMessage(m.role,m.content))}catch(err){App.showToast('Erro ao carregar conversa.',true);newChat()}}
+    async function clearAllChats(){if(!confirm('Deseja apagar todo o historico de conversas?'))return;try{await App.api('/api/chat',{method:'DELETE'});App.showToast('Historico limpo.');newChat();loadHistoryList()}catch(err){App.showToast(err.message,true)}}
+    async function generateCurrentChatPdf(){try{const source=currentChatId?(await App.api(`/api/chat/${currentChatId}`)).mensagens:lastMessages;if(!source.length)return App.showToast('Nao ha conversa para salvar.',true);const sections=[{title:'Conversa com Tutor IA',content:source.map(m=>`${m.role==='user'?'Aluno':'Tutor'}: ${m.content}`).join('\\n\\n')}];const filename=EnemFlowPdfTools.sanitizeFileName('Tutor IA - EnemFlow.pdf');const html=EnemFlowPdfTools.buildPdfHtml({title:'Tutor IA',theme:'Conversa de estudo',materia:'Tutor IA',sections});const blob=await EnemFlowPdfTools.generatePdfBlob(html,filename);await EnemFlowPdfTools.savePdfRecord({id:crypto.randomUUID(),name:filename,materia:'Tutor IA',assunto:'Conversas',topico:'Chat',tipo:'tutor',createdAt:new Date().toISOString(),size:blob.size,blob});EnemFlowPdfTools.openBlob(blob);App.showToast('PDF salvo neste dispositivo.')}catch(err){App.showToast(err.message,true)}}
+    async function openExamFromChat(){let seedText=msgInput.value.trim();try{if(currentChatId){const chat=await App.api(`/api/chat/${currentChatId}`);const lastUser=[...(chat.mensagens||[])].reverse().find(m=>m.role==='user');seedText=seedText||lastUser?.content||chat.titulo||''}}catch(err){}localStorage.setItem('enemflow_exam_prefill',JSON.stringify(inferExamContext(seedText)));window.location.href='exercises.html'}
+    function inferExamContext(text){const clean=String(text||'').toLowerCase();const materiaMap=[['Matematica',['matematica','geometria','algebra','funcao','probabilidade']],['Fisica',['fisica','cinematica','forca','energia','termodinamica']],['Quimica',['quimica','estequiometria','atomistica','solucoes']],['Biologia',['biologia','ecologia','genetica','citologia']],['Historia',['historia','vargas','brasil colonia','republica']],['Geografia',['geografia','clima','urbanizacao','cartografia']],['Portugues',['portugues','gramatica','interpretacao']],['Redacao',['redacao','tese','argumento','intervencao']]];const found=materiaMap.find(([,terms])=>terms.some(term=>clean.includes(term)));const words=String(text||'').split(/\\s+/).filter(w=>w.length>3).slice(0,8).join(' ');return{materia:found?found[0]:'',assunto:words||'',topico:words||'',descricao:'Gerado a partir do contexto discutido no Tutor IA.',quantidade:10}}
+    async function handleSimuladoReviewContext(){const params=new URLSearchParams(window.location.search);if(params.get('simuladoReview')!=='true')return;const raw=localStorage.getItem('enemflow_tutor_review_context');localStorage.removeItem('enemflow_tutor_review_context');window.history.replaceState({},'','chat.html');if(!raw)return App.showToast('Nao encontrei dados do simulado para corrigir.',true);const context=JSON.parse(raw),simulado=context.simulado||{},wrong=(simulado.questoes||[]).filter(q=>(context.wrongQuestionIds||[]).includes(q.id));const compact=wrong.map(q=>`Questao ${q.id}: correta ${q.respostaCorreta}, aluno ${context.answers?.[q.id]||'em branco'}\\n${q.pergunta||q.enunciado}\\nResolucao base: ${q.resolucao||''}`).join('\\n\\n');const prompt=`${context.prompt}\\n\\nResumo do simulado: ${simulado.materia} > ${simulado.assunto} > ${simulado.topico}\\n\\nQuestoes erradas e respostas do aluno:\\n${compact||'O aluno nao errou questoes. Reforce estrategias e revise pontos de atencao.'}`;appendMessage('user',prompt);showTyping();try{const data=await App.api('/api/chat',{method:'POST',body:JSON.stringify({mensagem:prompt})});removeTyping();appendMessage('assistant',data.resposta);if(data.chatId){currentChatId=data.chatId;window.history.replaceState({},'',`chat.html?id=${currentChatId}`);loadHistoryList()}}catch(err){removeTyping();App.showToast(err.message,true)}}
+    function handlePdfContext(){const params=new URLSearchParams(window.location.search);if(params.get('pdfContext')!=='true')return;const pdfTitle=localStorage.getItem('pdfContextTitle')||'PDF',contentId=localStorage.getItem('pdfContextContentId')||'';localStorage.removeItem('pdfContextTitle');localStorage.removeItem('pdfContextContentId');localStorage.removeItem('pdfContextUrl');window.history.replaceState({},'','chat.html');if(!contentId)return App.showToast('Nao foi possivel identificar o PDF selecionado.',true);appendMessage('user',`Estou estudando o material: \"${pdfTitle}\". Analise o PDF e me ajude com duvidas sobre este conteudo.`);showTyping();App.api('/api/chat/content-context',{method:'POST',body:JSON.stringify({contentId,pergunta:`Analise o PDF \"${pdfTitle}\" e explique os pontos principais em formato claro para estudo do ENEM.`})}).then(data=>{removeTyping();appendMessage('assistant',data.resposta);if(data.chatId){currentChatId=data.chatId;window.history.replaceState({},'',`chat.html?id=${currentChatId}`);loadHistoryList()}}).catch(err=>{removeTyping();App.showToast(err.message,true)})}
+    function escapeHtml(v){return String(v||'').replaceAll('&','&amp;').replaceAll('<','&lt;').replaceAll('>','&gt;').replaceAll('"','&quot;').replaceAll("'","&#039;")}
+    loadHistoryList();if(currentChatId)loadCurrentChat();handleSimuladoReviewContext();handlePdfContext();
   </script>
 </body>
 </html>

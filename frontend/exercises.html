@@ -4,684 +4,82 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
   <meta name="theme-color" content="#07060e">
-  <title>EnemFlow AI - Simulados ENEM</title>
+  <title>EnemFlow AI - Simulados</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <link href="https://fonts.googleapis.com/css2?family=Sora:wght@300;400;500;600;700;800&family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="style.css">
   <script src="https://unpkg.com/feather-icons"></script>
   <script src="sidebar.js" defer></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
-  <script>
-    tailwind.config = {
-      darkMode: 'class',
-      theme: { extend: { fontFamily: { sans: ['Inter', 'sans-serif'], sora: ['Sora', 'sans-serif'] } } }
-    }
-  </script>
+  <script>tailwind.config={darkMode:'class',theme:{extend:{fontFamily:{sans:['Inter','sans-serif'],sora:['Sora','sans-serif']}}}};</script>
   <style>
-    body { font-family: 'Inter', sans-serif; }
-
-    .exam-shell {
-      max-width: 1080px;
-      margin: 0 auto;
-      padding: 2rem;
-    }
-
-    .ef-brand-bolt {
-      width: 48px;
-      height: 48px;
-      border-radius: 16px;
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      background: rgba(124, 92, 252, 0.1);
-      border: 1px solid rgba(124, 92, 252, 0.18);
-      box-shadow: 0 0 26px rgba(124, 92, 252, 0.18);
-    }
-
-    .simulado-card {
-      background: rgba(12, 10, 22, 0.86);
-      border: 1px solid rgba(255, 255, 255, 0.07);
-      border-radius: 22px;
-      box-shadow: 0 8px 32px rgba(0,0,0,0.28);
-    }
-
-    .question-card {
-      border-radius: 18px;
-      border: 1px solid rgba(255,255,255,0.075);
-      background: rgba(255,255,255,0.025);
-      padding: 1.25rem;
-    }
-
-    .option-row {
-      display: flex;
-      gap: 0.85rem;
-      align-items: flex-start;
-      border-radius: 14px;
-      border: 1px solid rgba(255,255,255,0.08);
-      background: rgba(255,255,255,0.025);
-      padding: 0.95rem 1rem;
-      cursor: pointer;
-      transition: border-color 0.2s ease, background 0.2s ease, transform 0.2s ease;
-    }
-
-    .option-row:hover {
-      transform: translateY(-1px);
-      border-color: rgba(124, 92, 252, 0.28);
-      background: rgba(124, 92, 252, 0.055);
-    }
-
-    .option-row.selected {
-      border-color: rgba(124, 92, 252, 0.55);
-      background: rgba(124, 92, 252, 0.12);
-    }
-
-    .option-row.correct {
-      border-color: rgba(16, 185, 129, 0.45);
-      background: rgba(16, 185, 129, 0.08);
-    }
-
-    .option-row.wrong {
-      border-color: rgba(248, 113, 113, 0.45);
-      background: rgba(248, 113, 113, 0.08);
-    }
-
-    .option-letter {
-      width: 30px;
-      height: 30px;
-      border-radius: 999px;
-      flex: 0 0 auto;
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      font-family: 'Sora', sans-serif;
-      font-weight: 800;
-      color: #c4b5fd;
-      background: rgba(124, 92, 252, 0.12);
-      border: 1px solid rgba(124, 92, 252, 0.2);
-    }
-
-    .exam-action {
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      gap: 0.5rem;
-      min-height: 44px;
-      padding: 0.75rem 1rem;
-      border-radius: 14px;
-      font-weight: 800;
-      font-size: 0.9rem;
-      transition: transform 0.2s ease, border-color 0.2s ease, background 0.2s ease;
-    }
-
-    .exam-action-primary {
-      color: white;
-      background: linear-gradient(135deg, #7c5cfc, #8b5cf6 52%, #ec4899);
-      box-shadow: 0 12px 28px rgba(124, 92, 252, 0.24);
-    }
-
-    .exam-action-secondary {
-      color: #c4b5fd;
-      border: 1px solid rgba(124, 92, 252, 0.16);
-      background: rgba(124, 92, 252, 0.06);
-    }
-
-    .exam-action:hover {
-      transform: translateY(-2px);
-    }
-
-    .print-sheet {
-      display: none;
-    }
-
-    @media print {
-      html, body {
-        background: #fff !important;
-        color: #111827 !important;
-        overflow: visible !important;
-        height: auto !important;
-      }
-
-      body > *:not(.print-sheet) {
-        display: none !important;
-      }
-
-      .print-sheet {
-        display: block !important;
-        padding: 24px;
-        font-family: Arial, sans-serif;
-        color: #111827;
-      }
-
-      .print-header {
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-        border-bottom: 2px solid #7c5cfc;
-        padding-bottom: 14px;
-        margin-bottom: 20px;
-      }
-
-      .print-brand {
-        font-size: 24px;
-        font-weight: 800;
-      }
-
-      .print-question {
-        page-break-inside: avoid;
-        margin-bottom: 18px;
-        padding-bottom: 14px;
-        border-bottom: 1px solid #e5e7eb;
-      }
-
-      .print-options {
-        list-style: none;
-        padding-left: 0;
-      }
-
-      .print-options li {
-        margin: 8px 0;
-      }
-
-      .print-check {
-        display: inline-block;
-        width: 14px;
-        height: 14px;
-        border: 1px solid #111827;
-        margin-right: 8px;
-        vertical-align: -2px;
-      }
-    }
-
-    @media (max-width: 1023px) {
-      .exam-shell {
-        padding: 1rem;
-        padding-bottom: 1.5rem;
-      }
-    }
+    body{font-family:'Inter',sans-serif}.exam-shell{max-width:1180px;margin:0 auto;padding:2rem}.exam-card{background:rgba(12,10,22,.88);border:1px solid rgba(255,255,255,.075);border-radius:18px;box-shadow:0 12px 36px rgba(0,0,0,.28)}
+    .exam-action{display:inline-flex;align-items:center;justify-content:center;gap:.5rem;min-height:44px;padding:.78rem 1rem;border-radius:14px;font-weight:800;font-size:.9rem;transition:transform .2s ease,border-color .2s ease,background .2s ease}.exam-action:hover:not(:disabled){transform:translateY(-2px)}.exam-action:disabled{opacity:.55;cursor:not-allowed}
+    .exam-action-primary{color:#fff;background:linear-gradient(135deg,#7c5cfc,#8b5cf6 52%,#ec4899);box-shadow:0 12px 28px rgba(124,92,252,.24)}.exam-action-secondary{color:#c4b5fd;border:1px solid rgba(124,92,252,.18);background:rgba(124,92,252,.065)}
+    .brand-bolt{width:48px;height:48px;border-radius:16px;display:inline-flex;align-items:center;justify-content:center;background:rgba(124,92,252,.1);border:1px solid rgba(124,92,252,.18);box-shadow:0 0 26px rgba(124,92,252,.18)}.meta-pill{display:inline-flex;align-items:center;gap:.35rem;padding:.35rem .65rem;border-radius:999px;border:1px solid rgba(124,92,252,.16);background:rgba(124,92,252,.06);color:#c4b5fd;font-size:.72rem;font-weight:800}
+    .question-card{border-radius:16px;border:1px solid rgba(255,255,255,.075);background:rgba(255,255,255,.025);padding:1.2rem}.option-row{display:flex;gap:.85rem;align-items:flex-start;border-radius:14px;border:1px solid rgba(255,255,255,.08);background:rgba(255,255,255,.025);padding:.95rem 1rem;cursor:pointer;transition:border-color .2s ease,background .2s ease,transform .2s ease}.option-row:hover{transform:translateY(-1px);border-color:rgba(124,92,252,.28);background:rgba(124,92,252,.055)}.option-row.selected{border-color:rgba(124,92,252,.55);background:rgba(124,92,252,.12)}.option-row.correct{border-color:rgba(16,185,129,.48);background:rgba(16,185,129,.09)}.option-row.wrong{border-color:rgba(248,113,113,.48);background:rgba(248,113,113,.09)}
+    .option-letter{width:30px;height:30px;border-radius:999px;flex:0 0 auto;display:inline-flex;align-items:center;justify-content:center;font-family:'Sora',sans-serif;font-weight:800;color:#c4b5fd;background:rgba(124,92,252,.12);border:1px solid rgba(124,92,252,.2)}
+    .timer-bar{position:sticky;top:0;z-index:30;background:rgba(7,6,14,.92);border:1px solid rgba(124,92,252,.12);backdrop-filter:blur(18px);border-radius:16px}.timer-warn{border-color:rgba(245,158,11,.45)!important;box-shadow:0 0 24px rgba(245,158,11,.12)}.timer-danger{border-color:rgba(248,113,113,.5)!important;box-shadow:0 0 28px rgba(248,113,113,.14)}
+    .generation-overlay{position:fixed;inset:0;z-index:99999;display:none;align-items:center;justify-content:center;padding:1rem;background:rgba(7,6,14,.88);backdrop-filter:blur(14px)}.generation-overlay.show{display:flex}.progress-track{height:9px;border-radius:999px;overflow:hidden;background:rgba(255,255,255,.08)}.progress-fill{height:100%;width:8%;border-radius:inherit;background:linear-gradient(90deg,#7c5cfc,#ec4899);transition:width .45s ease}.print-sheet{display:none}
+    @media print{body>*:not(.print-sheet){display:none!important}.print-sheet{display:block!important}}@media(max-width:1023px){.exam-shell{padding:1rem;padding-bottom:1.5rem}.exam-action{width:100%}}
   </style>
   <link rel="icon" type="image/png" href="favicon.png?v=2">
 </head>
 <body class="min-h-screen ef-deep-bg">
   <main class="flex-1 overflow-y-auto relative min-h-screen">
-    <div class="bg-glow" style="top:5%;right:5%;"></div>
-    <div class="bg-glow" style="bottom:12%;left:-10%; background: radial-gradient(circle, rgba(236,72,153,0.055) 0%, transparent 62%);"></div>
-
+    <div class="bg-glow" style="top:5%;right:5%;"></div><div class="bg-glow" style="bottom:12%;left:-10%;background:radial-gradient(circle,rgba(236,72,153,.055) 0%,transparent 62%);"></div>
     <div class="exam-shell space-y-8 relative z-10 animate-fade-in">
       <header class="flex flex-col md:flex-row md:items-start md:justify-between gap-5">
-        <div class="flex items-start gap-4">
-          <div class="ef-brand-bolt">
-            <img src="favicon.svg" alt="" class="w-7 h-7">
-          </div>
-          <div>
-            <h1 class="text-2xl sm:text-3xl font-extrabold tracking-tight text-gradient" style="font-family:'Sora',sans-serif;">Simulado Inteligente</h1>
-            <p class="mt-2 max-w-2xl text-sm sm:text-base" style="color:rgba(196,188,220,0.62);">
-              Gere um simulado completo por matéria e tema, responda na plataforma ou imprima para fazer à mão.
-            </p>
-          </div>
-        </div>
-        <button onclick="window.location.href='dashboard.html'" class="exam-action exam-action-secondary">
-          <i data-feather="arrow-left" class="w-4 h-4"></i>
-          Dashboard
-        </button>
+        <div class="flex items-start gap-4"><div class="brand-bolt"><img src="favicon.svg" alt="" class="w-7 h-7"></div><div><h1 class="text-2xl sm:text-3xl font-extrabold tracking-tight text-gradient" style="font-family:'Sora',sans-serif;">Simulado Inteligente</h1><p class="mt-2 max-w-2xl text-sm sm:text-base" style="color:rgba(196,188,220,.62);">Monte, resolva, corrija e salve simulados ENEM com uma trilha clara: materia, assunto, topico e numero de questoes.</p></div></div>
+        <div class="flex flex-col sm:flex-row gap-2"><button onclick="window.location.href='device.html'" class="exam-action exam-action-secondary"><i data-feather="folder" class="w-4 h-4"></i>Neste dispositivo</button><button onclick="window.location.href='dashboard.html'" class="exam-action exam-action-secondary"><i data-feather="arrow-left" class="w-4 h-4"></i>Dashboard</button></div>
       </header>
-
-      <section class="simulado-card p-6 md:p-8">
-        <form id="simuladoForm" class="grid grid-cols-1 md:grid-cols-[1fr_1fr_150px] gap-5">
-          <div class="space-y-2">
-            <label class="text-sm font-bold" style="color:rgba(196,188,220,0.72);">Disciplina do ENEM</label>
-            <select id="materia" required class="ef-select w-full">
-              <option value="">Selecione a matéria...</option>
-              <option value="Matemática">Matemática</option>
-              <option value="Física">Física</option>
-              <option value="Química">Química</option>
-              <option value="Biologia">Biologia</option>
-              <option value="História">História</option>
-              <option value="Geografia">Geografia</option>
-              <option value="Filosofia">Filosofia</option>
-              <option value="Sociologia">Sociologia</option>
-              <option value="Literatura">Literatura</option>
-              <option value="Português">Português</option>
-              <option value="Redação">Redação</option>
-              <option value="Artes">Artes</option>
-              <option value="Inglês">Inglês</option>
-              <option value="Espanhol">Espanhol</option>
-            </select>
-          </div>
-          <div class="space-y-2">
-            <label class="text-sm font-bold" style="color:rgba(196,188,220,0.72);">Tema solicitado</label>
-            <input type="text" id="assunto" class="ef-input w-full" placeholder="Ex: Geometria, Era Vargas, Termodinâmica">
-          </div>
-          <div class="space-y-2">
-            <label class="text-sm font-bold" style="color:rgba(196,188,220,0.72);">Questões</label>
-            <select id="quantidade" class="ef-select w-full">
-              <option value="5">5</option>
-              <option value="8">8</option>
-              <option value="10">10</option>
-              <option value="12">12</option>
-            </select>
-          </div>
-          <div class="md:col-span-3 flex flex-col sm:flex-row gap-3 pt-2">
-            <button type="submit" id="generateBtn" class="exam-action exam-action-primary flex-1">
-              <i data-feather="zap" class="w-5 h-5"></i>
-              Gerar simulado completo
-            </button>
-            <button type="button" onclick="restoreLastSimulado()" class="exam-action exam-action-secondary">
-              <i data-feather="clock" class="w-4 h-4"></i>
-              Último simulado
-            </button>
-          </div>
+      <section class="exam-card p-6 md:p-8">
+        <form id="simuladoForm" class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-[1fr_1fr_1fr_170px] gap-5">
+          <div class="space-y-2"><label class="text-sm font-bold" style="color:rgba(196,188,220,.72);">Materia</label><select id="materia" required class="ef-select w-full"><option value="">Selecione...</option><option>Matematica</option><option>Fisica</option><option>Quimica</option><option>Biologia</option><option>Historia</option><option>Geografia</option><option>Filosofia</option><option>Sociologia</option><option>Literatura</option><option>Portugues</option><option>Redacao</option><option>Artes</option><option>Ingles</option><option>Espanhol</option></select></div>
+          <div class="space-y-2"><label class="text-sm font-bold" style="color:rgba(196,188,220,.72);">Assunto</label><input type="text" id="assunto" required class="ef-input w-full" placeholder="Ex: Geometria"></div>
+          <div class="space-y-2"><label class="text-sm font-bold" style="color:rgba(196,188,220,.72);">Topico</label><input type="text" id="topico" required class="ef-input w-full" placeholder="Ex: Area de figuras planas"></div>
+          <div class="space-y-2"><label class="text-sm font-bold" style="color:rgba(196,188,220,.72);">Questoes</label><input type="number" id="quantidade" min="1" max="30" value="10" class="ef-input w-full"></div>
+          <div class="md:col-span-2 xl:col-span-4 space-y-2"><label class="text-sm font-bold" style="color:rgba(196,188,220,.72);">Breve descricao <span style="color:rgba(196,188,220,.4);">(opcional)</span></label><textarea id="descricao" rows="3" class="ef-input w-full" placeholder="Ex: Questoes estilo ENEM focadas em interpretacao grafica"></textarea></div>
+          <div class="md:col-span-2 xl:col-span-4 flex flex-col sm:flex-row gap-3 pt-2"><button type="submit" id="generateBtn" class="exam-action exam-action-primary flex-1"><i data-feather="zap" class="w-5 h-5"></i>Gerar Simulado</button><button type="button" onclick="restoreLastSimulado()" class="exam-action exam-action-secondary"><i data-feather="clock" class="w-4 h-4"></i>Ultimo simulado</button></div>
         </form>
       </section>
-
       <section id="simuladoContainer" class="hidden space-y-6">
-        <div class="simulado-card p-6 md:p-8">
-          <div class="flex flex-col md:flex-row md:items-start md:justify-between gap-4 border-b pb-5 mb-6" style="border-color:rgba(255,255,255,0.08);">
-            <div class="flex items-start gap-4">
-              <div class="ef-brand-bolt">
-                <img src="favicon.svg" alt="" class="w-7 h-7">
-              </div>
-              <div>
-                <p class="text-xs font-bold uppercase tracking-wider" style="color:rgba(196,188,220,0.44);">EnemFlow</p>
-                <h2 id="simuladoTitle" class="text-xl md:text-2xl font-black text-gradient" style="font-family:'Sora',sans-serif;">Simulado</h2>
-                <p id="simuladoInstructions" class="mt-2 text-sm" style="color:rgba(196,188,220,0.62);"></p>
-              </div>
-            </div>
-            <div class="flex flex-wrap gap-2">
-              <button onclick="finishExam()" class="exam-action exam-action-primary">
-                <i data-feather="check-circle" class="w-4 h-4"></i>
-                Corrigir
-              </button>
-              <button onclick="printSimulado(false)" class="exam-action exam-action-secondary">
-                <i data-feather="printer" class="w-4 h-4"></i>
-                Imprimir
-              </button>
-              <button onclick="printSimulado(true)" class="exam-action exam-action-secondary">
-                <i data-feather="file-text" class="w-4 h-4"></i>
-                PDF com gabarito
-              </button>
-              <button onclick="saveSimuladoPdf()" id="savePdfBtn" class="exam-action exam-action-secondary">
-                <i data-feather="save" class="w-4 h-4"></i>
-                Salvar PDF
-              </button>
-            </div>
+        <div id="timerBar" class="timer-bar hidden p-4"><div class="flex flex-col md:flex-row md:items-center md:justify-between gap-3"><div class="flex items-center gap-3"><span class="meta-pill"><i data-feather="clock" class="w-3.5 h-3.5"></i><span id="timerDisplay">00:00:00</span></span><span id="autosaveText" class="text-xs" style="color:rgba(196,188,220,.52);">Progresso salvo automaticamente</span></div><div class="flex gap-2"><button id="playBtn" onclick="startExam()" class="exam-action exam-action-primary"><i data-feather="play" class="w-4 h-4"></i>Play</button><button onclick="finishExam()" class="exam-action exam-action-secondary"><i data-feather="check-circle" class="w-4 h-4"></i>Finalizar</button></div></div></div>
+        <div class="exam-card p-6 md:p-8">
+          <div class="flex flex-col lg:flex-row lg:items-start lg:justify-between gap-4 border-b pb-5 mb-6" style="border-color:rgba(255,255,255,.08);">
+            <div class="flex items-start gap-4"><div class="brand-bolt"><img src="favicon.svg" alt="" class="w-7 h-7"></div><div><p class="text-xs font-bold uppercase tracking-wider" style="color:rgba(196,188,220,.44);">Preview do simulado</p><h2 id="simuladoTitle" class="text-xl md:text-2xl font-black text-gradient" style="font-family:'Sora',sans-serif;">Simulado</h2><div id="simuladoMeta" class="flex flex-wrap gap-2 mt-3"></div><p id="simuladoInstructions" class="mt-3 text-sm" style="color:rgba(196,188,220,.62);"></p></div></div>
+            <div class="flex flex-wrap gap-2"><button onclick="saveSimuladoPdf()" id="savePdfBtn" class="exam-action exam-action-secondary"><i data-feather="save" class="w-4 h-4"></i>Salvar em PDF</button><button onclick="prepareExam()" id="startExamBtn" class="exam-action exam-action-primary"><i data-feather="play-circle" class="w-4 h-4"></i>Iniciar Simulado</button><button onclick="regenerateSimulado()" class="exam-action exam-action-secondary"><i data-feather="refresh-cw" class="w-4 h-4"></i>Gerar Novamente</button></div>
           </div>
-
-          <div id="scoreSummary" class="hidden mb-6 p-5 rounded-2xl border" style="border-color:rgba(16,185,129,0.22);background:rgba(16,185,129,0.07);">
-            <h3 class="font-black text-lg" style="font-family:'Sora',sans-serif;color:#6ee7b7;">Correção automática</h3>
-            <p id="scoreText" class="mt-1 text-sm" style="color:rgba(196,188,220,0.72);"></p>
-          </div>
-
-          <div id="pdfStatus" class="hidden mb-6 p-4 rounded-2xl border text-sm" style="border-color:rgba(124,92,252,0.18);background:rgba(124,92,252,0.06);color:#c4b5fd;"></div>
-
-          <div id="questionsList" class="space-y-5"></div>
+          <div id="scoreSummary" class="hidden mb-6 p-5 rounded-2xl border" style="border-color:rgba(16,185,129,.22);background:rgba(16,185,129,.07);"></div><div id="pdfStatus" class="hidden mb-6 p-4 rounded-2xl border text-sm" style="border-color:rgba(124,92,252,.18);background:rgba(124,92,252,.06);color:#c4b5fd;"></div><div id="questionsList" class="space-y-5"></div>
         </div>
       </section>
-
-      <section class="simulado-card p-6 md:p-8">
-        <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-3 mb-5">
-          <div>
-            <h2 class="text-xl font-black" style="font-family:'Sora',sans-serif;color:#e4dff0;">Simulados criados nesta plataforma</h2>
-            <p class="text-sm mt-1" style="color:rgba(196,188,220,0.55);">Você pode reabrir ou imprimir os simulados gerados recentemente.</p>
-          </div>
-          <span class="text-xs font-bold px-3 py-1.5 rounded-full border" style="color:#a78bfa;border-color:rgba(124,92,252,0.18);background:rgba(124,92,252,0.06);">Armazenado neste dispositivo</span>
-        </div>
-        <div id="savedSimulados" class="grid grid-cols-1 md:grid-cols-2 gap-4"></div>
-      </section>
-
-      <section class="simulado-card p-6 md:p-8">
-        <h2 class="text-xl font-black mb-5 flex items-center gap-2" style="font-family:'Sora',sans-serif;color:#e4dff0;">
-          <i data-feather="book-open" class="w-5 h-5" style="color:#a78bfa;"></i>
-          Materiais disponíveis
-        </h2>
-        <div id="materialsList" class="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <div class="text-center py-6 col-span-full" style="color:rgba(196,188,220,0.55);">
-            <i data-feather="loader" class="w-6 h-6 animate-spin mx-auto mb-2" style="color:#a78bfa;"></i>
-            Carregando materiais...
-          </div>
-        </div>
-      </section>
+      <section class="exam-card p-6 md:p-8"><div class="flex flex-col md:flex-row md:items-center md:justify-between gap-3 mb-5"><div><h2 class="text-xl font-black" style="font-family:'Sora',sans-serif;color:#e4dff0;">Simulados recentes</h2><p class="text-sm mt-1" style="color:rgba(196,188,220,.55);">Rascunhos e simulados gerados ficam neste navegador.</p></div><span class="meta-pill">Neste dispositivo</span></div><div id="savedSimulados" class="grid grid-cols-1 md:grid-cols-2 gap-4"></div></section>
     </div>
   </main>
-
+  <div id="generationOverlay" class="generation-overlay" role="alert" aria-live="assertive"><div class="exam-card w-full max-w-xl p-6 md:p-8 text-center"><div class="brand-bolt mx-auto mb-5"><img src="favicon.svg" alt="" class="w-7 h-7"></div><h2 class="text-xl font-black text-gradient" style="font-family:'Sora',sans-serif;">Gerando simulado</h2><p id="generationStatus" class="mt-3 text-sm" style="color:rgba(196,188,220,.68);">Estruturando questoes...</p><div class="progress-track mt-6"><div id="generationProgress" class="progress-fill"></div></div><p class="text-xs mt-4" style="color:rgba(196,188,220,.45);">Aguarde nesta tela ate a geracao terminar.</p></div></div>
   <section id="printSheet" class="print-sheet"></section>
-
-  <script src="app.js"></script>
-  <script src="pdf-tools.js"></script>
+  <script src="app.js"></script><script src="pdf-tools.js"></script>
   <script>
-    feather.replace();
-    if (!App.getToken()) window.location.href = 'login.html';
-
-    let currentSimulado = null;
-    let answers = {};
-    let corrected = false;
-
-    const savedMateria = localStorage.getItem('exercise_materia');
-    const savedAssunto = localStorage.getItem('exercise_assunto');
-    if (savedMateria) document.getElementById('materia').value = savedMateria;
-    if (savedAssunto) document.getElementById('assunto').value = savedAssunto;
-
-    document.getElementById('materia').addEventListener('change', event => {
-      localStorage.setItem('exercise_materia', event.target.value);
-    });
-    document.getElementById('assunto').addEventListener('input', event => {
-      localStorage.setItem('exercise_assunto', event.target.value);
-    });
-
-    document.getElementById('simuladoForm').addEventListener('submit', async event => {
-      event.preventDefault();
-      const materia = document.getElementById('materia').value;
-      const assunto = document.getElementById('assunto').value.trim();
-      const quantidade = document.getElementById('quantidade').value;
-      const btn = document.getElementById('generateBtn');
-
-      btn.disabled = true;
-      btn.innerHTML = '<i data-feather="loader" class="w-5 h-5 animate-spin"></i> Montando simulado...';
-      feather.replace();
-
-      try {
-        const data = await App.api('/api/chat/simulado', {
-          method: 'POST',
-          body: JSON.stringify({ materia, assunto, quantidade })
-        });
-        currentSimulado = data.simulado;
-        answers = {};
-        corrected = false;
-        saveSimulado(currentSimulado);
-        renderSimulado();
-        renderSavedSimulados();
-        App.showToast('Simulado gerado com sucesso!');
-      } catch (error) {
-        App.showToast(error.message, true);
-      } finally {
-        btn.disabled = false;
-        btn.innerHTML = '<i data-feather="zap" class="w-5 h-5"></i> Gerar simulado completo';
-        feather.replace();
-      }
-    });
-
-    function renderSimulado() {
-      if (!currentSimulado) return;
-      document.getElementById('simuladoContainer').classList.remove('hidden');
-      document.getElementById('scoreSummary').classList.add('hidden');
-      document.getElementById('pdfStatus').classList.add('hidden');
-      document.getElementById('simuladoTitle').textContent = currentSimulado.titulo;
-      const confidence = currentSimulado.validacaoTema ? Math.round(currentSimulado.validacaoTema.confidence * 100) : 100;
-      document.getElementById('simuladoInstructions').textContent = `${currentSimulado.instrucoes} Tema validado: ${confidence}% de aderencia.`;
-
-      document.getElementById('questionsList').innerHTML = currentSimulado.questoes.map(question => `
-        <article class="question-card" id="question-${question.id}">
-          <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-2 mb-4">
-            <h3 class="font-black" style="font-family:'Sora',sans-serif;color:#e4dff0;">Questão ${question.id}</h3>
-            <span class="text-xs font-bold px-2.5 py-1 rounded-full border" style="color:#c4b5fd;border-color:rgba(124,92,252,0.18);background:rgba(124,92,252,0.06);">${escapeHtml(question.dificuldade || 'Média')}</span>
-          </div>
-          <p class="text-sm leading-relaxed mb-3" style="color:rgba(196,188,220,0.72);">${escapeHtml(question.contexto)}</p>
-          ${question.interpretacao ? `<p class="text-sm leading-relaxed mb-3" style="color:rgba(196,188,220,0.6);"><strong>Interpretacao:</strong> ${escapeHtml(question.interpretacao)}</p>` : ''}
-          <p class="font-bold leading-relaxed mb-4" style="color:#e4dff0;">${escapeHtml(question.pergunta || question.enunciado)}</p>
-          <div class="space-y-3">
-            ${question.alternativas.map(option => `
-              <label class="option-row" data-question="${question.id}" data-letter="${option.letra}">
-                <input type="radio" class="sr-only" name="q-${question.id}" value="${option.letra}" onchange="selectAnswer(${question.id}, '${option.letra}')">
-                <span class="option-letter">${option.letra}</span>
-                <span style="color:rgba(228,223,240,0.86);">${escapeHtml(option.texto)}</span>
-              </label>
-            `).join('')}
-          </div>
-          <div id="resolution-${question.id}" class="hidden mt-5 p-4 rounded-2xl border" style="border-color:rgba(124,92,252,0.18);background:rgba(124,92,252,0.055);">
-            <p class="text-sm font-black mb-1" style="color:#c4b5fd;">Resposta correta: ${question.respostaCorreta}</p>
-            <p class="text-sm leading-relaxed" style="color:rgba(196,188,220,0.72);">${escapeHtml(question.resolucao)}</p>
-          </div>
-        </article>
-      `).join('');
-
-      document.getElementById('simuladoContainer').scrollIntoView({ behavior: 'smooth', block: 'start' });
-      feather.replace();
-    }
-
-    function selectAnswer(questionId, letter) {
-      if (corrected) return;
-      answers[questionId] = letter;
-      document.querySelectorAll(`[data-question="${questionId}"]`).forEach(row => {
-        row.classList.toggle('selected', row.dataset.letter === letter);
-      });
-    }
-
-    async function finishExam() {
-      if (!currentSimulado) return;
-      corrected = true;
-      let hits = 0;
-
-      currentSimulado.questoes.forEach(question => {
-        const selected = answers[question.id];
-        if (selected === question.respostaCorreta) hits++;
-
-        document.querySelectorAll(`[data-question="${question.id}"]`).forEach(row => {
-          const letter = row.dataset.letter;
-          row.classList.remove('selected');
-          if (letter === question.respostaCorreta) row.classList.add('correct');
-          if (selected === letter && selected !== question.respostaCorreta) row.classList.add('wrong');
-        });
-        document.getElementById(`resolution-${question.id}`).classList.remove('hidden');
-      });
-
-      const total = currentSimulado.questoes.length;
-      const percent = Math.round((hits / total) * 100);
-      document.getElementById('scoreSummary').classList.remove('hidden');
-      document.getElementById('scoreText').textContent = `Você acertou ${hits} de ${total} questões (${percent}%). Confira as resoluções abaixo.`;
-      App.showToast('Correção automática concluída!');
-
-      await reportProgress(hits, total);
-      feather.replace();
-    }
-
-    async function reportProgress(hits, total) {
-      try {
-        const materia = currentSimulado.materia || document.getElementById('materia').value || 'Matemática';
-        const area = mapMateriaToArea(materia);
-        const correto = hits / Math.max(total, 1) >= 0.6;
-        await App.api('/api/ai-adaptation/solve', {
-          method: 'POST',
-          body: JSON.stringify({
-            skillId: mapMateriaToSkill(materia),
-            area,
-            correto,
-            tempoEmSegundos: total * 120
-          })
-        });
-      } catch (error) {
-        console.warn('Progresso do simulado não foi registrado:', error.message);
-      }
-    }
-
-    function mapMateriaToArea(materia) {
-      if (['Matemática'].includes(materia)) return 'Matemática';
-      if (['Física', 'Química', 'Biologia'].includes(materia)) return 'Ciências da Natureza';
-      if (['História', 'Geografia', 'Filosofia', 'Sociologia'].includes(materia)) return 'Ciências Humanas';
-      if (['Redação'].includes(materia)) return 'Redação e Competências';
-      return 'Linguagens e Códigos';
-    }
-
-    function mapMateriaToSkill(materia) {
-      if (materia === 'Matemática') return 'M1';
-      if (['Física', 'Química', 'Biologia'].includes(materia)) return 'N1';
-      if (['História', 'Geografia', 'Filosofia', 'Sociologia'].includes(materia)) return 'H1';
-      if (materia === 'Redação') return 'R1';
-      return 'L1';
-    }
-
-    function printSimulado(includeAnswers) {
-      if (!currentSimulado) return App.showToast('Gere um simulado primeiro.', true);
-      buildPrintSheet(includeAnswers);
-      window.print();
-    }
-
-    function setPdfStatus(message, isError = false) {
-      const status = document.getElementById('pdfStatus');
-      status.classList.remove('hidden');
-      status.style.borderColor = isError ? 'rgba(248,113,113,0.28)' : 'rgba(124,92,252,0.18)';
-      status.style.background = isError ? 'rgba(248,113,113,0.08)' : 'rgba(124,92,252,0.06)';
-      status.style.color = isError ? '#fca5a5' : '#c4b5fd';
-      status.textContent = message;
-    }
-
-    function buildSimuladoPdfSections() {
-      return EnemFlowPdfTools.buildSimuladoPdfSections(currentSimulado);
-    }
-
-    async function saveSimuladoPdf() {
-      if (!currentSimulado) return App.showToast('Gere um simulado primeiro.', true);
-      const btn = document.getElementById('savePdfBtn');
-      btn.disabled = true;
-      btn.innerHTML = '<i data-feather="loader" class="w-4 h-4 animate-spin"></i> Salvando...';
-      feather.replace();
-      setPdfStatus('Gerando PDF com conteudo validado...');
-
-      try {
-        const filename = EnemFlowPdfTools.sanitizeFileName(`${currentSimulado.titulo || 'Simulado EnemFlow'}.pdf`);
-        const html = EnemFlowPdfTools.buildPdfHtml({
-          title: currentSimulado.titulo,
-          theme: currentSimulado.assunto || currentSimulado.materia,
-          materia: currentSimulado.materia,
-          sections: buildSimuladoPdfSections()
-        });
-        const blob = await EnemFlowPdfTools.generatePdfBlob(html, filename);
-        await EnemFlowPdfTools.savePdfRecord({
-          id: crypto.randomUUID(),
-          name: filename,
-          materia: currentSimulado.materia || 'Simulado',
-          createdAt: new Date().toISOString(),
-          size: blob.size,
-          blob
-        });
-        EnemFlowPdfTools.openBlob(blob);
-        setPdfStatus(`PDF salvo neste dispositivo: ${filename} • ${EnemFlowPdfTools.formatBytes(blob.size)}`);
-        App.showToast('PDF salvo neste dispositivo.');
-      } catch (error) {
-        console.error('[Simulado PDF]', error);
-        setPdfStatus('Não foi possível gerar o PDF. Tente novamente.', true);
-        App.showToast('Não foi possível gerar o PDF. Tente novamente.', true);
-      } finally {
-        btn.disabled = false;
-        btn.innerHTML = '<i data-feather="save" class="w-4 h-4"></i> Salvar PDF';
-        feather.replace();
-      }
-    }
-
-    function buildPrintSheet(includeAnswers) {
-      document.getElementById('printSheet').innerHTML = `
-        <div class="print-header">
-          <div>
-            <div class="print-brand">EnemFlow</div>
-            <div>${escapeHtml(currentSimulado.titulo)}</div>
-          </div>
-          <div>${includeAnswers ? 'Versão com gabarito' : 'Versão para resolver'}</div>
-        </div>
-        ${currentSimulado.questoes.map(question => `
-          <div class="print-question">
-            <h3>Questão ${question.id}</h3>
-            <p>${escapeHtml(question.contexto)}</p>
-            <p><strong>${escapeHtml(question.enunciado)}</strong></p>
-            <ul class="print-options">
-              ${question.alternativas.map(option => `
-                <li><span class="print-check"></span><strong>${option.letra})</strong> ${escapeHtml(option.texto)}</li>
-              `).join('')}
-            </ul>
-            ${includeAnswers ? `<p><strong>Resposta:</strong> ${question.respostaCorreta}</p><p><strong>Resolução:</strong> ${escapeHtml(question.resolucao)}</p>` : ''}
-          </div>
-        `).join('')}
-      `;
-    }
-
-    function saveSimulado(simulado) {
-      const saved = getSavedSimulados().filter(item => item.titulo !== simulado.titulo);
-      saved.unshift({ ...simulado, savedAt: new Date().toISOString() });
-      localStorage.setItem('enemflow_simulados', JSON.stringify(saved.slice(0, 8)));
-    }
-
-    function getSavedSimulados() {
-      try {
-        return JSON.parse(localStorage.getItem('enemflow_simulados') || '[]');
-      } catch {
-        return [];
-      }
-    }
-
-    function renderSavedSimulados() {
-      const saved = getSavedSimulados();
-      const container = document.getElementById('savedSimulados');
-      if (!saved.length) {
-        container.innerHTML = `<div class="text-center py-8 md:col-span-2" style="color:rgba(196,188,220,0.55);">Nenhum simulado criado ainda.</div>`;
-        return;
-      }
-
-      container.innerHTML = saved.map((item, index) => `
-        <button class="text-left p-4 rounded-2xl border transition-all hover:-translate-y-0.5" style="border-color:rgba(255,255,255,0.07);background:rgba(255,255,255,0.025);" onclick="openSavedSimulado(${index})">
-          <p class="font-black truncate" style="font-family:'Sora',sans-serif;color:#e4dff0;">${escapeHtml(item.titulo)}</p>
-          <p class="text-xs mt-1" style="color:rgba(196,188,220,0.52);">${item.questoes.length} questões • ${new Date(item.savedAt).toLocaleDateString('pt-BR')}</p>
-        </button>
-      `).join('');
-    }
-
-    function openSavedSimulado(index) {
-      const saved = getSavedSimulados();
-      currentSimulado = saved[index];
-      answers = {};
-      corrected = false;
-      renderSimulado();
-    }
-
-    function restoreLastSimulado() {
-      const saved = getSavedSimulados();
-      if (!saved.length) return App.showToast('Nenhum simulado salvo ainda.', true);
-      currentSimulado = saved[0];
-      answers = {};
-      corrected = false;
-      renderSimulado();
-    }
-
-    async function loadFeaturedMaterials() {
-      try {
-        const contents = await App.api('/contents');
-        const container = document.getElementById('materialsList');
-        if (!contents || !contents.length) {
-          container.innerHTML = `<div class="text-center py-8 md:col-span-2" style="color:rgba(196,188,220,0.55);">Nenhum material cadastrado ainda.</div>`;
-          return;
-        }
-
-        container.innerHTML = contents.slice(0, 6).map(content => `
-          <div class="p-4 rounded-2xl border flex flex-col gap-3" style="border-color:rgba(255,255,255,0.07);background:rgba(255,255,255,0.025);">
-            <div>
-              <span class="text-[10px] font-black uppercase tracking-wider px-2 py-1 rounded-full" style="color:#c4b5fd;background:rgba(124,92,252,0.08);">${escapeHtml(content.materia || 'Material')}</span>
-              <h3 class="font-black mt-3 line-clamp-1" style="font-family:'Sora',sans-serif;color:#e4dff0;">${escapeHtml(content.titulo || 'Material')}</h3>
-              <p class="text-xs mt-1 line-clamp-1" style="color:rgba(196,188,220,0.52);">${escapeHtml(content.assunto || content.subassunto || '')}</p>
-            </div>
-            <button onclick="startStudy('${content._id}')" class="exam-action exam-action-secondary !text-xs">
-              <i data-feather="book-open" class="w-4 h-4"></i>
-              Estudar material
-            </button>
-          </div>
-        `).join('');
-        feather.replace();
-      } catch (error) {
-        console.error('Falha ao carregar materiais:', error);
-      }
-    }
-
-    function startStudy(contentId) {
-      localStorage.setItem('currentContentId', contentId);
-      window.location.href = 'study.html';
-    }
-
-    function escapeHtml(value) {
-      return String(value || '')
-        .replaceAll('&', '&amp;')
-        .replaceAll('<', '&lt;')
-        .replaceAll('>', '&gt;')
-        .replaceAll('"', '&quot;')
-        .replaceAll("'", '&#039;');
-    }
-
-    loadFeaturedMaterials();
-    renderSavedSimulados();
+    feather.replace();if(!App.getToken())window.location.href='login.html';
+    const LS_SIMULADOS='enemflow_simulados',LS_PREFILL='enemflow_exam_prefill',statusSteps=['Estruturando questoes...','Analisando assunto...','Montando alternativas...','Revisando gabarito...','Finalizando simulado...'];let currentSimulado=null,lastConfig=null,answers={},corrected=false,examStarted=false,timerInterval=null,startTimestamp=0,elapsedBeforePause=0,generationTimer=null;const fields=['materia','assunto','topico','descricao','quantidade'];
+    hydrateForm();renderSavedSimulados();fields.forEach(id=>document.getElementById(id).addEventListener('input',persistForm));document.getElementById('simuladoForm').addEventListener('submit',async e=>{e.preventDefault();await generateSimulado(readConfig())});window.addEventListener('beforeunload',e=>{if(isGenerating()){e.preventDefault();e.returnValue=''}});
+    function readConfig(){const quantidade=Math.max(1,Math.min(Number(document.getElementById('quantidade').value)||10,30));document.getElementById('quantidade').value=quantidade;return{materia:val('materia'),assunto:val('assunto'),topico:val('topico'),descricao:val('descricao'),quantidade}}function val(id){return document.getElementById(id).value.trim()}function validateConfig(c){if(!c.materia||!c.assunto||!c.topico)throw new Error('Preencha materia, assunto e topico.');if(c.quantidade>30)throw new Error('O limite maximo e 30 questoes.')}
+    async function generateSimulado(config){try{validateConfig(config);lastConfig=config;setGenerating(true);const data=await App.api('/api/chat/simulado',{method:'POST',body:JSON.stringify(config)});currentSimulado=normalizeSimulado(data.simulado,config);answers={};corrected=false;examStarted=false;elapsedBeforePause=0;saveSimulado(currentSimulado);renderSimulado();renderSavedSimulados();App.showToast('Simulado gerado com sucesso.')}catch(error){App.showToast(error.message,true)}finally{setGenerating(false)}}
+    function normalizeSimulado(simulado,config){const meta={...config,generatedAt:new Date().toISOString()};return{...simulado,materia:simulado.materia||config.materia,assunto:simulado.assunto||config.assunto,topico:simulado.topico||config.topico,descricao:simulado.descricao||config.descricao,meta}}
+    function renderSimulado(){if(!currentSimulado)return;document.getElementById('simuladoContainer').classList.remove('hidden');document.getElementById('timerBar').classList.add('hidden');document.getElementById('scoreSummary').classList.add('hidden');document.getElementById('pdfStatus').classList.add('hidden');document.getElementById('simuladoTitle').textContent=currentSimulado.titulo||'Simulado EnemFlow';document.getElementById('simuladoMeta').innerHTML=[currentSimulado.materia,currentSimulado.assunto,currentSimulado.topico,`${currentSimulado.questoes.length} questoes`].filter(Boolean).map(i=>`<span class="meta-pill">${escapeHtml(i)}</span>`).join('');document.getElementById('simuladoInstructions').textContent=currentSimulado.instrucoes||'Leia cada questao com atencao e marque apenas uma alternativa.';document.getElementById('questionsList').innerHTML=currentSimulado.questoes.map(renderQuestion).join('');document.getElementById('simuladoContainer').scrollIntoView({behavior:'smooth',block:'start'});feather.replace();autosaveProgress()}
+    function renderQuestion(q){return`<article class="question-card" id="question-${q.id}"><div class="flex flex-col md:flex-row md:items-center md:justify-between gap-2 mb-4"><h3 class="font-black" style="font-family:'Sora',sans-serif;color:#e4dff0;">Questao ${q.id}</h3><span class="meta-pill">${escapeHtml(q.dificuldade||'media')}</span></div><p class="text-sm leading-relaxed mb-3" style="color:rgba(196,188,220,.72);">${escapeHtml(q.contexto)}</p>${q.interpretacao?`<p class="text-sm leading-relaxed mb-3" style="color:rgba(196,188,220,.62);"><strong>Interpretacao:</strong> ${escapeHtml(q.interpretacao)}</p>`:''}<p class="font-bold leading-relaxed mb-4" style="color:#e4dff0;">${escapeHtml(q.pergunta||q.enunciado)}</p><div class="space-y-3">${(q.alternativas||[]).map(o=>`<label class="option-row" data-question="${q.id}" data-letter="${o.letra}"><input type="radio" class="sr-only" name="q-${q.id}" value="${o.letra}" onchange="selectAnswer(${q.id}, '${o.letra}')"><span class="option-letter">${o.letra}</span><span style="color:rgba(228,223,240,.86);">${escapeHtml(o.texto)}</span></label>`).join('')}</div><div id="resolution-${q.id}" class="hidden mt-5 p-4 rounded-2xl border" style="border-color:rgba(124,92,252,.18);background:rgba(124,92,252,.055);"></div></article>`}
+    function prepareExam(){if(!currentSimulado)return;corrected=false;examStarted=false;answers=loadProgress()?.answers||{};document.getElementById('timerBar').classList.remove('hidden');document.getElementById('timerDisplay').textContent='00:00:00';document.getElementById('playBtn').disabled=false;document.getElementById('questionsList').querySelectorAll('input').forEach(i=>i.disabled=true);Object.entries(answers).forEach(([id,l])=>markSelected(id,l));document.getElementById('timerBar').scrollIntoView({behavior:'smooth',block:'center'});App.showToast('Clique em Play para iniciar o simulado.')}function startExam(){examStarted=true;startTimestamp=Date.now();document.getElementById('playBtn').disabled=true;document.getElementById('questionsList').querySelectorAll('input').forEach(i=>i.disabled=false);timerInterval=setInterval(updateTimer,1000);updateTimer();autosaveProgress()}
+    function updateTimer(){const elapsed=elapsedBeforePause+Math.floor((Date.now()-startTimestamp)/1000);document.getElementById('timerDisplay').textContent=formatDuration(elapsed);const expected=Math.max(currentSimulado.questoes.length*180,60),ratio=elapsed/expected,bar=document.getElementById('timerBar');bar.classList.toggle('timer-warn',ratio>=.75&&ratio<.9);bar.classList.toggle('timer-danger',ratio>=.9);if(elapsed%10===0)autosaveProgress()}function selectAnswer(id,letter){if(corrected||!examStarted)return;answers[id]=letter;markSelected(id,letter);autosaveProgress()}function markSelected(id,letter){document.querySelectorAll(`[data-question="${id}"]`).forEach(r=>r.classList.toggle('selected',r.dataset.letter===letter))}
+    async function finishExam(){if(!currentSimulado)return;if(!examStarted&&!Object.keys(answers).length)return App.showToast('Inicie o simulado antes de corrigir.',true);clearInterval(timerInterval);corrected=true;examStarted=false;let hits=0;const topicStats=new Map(),wrong=[];currentSimulado.questoes.forEach(q=>{const selected=answers[q.id]||'',ok=selected===q.respostaCorreta;if(ok)hits++;else wrong.push(q);const topic=q.topico||q.tema||currentSimulado.topico||'Geral',stat=topicStats.get(topic)||{hits:0,total:0};stat.total++;if(ok)stat.hits++;topicStats.set(topic,stat);document.querySelectorAll(`[data-question="${q.id}"]`).forEach(row=>{const l=row.dataset.letter;row.classList.remove('selected');if(l===q.respostaCorreta)row.classList.add('correct');if(selected===l&&!ok)row.classList.add('wrong')});renderSimpleCorrection(q,selected)});const total=currentSimulado.questoes.length,percent=Math.round(hits/total*100),topicHtml=[...topicStats.entries()].map(([t,s])=>`<div class="meta-pill">${escapeHtml(t)}: ${s.hits}/${s.total}</div>`).join('');document.getElementById('scoreSummary').classList.remove('hidden');document.getElementById('scoreSummary').innerHTML=`<h3 class="font-black text-lg" style="font-family:'Sora',sans-serif;color:#6ee7b7;">Correcao automatica</h3><p class="mt-1 text-sm" style="color:rgba(196,188,220,.72);">Voce acertou ${hits} de ${total} questoes (${percent}%). Erros: ${total-hits}.</p><div class="flex flex-wrap gap-2 mt-3">${topicHtml}</div><button onclick="openDetailedCorrection()" class="exam-action exam-action-primary mt-4"><i data-feather="cpu" class="w-4 h-4"></i>Correcao detalhada no Tutor IA</button>`;autosaveProgress({finished:true,hits,total,percent,wrongIds:wrong.map(q=>q.id)});await reportProgress(hits,total);App.showToast('Correcao concluida.');feather.replace()}
+    function renderSimpleCorrection(q,selected){const el=document.getElementById(`resolution-${q.id}`);el.classList.remove('hidden');el.innerHTML=`<p class="text-sm font-black mb-1" style="color:#c4b5fd;">Resposta correta: ${q.respostaCorreta} | Sua resposta: ${selected||'em branco'}</p><p class="text-sm leading-relaxed" style="color:rgba(196,188,220,.72);">${escapeHtml(q.resolucao||q.explicacao||'A justificativa nao foi retornada pela IA.')}</p>`}
+    function openDetailedCorrection(){if(!currentSimulado)return;const wrong=currentSimulado.questoes.filter(q=>answers[q.id]!==q.respostaCorreta);localStorage.setItem('enemflow_tutor_review_context',JSON.stringify({simulado:currentSimulado,answers,wrongQuestionIds:wrong.map(q=>q.id),prompt:buildTutorPrompt(wrong),createdAt:new Date().toISOString()}));window.location.href='chat.html?simuladoReview=true'}function buildTutorPrompt(wrong){return`Corrija detalhadamente meu simulado ENEM sobre ${currentSimulado.materia} > ${currentSimulado.assunto} > ${currentSimulado.topico}. Explique por que a alternativa correta esta correta, por que as demais estao erradas, teoria relacionada, estrategia de resolucao e pegadinhas do ENEM. Foque nas questoes erradas: ${wrong.map(q=>q.id).join(', ')||'nenhuma'}.`}
+    async function saveSimuladoPdf(){if(!currentSimulado)return App.showToast('Gere um simulado primeiro.',true);const btn=document.getElementById('savePdfBtn');btn.disabled=true;btn.innerHTML='<i data-feather="loader" class="w-4 h-4 animate-spin"></i>Salvando...';feather.replace();setPdfStatus('Gerando PDF com paginacao otimizada...');try{const filename=EnemFlowPdfTools.sanitizeFileName(`${currentSimulado.materia} - ${currentSimulado.assunto} - ${currentSimulado.topico}.pdf`),html=EnemFlowPdfTools.buildPdfHtml({title:currentSimulado.titulo,theme:`${currentSimulado.assunto} > ${currentSimulado.topico}`,materia:currentSimulado.materia,sections:EnemFlowPdfTools.buildSimuladoPdfSections(currentSimulado),footer:'EnemFlow - Simulado gerado por IA'}),blob=await EnemFlowPdfTools.generatePdfBlob(html,filename);await EnemFlowPdfTools.savePdfRecord({id:crypto.randomUUID(),name:filename,materia:currentSimulado.materia,assunto:currentSimulado.assunto,topico:currentSimulado.topico,tipo:'simulado',createdAt:new Date().toISOString(),size:blob.size,blob});EnemFlowPdfTools.openBlob(blob);setPdfStatus(`PDF salvo neste dispositivo: ${filename} - ${EnemFlowPdfTools.formatBytes(blob.size)}`);App.showToast('PDF salvo neste dispositivo.')}catch(error){console.error(error);setPdfStatus('Nao foi possivel gerar o PDF. Tente novamente.',true);App.showToast(error.message,true)}finally{btn.disabled=false;btn.innerHTML='<i data-feather="save" class="w-4 h-4"></i>Salvar em PDF';feather.replace()}}
+    function regenerateSimulado(){generateSimulado(lastConfig||readConfig())}function setPdfStatus(msg,isError=false){const s=document.getElementById('pdfStatus');s.classList.remove('hidden');s.style.borderColor=isError?'rgba(248,113,113,.28)':'rgba(124,92,252,.18)';s.style.background=isError?'rgba(248,113,113,.08)':'rgba(124,92,252,.06)';s.style.color=isError?'#fca5a5':'#c4b5fd';s.textContent=msg}
+    function setGenerating(active){const overlay=document.getElementById('generationOverlay');overlay.classList.toggle('show',active);document.querySelectorAll('button,input,select,textarea,a').forEach(el=>{if(!overlay.contains(el))el.toggleAttribute('disabled',active)});if(active){let idx=0;updateGeneration(8,statusSteps[0]);generationTimer=setInterval(()=>{idx=Math.min(idx+1,statusSteps.length-1);updateGeneration(Math.min(92,8+idx*20),statusSteps[idx])},1300)}else{clearInterval(generationTimer);updateGeneration(100,'Finalizando simulado...')}}function updateGeneration(p,t){document.getElementById('generationProgress').style.width=`${p}%`;document.getElementById('generationStatus').textContent=t}function isGenerating(){return document.getElementById('generationOverlay').classList.contains('show')}
+    function saveSimulado(s){const saved=getSavedSimulados().filter(i=>i.id!==s.id&&i.titulo!==s.titulo),id=s.id||crypto.randomUUID();localStorage.setItem(LS_SIMULADOS,JSON.stringify([{...s,id,savedAt:new Date().toISOString()},...saved].slice(0,12)));currentSimulado.id=id}function getSavedSimulados(){try{return JSON.parse(localStorage.getItem(LS_SIMULADOS)||'[]')}catch{return[]}}function renderSavedSimulados(){const saved=getSavedSimulados(),c=document.getElementById('savedSimulados');if(!saved.length){c.innerHTML='<div class="text-center py-8 md:col-span-2" style="color:rgba(196,188,220,.55);">Nenhum simulado criado ainda.</div>';return}c.innerHTML=saved.map((item,index)=>`<button class="text-left p-4 rounded-2xl border transition-all hover:-translate-y-0.5" style="border-color:rgba(255,255,255,.07);background:rgba(255,255,255,.025);" onclick="openSavedSimulado(${index})"><p class="font-black truncate" style="font-family:'Sora',sans-serif;color:#e4dff0;">${escapeHtml(item.titulo)}</p><p class="text-xs mt-1" style="color:rgba(196,188,220,.52);">${escapeHtml(item.materia)} > ${escapeHtml(item.assunto)} > ${escapeHtml(item.topico||'Geral')}</p><p class="text-xs mt-1" style="color:rgba(196,188,220,.42);">${item.questoes.length} questoes - ${new Date(item.savedAt).toLocaleDateString('pt-BR')}</p></button>`).join('')}function openSavedSimulado(i){currentSimulado=getSavedSimulados()[i];lastConfig=currentSimulado.meta||currentSimulado;answers={};corrected=false;renderSimulado()}function restoreLastSimulado(){const saved=getSavedSimulados();if(!saved.length)return App.showToast('Nenhum simulado salvo ainda.',true);openSavedSimulado(0)}
+    function autosaveProgress(extra={}){if(!currentSimulado?.id)return;const elapsed=startTimestamp?elapsedBeforePause+Math.floor((Date.now()-startTimestamp)/1000):elapsedBeforePause;localStorage.setItem(`enemflow_exam_draft_${currentSimulado.id}`,JSON.stringify({answers,elapsed,updatedAt:new Date().toISOString(),...extra}));const el=document.getElementById('autosaveText');if(el)el.textContent='Progresso salvo automaticamente'}function loadProgress(){if(!currentSimulado?.id)return null;try{return JSON.parse(localStorage.getItem(`enemflow_exam_draft_${currentSimulado.id}`)||'null')}catch{return null}}
+    async function reportProgress(hits,total){try{await App.api('/api/ai-adaptation/solve',{method:'POST',body:JSON.stringify({skillId:mapMateriaToSkill(currentSimulado.materia),area:mapMateriaToArea(currentSimulado.materia),correto:hits/Math.max(total,1)>=.6,tempoEmSegundos:total*120})})}catch(error){console.warn('Progresso nao registrado:',error.message)}}function mapMateriaToArea(m){if(m==='Matematica')return'Matematica';if(['Fisica','Quimica','Biologia'].includes(m))return'Ciencias da Natureza';if(['Historia','Geografia','Filosofia','Sociologia'].includes(m))return'Ciencias Humanas';if(m==='Redacao')return'Redacao e Competencias';return'Linguagens e Codigos'}function mapMateriaToSkill(m){if(m==='Matematica')return'M1';if(['Fisica','Quimica','Biologia'].includes(m))return'N1';if(['Historia','Geografia','Filosofia','Sociologia'].includes(m))return'H1';if(m==='Redacao')return'R1';return'L1'}
+    function formatDuration(sec){const h=Math.floor(sec/3600).toString().padStart(2,'0'),m=Math.floor(sec%3600/60).toString().padStart(2,'0'),s=(sec%60).toString().padStart(2,'0');return`${h}:${m}:${s}`}function escapeHtml(v){return String(v||'').replaceAll('&','&amp;').replaceAll('<','&lt;').replaceAll('>','&gt;').replaceAll('"','&quot;').replaceAll("'","&#039;")}function persistForm(){localStorage.setItem('enemflow_exam_form',JSON.stringify(readConfig()))}function hydrateForm(){const prefill=consumePrefill(),saved=prefill||JSON.parse(localStorage.getItem('enemflow_exam_form')||'{}');fields.forEach(id=>{if(saved[id])document.getElementById(id).value=saved[id]})}function consumePrefill(){try{const raw=localStorage.getItem(LS_PREFILL);if(!raw)return null;localStorage.removeItem(LS_PREFILL);return JSON.parse(raw)}catch{return null}}
   </script>
 </body>
 </html>

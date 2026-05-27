@@ -157,7 +157,8 @@ document.addEventListener('DOMContentLoaded', () => {
     { title: 'Simulados', icon: 'check-square', url: 'exercises.html', cat: 'Menu Principal' },
     { title: 'Mapa de Habilidades', icon: 'share-2', url: 'skills.html', cat: 'Menu Principal' },
     { title: 'Progresso', icon: 'bar-chart-2', url: 'progresso.html', cat: 'Sua Conta' },
-    { title: 'Histórico', icon: 'clock', url: 'history.html', cat: 'Sua Conta' }
+    { title: 'Histórico', icon: 'clock', url: 'history.html', cat: 'Sua Conta' },
+    { title: 'Neste dispositivo', icon: 'folder', url: 'device.html', cat: 'Sua Conta' }
   ];
 
   let menuHtml = '';
@@ -329,6 +330,7 @@ document.addEventListener('DOMContentLoaded', () => {
     { title: 'Histórico', icon: 'clock', url: 'history.html' },
     { title: 'Habilidades', icon: 'share-2', url: 'skills.html' },
     { title: 'Anotações', icon: 'edit', url: 'anotacoes.html' },
+    { title: 'Neste dispositivo', icon: 'folder', url: 'device.html' },
     { title: 'Perfil', icon: 'user', url: 'perfil.html' },
     { title: 'Configurações', icon: 'settings', url: 'settings.html' },
   ];

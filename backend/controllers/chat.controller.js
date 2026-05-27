@@ -143,7 +143,7 @@ function validateThemeCoverage(questoes, materia, assunto) {
   };
 }
 
-function normalizeQuestion(question, index, materia, assunto) {
+function normalizeQuestion(question, index, materia, assunto, topico) {
   const alternativas = Array.isArray(question.alternativas)
     ? question.alternativas
     : [];
@@ -165,6 +165,7 @@ function normalizeQuestion(question, index, materia, assunto) {
     id: index + 1,
     materia,
     assunto: assunto || question.assunto || question.tema || 'Geral',
+    topico: topico || question.topico || question.tema || assunto || 'Geral',
     contexto: String(question.contexto || '').trim(),
     textoMotivador: String(question.textoMotivador || question.texto_motivador || question.contexto || '').trim(),
     imagemSugerida: String(question.imagemSugerida || question.imagem || '').trim(),
@@ -184,14 +185,14 @@ function normalizeQuestion(question, index, materia, assunto) {
   };
 }
 
-function validateSimuladoPayload(payload, quantidade, materia, assunto) {
+function validateSimuladoPayload(payload, quantidade, materia, assunto, topico, descricao) {
   if (!payload || !Array.isArray(payload.questoes)) {
     throw new Error('A IA retornou um simulado em formato inválido.');
   }
 
   const questoes = payload.questoes
     .slice(0, quantidade)
-    .map((question, index) => normalizeQuestion(question, index, materia, assunto));
+    .map((question, index) => normalizeQuestion(question, index, materia, assunto, topico));
 
   if (questoes.length !== quantidade) {
     throw new Error('A IA retornou uma quantidade inesperada de questões.');
@@ -219,7 +220,7 @@ function validateSimuladoPayload(payload, quantidade, materia, assunto) {
     throw new Error('A IA retornou questões incompletas. Tente gerar novamente.');
   }
 
-  const coverage = validateThemeCoverage(questoes, materia, assunto);
+  const coverage = validateThemeCoverage(questoes, materia, topico || assunto);
   if (!coverage.ok) {
     const err = new Error('Poucas questões encontradas para este tema.');
     err.statusCode = 422;
@@ -231,6 +232,8 @@ function validateSimuladoPayload(payload, quantidade, materia, assunto) {
     titulo: String(payload.titulo || `Simulado EnemFlow - ${materia}`).trim(),
     materia,
     assunto: assunto || 'Geral',
+    topico: topico || assunto || 'Geral',
+    descricao: descricao || '',
     instrucoes: String(payload.instrucoes || 'Leia cada questão com atenção e marque apenas uma alternativa.').trim(),
     validacaoTema: coverage,
     questoes
@@ -365,17 +368,19 @@ A questão DEVE seguir este formato EXATO:
 // POST /api/chat/simulado — Gera um simulado completo estruturado
 exports.generateSimulado = async (req, res) => {
   try {
-    const { materia, assunto, quantidade } = req.body;
+    const { materia, assunto, topico, descricao, quantidade } = req.body;
     if (!materia) return res.status(400).json({ error: 'Campo "materia" e obrigatorio.' });
 
-    const safeQuantidade = Math.max(3, Math.min(parseInt(quantidade, 10) || 5, 12));
-    const tema = assunto ? `${materia} - ${assunto}` : materia;
+    const safeQuantidade = Math.max(1, Math.min(parseInt(quantidade, 10) || 10, 30));
+    const tema = [materia, assunto, topico].filter(Boolean).join(' - ');
 
     const prompt = `Crie um simulado completo do ENEM sobre: ${tema}.
 
 Regras obrigatorias:
 - Gere exatamente ${safeQuantidade} questoes.
-- O tema principal de TODAS as questoes deve ser "${assunto || materia}". Nao use questoes genericas que apenas citam a materia.
+- Siga exatamente a hierarquia: Materia "${materia}", Assunto "${assunto || 'Geral'}", Topico "${topico || assunto || materia}".
+- A descricao opcional do aluno e: "${descricao || 'sem descricao adicional'}".
+- O topico principal de TODAS as questoes deve ser "${topico || assunto || materia}". Nao use questoes genericas que apenas citam a materia.
 - Cada questao deve parecer uma questao real do ENEM: situacao-problema, texto motivador, interpretacao, comando claro e alternativas plausiveis.
 - O contexto/texto motivador deve ter pelo menos 120 caracteres e nunca ser uma frase curta.
 - Cada pergunta deve exigir interpretacao, leitura, raciocinio ou aplicacao. Nao use perguntas diretas como "quanto e 2+2".
@@ -392,6 +397,8 @@ Retorne somente um JSON valido no formato:
 {
   "titulo": "Simulado EnemFlow - ${tema}",
   "instrucoes": "texto curto",
+  "topico": "${topico || assunto || materia}",
+  "descricao": "${descricao || ''}",
   "questoes": [
     {
       "contexto": "texto motivador com situacao-problema em estilo ENEM",
@@ -412,7 +419,8 @@ Retorne somente um JSON valido no formato:
       "explicacao": "explicacao opcional para estudo",
       "competencia": "competencia do ENEM em linguagem simples",
       "habilidade": "habilidade do ENEM em linguagem simples",
-      "tema": "${assunto || materia}",
+      "tema": "${topico || assunto || materia}",
+      "topico": "${topico || assunto || materia}",
       "area": "${getAreaFromMateria(materia)}",
       "modeloTri": "baixa | media | alta discriminacao, com justificativa curta",
       "dificuldade": "facil | media | dificil"
@@ -434,10 +442,10 @@ Responda somente o JSON final.`;
     const raw = await chatCompletion(
       [{ role: 'user', content: prompt }],
       systemPrompt,
-      { maxTokens: 4096, temperature: 0.45 }
+      { maxTokens: Math.min(12000, Math.max(4096, safeQuantidade * 850)), temperature: 0.42 }
     );
     const parsed = extractJsonObject(raw);
-    const simulado = validateSimuladoPayload(parsed, safeQuantidade, materia, assunto);
+    const simulado = validateSimuladoPayload(parsed, safeQuantidade, materia, assunto, topico, descricao);
 
     const chat = await Chat.create({
       usuarioId: req.userId,
