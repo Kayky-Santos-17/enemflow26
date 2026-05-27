@@ -212,3 +212,22 @@ Critério de aceite:
 3. Corrigir relatório de progresso adaptativo.
 4. Remover segredo MongoDB e limpar encoding.
 5. Validar e entregar resumo das mudanças.
+
+## Nota de Continuidade - 2026-05-27
+
+As correcoes iniciais foram implementadas, validadas sintaticamente, commitadas e enviadas ao GitHub no commit `43de895` (`Corrige IA de simulados e prepara implantacao`).
+
+Ponto onde paramos:
+
+- Gerador de simulados: backend agora tenta completar questoes faltantes e retorna erro mais claro quando a IA devolve quantidade insuficiente.
+- Tutor IA/OpenRouter: historico passou a ser compactado e a injecao automatica de materiais foi reduzida para evitar contexto ruidoso.
+- IA adaptativa: simulados agora reportam `acertos` e `total`, nao apenas um booleano agregado.
+- Q-learning: cold start passou a usar progresso real do aluno quando a Q-table esta vazia.
+- Seguranca: removidos fallback de MongoDB hardcoded e fallback inseguro de `JWT_SECRET`.
+- Documentacao: `IMPLANTACAO.md` foi criado com variaveis obrigatorias, validacao local e smoke tests.
+
+Implantacao:
+
+- O push para `origin/main` foi concluido.
+- A Vercel ainda nao foi confirmada porque os dominios testados (`https://enemflow.vercel.app/health` e `https://enemflow-ai.vercel.app/health`) retornaram `DEPLOYMENT_NOT_FOUND`.
+- Proximo analista deve conectar/verificar o projeto na Vercel, apontar para o repo `Kayky-Santos-17/enemflow26`, branch `main`, configurar `MONGO_URI`, `JWT_SECRET`, `OPENROUTER_KEY`, `OPENROUTER_MODEL`, `FRONTEND_URL` e `NODE_ENV`, e entao rodar os smoke tests descritos em `IMPLANTACAO.md`.
