@@ -1,20 +1,25 @@
 const mongoose = require('mongoose');
 const dns = require('dns');
+require('dotenv').config({ path: './backend/.env' });
 
-// Força DNS público para contornar bloqueio de SRV da operadora
 dns.setServers(['8.8.8.8', '1.1.1.1']);
 
-const URI = 'mongodb+srv://enem_flow:enemflow20266034@cluster0.awsypn2.mongodb.net/enemflow?retryWrites=true&w=majority';
+const URI = process.env.MONGO_URI;
 
 async function testar() {
-  console.log('⏳ Tentando conectar ao MongoDB Atlas...');
+  if (!URI) {
+    console.log('MONGO_URI nao configurada. Defina a variavel em backend/.env antes de testar.');
+    process.exit(1);
+  }
+
+  console.log('Tentando conectar ao MongoDB...');
   try {
     await mongoose.connect(URI);
-    console.log('✅ SUCESSO ABSOLUTO! A conexão com o banco funcionou perfeitamente.');
+    console.log('Conexao com o banco funcionou.');
     process.exit(0);
   } catch (error) {
-    console.log('❌ FALHA AO CONECTAR!');
-    console.log('Detalhes do Erro:');
+    console.log('Falha ao conectar.');
+    console.log('Detalhes do erro:');
     console.log(error.message);
     process.exit(1);
   }

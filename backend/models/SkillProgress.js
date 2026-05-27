@@ -26,6 +26,8 @@ const skillProgressSchema = new mongoose.Schema({
   historico: [{
     correto: Boolean,
     tempo: Number,
+    acertos: Number,
+    total: Number,
     timestamp: { type: Date, default: Date.now }
   }]
 }, { timestamps: true });

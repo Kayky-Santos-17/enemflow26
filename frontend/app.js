@@ -72,7 +72,10 @@ const App = {
       }
       
       if (!response.ok) {
-        throw new Error(data.error || 'Erro na requisição.');
+        const detailText = data.details && data.details.expected
+          ? ` (${data.details.received || 0}/${data.details.expected} questões recebidas)`
+          : '';
+        throw new Error(`${data.error || 'Erro na requisição.'}${detailText}`);
       }
       
       return data;

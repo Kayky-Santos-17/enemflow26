@@ -26,12 +26,8 @@ const connectDB = async () => {
     if (uri) {
       uri = uri.replace(/["']/g, "").trim();
       // Corrige a senha caso a variável de ambiente (Vercel ou local) esteja com a antiga
-      if (uri.includes('enemfl%40w20266034!%238%23')) {
-        uri = uri.replace('enemfl%40w20266034!%238%23', 'enemflow20266034');
-      }
     } else {
-      // 2. Fallback usando a connection string correta
-      uri = 'mongodb+srv://enem_flow:enemflow20266034@cluster0.awsypn2.mongodb.net/enemflow?retryWrites=true&w=majority';
+      throw new Error('MONGO_URI não configurada. Defina a connection string do MongoDB no .env ou no ambiente da Vercel.');
     }
     
     const conn = await mongoose.connect(uri, {

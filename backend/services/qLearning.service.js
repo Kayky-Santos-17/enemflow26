@@ -126,6 +126,9 @@ class QLearningAgent {
     // Epsilon decay ou fixo
     // Adicionamos um pequeno decay baseado na existência de records
     const recordsCount = await QTable.countDocuments({ userId });
+    if (recordsCount === 0) {
+      return { action: await this.getColdStartAction(userId), isExploration: true };
+    }
     // Quando mais registros o user tem, menos exploração (min 0.05)
     let currentEpsilon = Math.max(0.05, this.epsilon - (recordsCount * 0.001));
 
@@ -150,12 +153,47 @@ class QLearningAgent {
       
       // Se todos forem 0, escolhe aleatório pra começar a tabela
       if (maxQ === 0) {
-        bestAction = Math.floor(Math.random() * this.numActions);
+        bestAction = await this.getColdStartAction(userId);
         return { action: bestAction, isExploration: true };
       }
 
       return { action: bestAction, isExploration: false };
     }
+  }
+
+  async getColdStartAction(userId) {
+    const progresses = await SkillProgress.find({ userId }).lean();
+    if (!progresses.length) return 6;
+
+    const areaScores = new Map();
+    progresses.forEach(progress => {
+      const total = Math.max(progress.total || 0, 1);
+      const hitRate = (progress.acertos || 0) / total;
+      const current = areaScores.get(progress.area) || { hitRateSum: 0, count: 0, totalQuestoes: 0 };
+      current.hitRateSum += hitRate;
+      current.count += 1;
+      current.totalQuestoes += progress.total || 0;
+      areaScores.set(progress.area, current);
+    });
+
+    let weakestArea = null;
+    let weakestScore = Infinity;
+    for (const [area, data] of areaScores.entries()) {
+      const avgHitRate = data.hitRateSum / Math.max(data.count, 1);
+      const confidencePenalty = data.totalQuestoes < 5 ? 0.15 : 0;
+      const score = avgHitRate - confidencePenalty;
+      if (score < weakestScore) {
+        weakestScore = score;
+        weakestArea = area;
+      }
+    }
+
+    const normalizedArea = String(weakestArea || '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase();
+    if (normalizedArea.includes('matematica')) return 0;
+    if (normalizedArea.includes('linguagem') || normalizedArea.includes('codigo')) return 1;
+    if (normalizedArea.includes('humana')) return 2;
+    if (normalizedArea.includes('natureza')) return 3;
+    return 10;
   }
 
   /**

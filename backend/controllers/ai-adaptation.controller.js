@@ -41,13 +41,13 @@ async function getRecommendations(req, res) {
 async function solveQuestion(req, res) {
   try {
     const userId = req.userId;
-    const { skillId, area, correto, tempoEmSegundos } = req.body;
+    const { skillId, area, correto, tempoEmSegundos, acertos, total } = req.body;
     
     if (!skillId || !area || typeof correto === 'undefined') {
       return res.status(400).json({ error: 'Dados incompletos' });
     }
 
-    const { progress, reward } = await aiService.processSolve(userId, skillId, area, correto, tempoEmSegundos);
+    const { progress, reward } = await aiService.processSolve(userId, skillId, area, correto, tempoEmSegundos, acertos, total);
     
     // Calcula notas atualizadas
     const notas = await aiService.simulateTRIScore(userId, 0, null);

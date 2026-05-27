@@ -9,10 +9,15 @@ const crypto = require('crypto');
  * Gera um JWT assinado com o id do usuário e o token de sessão atual.
  * Expira conforme JWT_EXPIRES_IN definido no .env (padrão: 7d).
  */
-const gerarToken = (userId, role = 'user', sessionToken = '') =>
-  jwt.sign({ id: userId, role, sessionToken }, process.env.JWT_SECRET || 'enemflow_secreto_2026_fallback_key', {
+const gerarToken = (userId, role = 'user', sessionToken = '') => {
+  if (!process.env.JWT_SECRET) {
+    throw new Error('JWT_SECRET não configurado no servidor.');
+  }
+
+  return jwt.sign({ id: userId, role, sessionToken }, process.env.JWT_SECRET, {
     expiresIn: process.env.JWT_EXPIRES_IN || '7d',
   });
+};
 
 /**
  * Validação básica de e-mail.

@@ -5,6 +5,16 @@ const enemSkillsMatrix = require('../config/enem_skills_matrix.json');
 const ALPHA = 0.1; // Taxa de aprendizado
 const GAMMA = 0.9; // Fator de desconto
 
+function normalizeArea(area) {
+  const value = String(area || '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase();
+  if (value.includes('matematica')) return 'Matemática';
+  if (value.includes('natureza')) return 'Ciências da Natureza';
+  if (value.includes('humana')) return 'Ciências Humanas';
+  if (value.includes('linguagem') || value.includes('codigo')) return 'Linguagens e Códigos';
+  if (value.includes('redacao')) return 'Redação e Competências';
+  return area || 'Geral';
+}
+
 /**
  * 1. Filtro Híbrido: Recomenda os temas de estudo
  * Analisa as habilidades do catálogo, cruza com as proficiências do usuário
@@ -62,25 +72,28 @@ async function getRecommendations(userId) {
  * 2. Reinforcement Learning Agent (Q-Learning MDP)
  * Atualiza o valor Q de uma habilidade e calcula o novo nível baseado em acerto/erro.
  */
-async function processSolve(userId, skillId, area, correto, tempoEmSegundos) {
+async function processSolve(userId, skillId, area, correto, tempoEmSegundos, acertosInput, totalInput) {
   let progress = await SkillProgress.findOne({ userId, skillId });
   if (!progress) {
-    progress = new SkillProgress({ userId, skillId, area });
+    progress = new SkillProgress({ userId, skillId, area: normalizeArea(area) });
   }
+  progress.area = normalizeArea(area || progress.area);
 
   // Define recompensa base
   let reward = 0;
   const nivelAnterior = progress.nivel;
+  const totalDelta = Math.max(1, Number(totalInput) || 1);
+  const acertosDelta = Math.max(0, Math.min(totalDelta, Number(acertosInput) || (correto ? 1 : 0)));
+  const hitRateDelta = acertosDelta / totalDelta;
 
-  if (correto) {
-    progress.acertos += 1;
-    reward = 0.5; // Recompensa por acerto
-  } else {
-    reward = -0.1; // Penalidade leve por erro
-  }
+  progress.acertos += acertosDelta;
+  progress.total += totalDelta;
+  progress.tempoEstudado += Math.max(0, Number(tempoEmSegundos) || 0);
 
-  progress.total += 1;
-  progress.tempoEstudado += tempoEmSegundos;
+  if (hitRateDelta >= 0.8) reward = 0.8;
+  else if (hitRateDelta >= 0.6) reward = 0.45;
+  else if (hitRateDelta >= 0.4) reward = 0.05;
+  else reward = -0.2;
 
   // Calcula taxa de acerto para determinar nível
   const hitRate = progress.acertos / progress.total;
@@ -115,8 +128,10 @@ async function processSolve(userId, skillId, area, correto, tempoEmSegundos) {
 
   // Registro de histórico
   progress.historico.push({
-    correto,
-    tempo: tempoEmSegundos
+    correto: hitRateDelta >= 0.6,
+    tempo: Math.max(0, Number(tempoEmSegundos) || 0),
+    acertos: acertosDelta,
+    total: totalDelta
   });
 
   await progress.save();

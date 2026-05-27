@@ -47,10 +47,7 @@ async function getRelevantContentContext(messages) {
       return titleMatch || assuntoMatch || materiaMatch || textMatch;
     });
 
-    if (relevant.length === 0) {
-      const availableTitles = allContents.slice(0, 5).map(c => `- ${c.titulo} (${c.materia} - ${c.tipo})`).join('\n');
-      return `\nMateriais de Estudo Ativos no Sistema:\n${availableTitles}\n`;
-    }
+    if (relevant.length === 0) return '';
 
     let contextStr = '\n--- CONTEXTO DE MATERIAIS DE ESTUDO DA PLATAFORMA (PRIORIDADE MÁXIMA) ---\n';
     contextStr += 'O EnemFlow possui materiais didáticos sobre o assunto em questão. Baseie sua resposta preferencialmente nas informações abaixo:\n\n';
@@ -71,8 +68,32 @@ async function getRelevantContentContext(messages) {
   }
 }
 
+function trimMessageContent(content, maxChars) {
+  const text = String(content || '');
+  if (text.length <= maxChars) return text;
+  return `${text.slice(0, maxChars)}\n\n[conteudo truncado para preservar o contexto da conversa]`;
+}
+
+function compactMessages(messages, maxTotalChars = 12000, maxMessageChars = 3500) {
+  const safeMessages = Array.isArray(messages) ? messages : [];
+  const compacted = [];
+  let used = 0;
+
+  for (const message of [...safeMessages].reverse()) {
+    const role = ['user', 'assistant', 'system'].includes(message.role) ? message.role : 'user';
+    const content = trimMessageContent(message.content, maxMessageChars);
+    if (!content.trim()) continue;
+    if (used + content.length > maxTotalChars && compacted.length > 0) break;
+    compacted.unshift({ role, content });
+    used += content.length;
+  }
+
+  return compacted;
+}
+
 async function chatCompletion(messages, systemOverride, options = {}) {
-  const lastUserMsg = [...messages].reverse().find(m => m.role === 'user');
+  const compactedMessages = compactMessages(messages, options.maxHistoryChars || 12000, options.maxMessageChars || 3500);
+  const lastUserMsg = [...compactedMessages].reverse().find(m => m.role === 'user');
   if (lastUserMsg && isOffTopic(lastUserMsg.content)) {
     return 'Posso ajudar apenas com conteúdos educacionais e temas relacionados ao ENEM.';
   }
@@ -83,8 +104,10 @@ async function chatCompletion(messages, systemOverride, options = {}) {
   }
 
   let systemContent = systemOverride || SYSTEM_PROMPT;
-  const dbContext = await getRelevantContentContext(messages);
-  if (dbContext) systemContent += `\n\n${dbContext}`;
+  if (!options.skipDbContext) {
+    const dbContext = await getRelevantContentContext(compactedMessages);
+    if (dbContext) systemContent += `\n\n${dbContext}`;
+  }
 
   const controller = new AbortController();
   const timeoutMs = Number(process.env.OPENROUTER_TIMEOUT_MS) || 45000;
@@ -101,7 +124,7 @@ async function chatCompletion(messages, systemOverride, options = {}) {
     },
     body: JSON.stringify({
       model: process.env.OPENROUTER_MODEL || 'openai/gpt-4.1-nano',
-      messages: [{ role: 'system', content: systemContent }, ...messages],
+      messages: [{ role: 'system', content: systemContent }, ...compactedMessages],
       max_tokens: options.maxTokens || 2048,
       temperature: options.temperature ?? 0.7,
     }),

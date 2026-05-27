@@ -62,6 +62,13 @@ function extractJsonObject(text) {
   }
 }
 
+function buildSimuladoQuantityError(expected, received, details) {
+  const err = new Error(`A IA retornou ${received} questoes, mas o simulado solicitou ${expected}. Tente novamente ou reduza a quantidade.`);
+  err.statusCode = 422;
+  err.details = { expected, received, ...(details || {}) };
+  return err;
+}
+
 function stripDiacritics(value) {
   return String(value || '')
     .normalize('NFD')
@@ -196,7 +203,7 @@ function validateSimuladoPayload(payload, quantidade, materia, assunto, topico, 
     .map((question, index) => normalizeQuestion(question, index, materia, assunto, topico));
 
   if (questoes.length !== quantidade) {
-    throw new Error('A IA retornou uma quantidade inesperada de questões.');
+    throw buildSimuladoQuantityError(quantidade, questoes.length);
   }
 
   const invalidQuestion = questoes.find(question =>
@@ -239,6 +246,56 @@ function validateSimuladoPayload(payload, quantidade, materia, assunto, topico, 
     validacaoTema: coverage,
     questoes
   };
+}
+
+function mergeSimuladoPayloads(primaryPayload, completionPayload, quantidade) {
+  const primaryQuestions = Array.isArray(primaryPayload?.questoes) ? primaryPayload.questoes : [];
+  const completionQuestions = Array.isArray(completionPayload?.questoes) ? completionPayload.questoes : [];
+  return {
+    ...(primaryPayload || {}),
+    questoes: [...primaryQuestions, ...completionQuestions].slice(0, quantidade)
+  };
+}
+
+async function completeMissingSimuladoQuestions({ payload, quantidade, materia, assunto, topico, descricao, temaCentral, tema }) {
+  const currentCount = Array.isArray(payload?.questoes) ? payload.questoes.length : 0;
+  const missing = quantidade - currentCount;
+  if (missing <= 0) return payload;
+
+  const prompt = `O JSON anterior do simulado veio incompleto.
+
+Gere SOMENTE as ${missing} questoes faltantes para completar o simulado.
+
+Regras:
+- Tema: ${tema}.
+- Foco central: "${temaCentral}".
+- Nao repita questoes ja geradas.
+- Comece a numeracao conceitual a partir da questao ${currentCount + 1}, mas retorne somente objetos dentro de "questoes".
+- Mantenha o mesmo formato JSON, com contexto, textoMotivador, pergunta, 5 alternativas A-E, respostaCorreta, resolucao, competencia, habilidade, tema, area, modeloTri e dificuldade.
+- Nao inclua markdown nem texto fora do JSON.
+
+Descricao opcional do aluno: "${descricao || 'sem descricao adicional'}".
+
+Retorne somente:
+{
+  "questoes": []
+}`;
+
+  const systemPrompt = `Voce corrige geracoes incompletas de simulados ENEM.
+Responda somente JSON valido. Gere exatamente ${missing} questoes completas, aderentes ao tema e sem markdown.`;
+
+  const raw = await chatCompletion(
+    [{ role: 'user', content: prompt }],
+    systemPrompt,
+    { maxTokens: Math.min(16000, Math.max(4096, missing * 1200)), temperature: 0.35, skipDbContext: true }
+  );
+  const completionPayload = extractJsonObject(raw);
+  const merged = mergeSimuladoPayloads(payload, completionPayload, quantidade);
+  const mergedCount = Array.isArray(merged.questoes) ? merged.questoes.length : 0;
+  if (mergedCount !== quantidade) {
+    throw buildSimuladoQuantityError(quantidade, mergedCount, { initialReceived: currentCount, missing });
+  }
+  return merged;
 }
 
 // POST /api/chat - Envia mensagem e recebe resposta da IA
@@ -446,9 +503,27 @@ Responda somente o JSON final.`;
     const raw = await chatCompletion(
       [{ role: 'user', content: prompt }],
       systemPrompt,
-      { maxTokens: Math.min(12000, Math.max(4096, safeQuantidade * 850)), temperature: 0.42 }
+      { maxTokens: Math.min(16000, Math.max(4096, safeQuantidade * 1200)), temperature: 0.38, skipDbContext: true }
     );
-    const parsed = extractJsonObject(raw);
+    let parsed = extractJsonObject(raw);
+    if (!parsed || !Array.isArray(parsed.questoes)) {
+      const err = new Error('A IA retornou um simulado em formato inválido. Tente gerar novamente.');
+      err.statusCode = 422;
+      err.details = { parseFailed: true };
+      throw err;
+    }
+    if (parsed.questoes.length !== safeQuantidade) {
+      parsed = await completeMissingSimuladoQuestions({
+        payload: parsed,
+        quantidade: safeQuantidade,
+        materia,
+        assunto,
+        topico: safeTopico,
+        descricao: safeDescricao,
+        temaCentral,
+        tema
+      });
+    }
     const simulado = validateSimuladoPayload(parsed, safeQuantidade, materia, assunto, safeTopico, safeDescricao);
 
     const chat = await Chat.create({
