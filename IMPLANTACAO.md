@@ -24,6 +24,27 @@ FRONTEND_URL=https://<seu-dominio-ou-projeto-vercel>
 NODE_ENV=production
 ```
 
+`FRONTEND_URL` aceita uma lista separada por virgulas quando houver mais de um dominio autorizado, por exemplo preview e producao.
+
+## Variaveis recomendadas de seguranca e performance
+
+```env
+JSON_BODY_LIMIT=5mb
+FORM_BODY_LIMIT=5mb
+API_RATE_LIMIT_MAX=180
+AI_RATE_LIMIT_MAX=6
+AUTH_RATE_LIMIT_MAX=20
+OPENROUTER_TIMEOUT_MS=45000
+LEGACY_ADMIN_EMAIL=<somente-se-precisar-promover-um-admin-antigo>
+```
+
+Observacoes:
+
+- `JWT_SECRET` precisa ter 32 ou mais caracteres em producao.
+- `AUTH_RATE_LIMIT_MAX` deve ficar baixo o suficiente para reduzir brute force sem bloquear testes reais.
+- `AI_RATE_LIMIT_MAX` protege custo e estabilidade do Tutor IA e do Gerador de Simulados.
+- Se `FRONTEND_URL` nao estiver configurada em producao, chamadas CORS vindas de outro dominio serao bloqueadas.
+
 Para desenvolvimento local, copie `backend/.env.example` para `backend/.env` e preencha os valores reais.
 
 ## Validacao local
@@ -37,6 +58,7 @@ node --check backend/controllers/chat.controller.js
 node --check backend/services/openrouter.service.js
 node --check backend/services/ai-adaptation.service.js
 node --check backend/services/qLearning.service.js
+node --check backend/middlewares/rateLimiter.js
 node testar-banco.js
 npm start
 ```
