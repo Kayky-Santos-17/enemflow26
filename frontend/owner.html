@@ -327,6 +327,16 @@
       }
     }
 
+    function getOwnerConfirmation(actionLabel, contextText = '') {
+      const confirmation = prompt(`${contextText}\n\nDigite exatamente "${actionLabel}" para confirmar:`);
+      if (confirmation !== actionLabel) return null;
+
+      const ownerPassword = prompt('Digite sua senha de OWNER para revalidar esta acao:');
+      if (!ownerPassword) return null;
+
+      return { confirmation, ownerPassword };
+    }
+
     async function loadMetrics() {
       try {
         const data = await App.api('/api/owner/metrics');
@@ -418,11 +428,13 @@
       const novaSenha = prompt(`Digite a nova senha temporária para o aluno ${nome}:`);
       if(!novaSenha) return;
       if(novaSenha.length < 6) return App.showToast('A senha deve ter pelo menos 6 caracteres.', true);
+      const secure = getOwnerConfirmation('REDEFINIR SENHA', `Redefinir senha do aluno ${nome}.`);
+      if(!secure) return;
 
       try {
         await App.api(`/api/owner/users/${id}/reset-password`, {
           method: 'POST',
-          body: JSON.stringify({ novaSenha })
+          body: JSON.stringify({ novaSenha, ...secure })
         });
         App.showToast(`Senha de ${nome} redefinida!`);
       } catch (err) {
@@ -431,9 +443,10 @@
     }
 
     async function resetXP(id, nome) {
-      if(!confirm(`Tem certeza que quer zerar o XP do aluno ${nome}?`)) return;
+      const secure = getOwnerConfirmation('ZERAR XP', `Zerar o XP do aluno ${nome}.`);
+      if(!secure) return;
       try {
-        await App.api(`/api/owner/users/${id}/reset-xp`, { method: 'POST' });
+        await App.api(`/api/owner/users/${id}/reset-xp`, { method: 'POST', body: JSON.stringify(secure) });
         App.showToast(`Pontos de XP de ${nome} zerados!`);
         loadStudents();
       } catch (err) {
@@ -442,9 +455,10 @@
     }
 
     async function resetProgress(id, nome) {
-      if(!confirm(`Tem certeza que quer zerar todo o progresso acadêmico do aluno ${nome}?`)) return;
+      const secure = getOwnerConfirmation('ZERAR PROGRESSO', `Zerar todo o progresso academico do aluno ${nome}.`);
+      if(!secure) return;
       try {
-        await App.api(`/api/owner/users/${id}/reset-progress`, { method: 'POST' });
+        await App.api(`/api/owner/users/${id}/reset-progress`, { method: 'POST', body: JSON.stringify(secure) });
         App.showToast(`Progresso de ${nome} resetado!`);
         loadStudents();
       } catch (err) {
@@ -473,9 +487,10 @@
     }
 
     async function deleteStudentChats(id, nome) {
-      if(!confirm(`Excluir absolutamente todo o histórico de conversas do aluno ${nome}?`)) return;
+      const secure = getOwnerConfirmation('APAGAR CHATS DO ALUNO', `Excluir todo o historico de conversas do aluno ${nome}.`);
+      if(!secure) return;
       try {
-        await App.api(`/api/owner/chats/user/${id}`, { method: 'DELETE' });
+        await App.api(`/api/owner/chats/user/${id}`, { method: 'DELETE', body: JSON.stringify(secure) });
         App.showToast(`Conversas de ${nome} deletadas.`);
       } catch (err) {
         App.showToast(err.message, true);
@@ -483,9 +498,10 @@
     }
 
     async function banStudent(id, nome) {
-      if(!confirm(`ATENÇÃO: Banir permanentemente o aluno ${nome} e expurgar seus dados do sistema?`)) return;
+      const secure = getOwnerConfirmation('EXCLUIR ALUNO', `ATENCAO: banir permanentemente o aluno ${nome} e expurgar seus dados do sistema.`);
+      if(!secure) return;
       try {
-        await App.api(`/api/owner/users/${id}`, { method: 'DELETE' });
+        await App.api(`/api/owner/users/${id}`, { method: 'DELETE', body: JSON.stringify(secure) });
         App.showToast('Aluno banido e removido!');
         loadStudents();
         loadMetrics();
@@ -518,12 +534,13 @@
     // Ações de limpeza e otimização
     async function cleanupOldChats() {
       const days = document.getElementById('cleanup-days').value || 30;
-      if(!confirm(`Tem certeza que quer remover todas as conversas inativas há mais de ${days} dias?`)) return;
+      const secure = getOwnerConfirmation('LIMPAR CHATS ANTIGOS', `Remover conversas inativas ha mais de ${days} dias.`);
+      if(!secure) return;
 
       try {
         const data = await App.api('/api/owner/chats/cleanup', {
           method: 'POST',
-          body: JSON.stringify({ days })
+          body: JSON.stringify({ days, ...secure })
         });
         App.showToast(data.message);
       } catch (err) {
@@ -532,8 +549,10 @@
     }
 
     async function truncateMessages() {
+      const secure = getOwnerConfirmation('OTIMIZAR MENSAGENS', 'Limitar historicos longos de chat para reduzir o tamanho do banco.');
+      if(!secure) return;
       try {
-        const data = await App.api('/api/owner/chats/truncate', { method: 'POST' });
+        const data = await App.api('/api/owner/chats/truncate', { method: 'POST', body: JSON.stringify(secure) });
         App.showToast(data.message);
       } catch (err) {
         App.showToast(err.message, true);
@@ -541,11 +560,11 @@
     }
 
     async function deleteAllChats() {
-      const confirmation = prompt('ALERTA MÁXIMO: Isso irá DELETAR TODAS as conversas de todos os alunos da plataforma. Digite "APAGAR TUDO" para confirmar:');
-      if(confirmation !== 'APAGAR TUDO') return;
+      const secure = getOwnerConfirmation('APAGAR TUDO', 'ALERTA MAXIMO: isso ira deletar todas as conversas de todos os alunos da plataforma.');
+      if(!secure) return;
 
       try {
-        const data = await App.api('/api/owner/chats', { method: 'DELETE' });
+        const data = await App.api('/api/owner/chats', { method: 'DELETE', body: JSON.stringify(secure) });
         App.showToast(data.message);
       } catch (err) {
         App.showToast(err.message, true);

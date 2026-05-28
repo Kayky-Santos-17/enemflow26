@@ -2,6 +2,8 @@ const User = require('../models/User');
 const Chat = require('../models/Chat');
 const Content = require('../models/Content');
 const StudySession = require('../models/StudySession');
+const SkillProgress = require('../models/SkillProgress');
+const QTable = require('../models/QTable');
 const bcrypt = require('bcryptjs');
 const fs = require('fs');
 const path = require('path');
@@ -35,6 +37,61 @@ const formatBytes = (bytes) => {
   const i = Math.floor(Math.log(bytes) / Math.log(k));
   return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
 };
+
+const CONFIRMATIONS = {
+  deleteStudent: 'EXCLUIR ALUNO',
+  resetStudentPassword: 'REDEFINIR SENHA',
+  resetStudentProgress: 'ZERAR PROGRESSO',
+  resetStudentXP: 'ZERAR XP',
+  deleteSpecificChat: 'APAGAR CHAT',
+  deleteUserChats: 'APAGAR CHATS DO ALUNO',
+  deleteAllChats: 'APAGAR TUDO',
+  cleanupOldChats: 'LIMPAR CHATS ANTIGOS',
+  truncateMessageHistory: 'OTIMIZAR MENSAGENS',
+};
+
+async function verifyOwnerAction(req, action) {
+  const expectedConfirmation = CONFIRMATIONS[action];
+  const { ownerPassword, confirmation } = req.body || {};
+
+  if (!expectedConfirmation) {
+    const error = new Error('Acao owner sem frase de confirmacao configurada.');
+    error.statusCode = 500;
+    throw error;
+  }
+
+  if (confirmation !== expectedConfirmation) {
+    const error = new Error(`Digite exatamente "${expectedConfirmation}" para confirmar esta acao.`);
+    error.statusCode = 400;
+    throw error;
+  }
+
+  if (!ownerPassword) {
+    const error = new Error('Senha do OWNER obrigatoria para confirmar esta acao.');
+    error.statusCode = 400;
+    throw error;
+  }
+
+  const owner = await User.findById(req.userId).select('+senha role');
+  if (!owner || owner.role !== 'owner') {
+    const error = new Error('Acesso negado. Apenas OWNER pode executar esta acao.');
+    error.statusCode = 403;
+    throw error;
+  }
+
+  const passwordOk = await bcrypt.compare(ownerPassword, owner.senha);
+  if (!passwordOk) {
+    const error = new Error('Senha do OWNER invalida.');
+    error.statusCode = 403;
+    throw error;
+  }
+
+  console.warn(`[OwnerAction] ${action} confirmado por ${owner._id} em ${new Date().toISOString()}`);
+}
+
+function handleOwnerActionError(res, error, fallbackMessage) {
+  res.status(error.statusCode || 500).json({ error: error.message || fallbackMessage });
+}
 
 // ─── GERENCIAMENTO DE ALUNOS ───────────────────────────────────────────────────
 
@@ -78,14 +135,18 @@ exports.createStudent = async (req, res) => {
 // Deletar aluno
 exports.deleteStudent = async (req, res) => {
   try {
+    await verifyOwnerAction(req, 'deleteStudent');
     const { id } = req.params;
-    await User.findByIdAndDelete(id);
+    const deleted = await User.findOneAndDelete({ _id: id, role: 'user' });
+    if (!deleted) return res.status(404).json({ error: 'Estudante nao encontrado.' });
     // Remove dados relacionados
     await Chat.deleteMany({ usuarioId: id });
-    await StudySession.deleteMany({ usuarioId: id });
+    await StudySession.deleteMany({ $or: [{ userId: id }, { usuarioId: id }] });
+    await SkillProgress.deleteMany({ userId: id });
+    await QTable.deleteMany({ userId: id });
     res.json({ message: 'Estudante e seus dados foram excluídos.' });
   } catch (error) {
-    res.status(500).json({ error: 'Erro ao excluir estudante.' });
+    handleOwnerActionError(res, error, 'Erro ao excluir estudante.');
   }
 };
 
@@ -123,6 +184,7 @@ exports.unblockStudent = async (req, res) => {
 // Alterar senha de estudante
 exports.resetStudentPassword = async (req, res) => {
   try {
+    await verifyOwnerAction(req, 'resetStudentPassword');
     const { id } = req.params;
     const { novaSenha } = req.body;
     if (!novaSenha || novaSenha.length < 6) {
@@ -135,37 +197,41 @@ exports.resetStudentPassword = async (req, res) => {
 
     res.json({ message: 'Senha do estudante redefinida com sucesso.' });
   } catch (error) {
-    res.status(500).json({ error: 'Erro ao redefinir senha do aluno.' });
+    handleOwnerActionError(res, error, 'Erro ao redefinir senha do aluno.');
   }
 };
 
 // Limpar progresso do estudante
 exports.resetStudentProgress = async (req, res) => {
   try {
+    await verifyOwnerAction(req, 'resetStudentProgress');
     const { id } = req.params;
     const user = await User.findById(id);
     if (!user) return res.status(404).json({ error: 'Estudante não encontrado.' });
 
     user.progresso = [];
     await user.save();
-    await StudySession.deleteMany({ usuarioId: id });
+    await StudySession.deleteMany({ $or: [{ userId: id }, { usuarioId: id }] });
+    await SkillProgress.deleteMany({ userId: id });
+    await QTable.deleteMany({ userId: id });
 
     res.json({ message: 'Progresso e sessões de estudo do aluno foram resetados.' });
   } catch (error) {
-    res.status(500).json({ error: 'Erro ao resetar progresso.' });
+    handleOwnerActionError(res, error, 'Erro ao resetar progresso.');
   }
 };
 
 // Resetar XP do estudante
 exports.resetStudentXP = async (req, res) => {
   try {
+    await verifyOwnerAction(req, 'resetStudentXP');
     const { id } = req.params;
     const user = await User.findByIdAndUpdate(id, { xp: 0 });
     if (!user) return res.status(404).json({ error: 'Estudante não encontrado.' });
 
     res.json({ message: 'Pontos de XP do estudante foram zerados.' });
   } catch (error) {
-    res.status(500).json({ error: 'Erro ao resetar XP do aluno.' });
+    handleOwnerActionError(res, error, 'Erro ao resetar XP do aluno.');
   }
 };
 
@@ -174,39 +240,43 @@ exports.resetStudentXP = async (req, res) => {
 // Excluir conversa específica
 exports.deleteSpecificChat = async (req, res) => {
   try {
+    await verifyOwnerAction(req, 'deleteSpecificChat');
     const { id } = req.params;
     const chat = await Chat.findByIdAndDelete(id);
     if (!chat) return res.status(404).json({ error: 'Conversa não encontrada.' });
     res.json({ message: 'Conversa deletada com sucesso.' });
   } catch (error) {
-    res.status(500).json({ error: 'Erro ao deletar conversa.' });
+    handleOwnerActionError(res, error, 'Erro ao deletar conversa.');
   }
 };
 
 // Excluir conversas de um estudante específico
 exports.deleteUserChats = async (req, res) => {
   try {
+    await verifyOwnerAction(req, 'deleteUserChats');
     const { userId } = req.params;
     await Chat.deleteMany({ usuarioId: userId });
     res.json({ message: 'Todas as conversas do estudante foram deletadas.' });
   } catch (error) {
-    res.status(500).json({ error: 'Erro ao deletar conversas do aluno.' });
+    handleOwnerActionError(res, error, 'Erro ao deletar conversas do aluno.');
   }
 };
 
 // Excluir absolutamente todas as conversas do banco
 exports.deleteAllChats = async (req, res) => {
   try {
+    await verifyOwnerAction(req, 'deleteAllChats');
     await Chat.deleteMany({});
     res.json({ message: 'Histórico completo de chats da plataforma foi deletado.' });
   } catch (error) {
-    res.status(500).json({ error: 'Erro ao limpar banco de chats.' });
+    handleOwnerActionError(res, error, 'Erro ao limpar banco de chats.');
   }
 };
 
 // Limpar conversas antigas (inativas há mais de X dias)
 exports.cleanupOldChats = async (req, res) => {
   try {
+    await verifyOwnerAction(req, 'cleanupOldChats');
     const { days } = req.body;
     const diasLimite = parseInt(days) || 30;
     const limiteData = new Date();
@@ -215,13 +285,14 @@ exports.cleanupOldChats = async (req, res) => {
     const result = await Chat.deleteMany({ updatedAt: { $lt: limiteData } });
     res.json({ message: `Limpeza concluída. ${result.deletedCount} conversas inativas há mais de ${diasLimite} dias foram excluídas.` });
   } catch (error) {
-    res.status(500).json({ error: 'Erro ao limpar conversas antigas.' });
+    handleOwnerActionError(res, error, 'Erro ao limpar conversas antigas.');
   }
 };
 
 // Limpar mensagens e evitar crescimento do MongoDB (limita a no máximo 30 mensagens por chat ou remove antigas)
 exports.truncateMessageHistory = async (req, res) => {
   try {
+    await verifyOwnerAction(req, 'truncateMessageHistory');
     const chats = await Chat.find({});
     let totalTruncated = 0;
 
@@ -236,7 +307,7 @@ exports.truncateMessageHistory = async (req, res) => {
 
     res.json({ message: `Banco de mensagens limpo. ${totalTruncated} chats longos foram otimizados.` });
   } catch (error) {
-    res.status(500).json({ error: 'Erro ao truncar histórico de mensagens.' });
+    handleOwnerActionError(res, error, 'Erro ao truncar historico de mensagens.');
   }
 };
 
