@@ -1,44 +1,56 @@
+const mongoose = require('mongoose');
 const Plan = require('../models/Plan');
 const Chat = require('../models/Chat');
 const { chatCompletion } = require('../services/openrouter.service');
+const { getPrompt } = require('../services/prompt.service');
 
-// POST /api/plan — Gera plano de estudos personalizado
+function sanitizeText(value, maxChars = 120) {
+  const text = String(value || '').replace(/\u0000/g, '').trim();
+  return text.length > maxChars ? text.slice(0, maxChars) : text;
+}
+
 exports.generate = async (req, res) => {
   try {
-    const { materias, tempoDisponivel, dificuldade } = req.body;
-    if (!materias || !Array.isArray(materias) || materias.length === 0) {
-      return res.status(400).json({ error: 'Selecione ao menos uma matéria.' });
+    const materias = Array.isArray(req.body.materias)
+      ? req.body.materias.map(item => sanitizeText(item, 80)).filter(Boolean).slice(0, 12)
+      : [];
+    const tempoDisponivel = sanitizeText(req.body.tempoDisponivel, 80);
+    const dificuldade = sanitizeText(req.body.dificuldade || 'medio', 40);
+
+    if (materias.length === 0) {
+      return res.status(400).json({ error: 'Selecione ao menos uma materia.' });
     }
 
-    const prompt = `Crie um plano de estudos personalizado para o ENEM com as seguintes informações:
+    const prompt = `Crie um plano de estudos personalizado para o ENEM com as seguintes informacoes:
 
-**Matérias:** ${materias.join(', ')}
-**Tempo disponível por dia:** ${tempoDisponivel || 'Não informado'}
-**Nível de dificuldade:** ${dificuldade || 'Médio'}
+Materias: ${materias.join(', ')}
+Tempo disponivel por dia: ${tempoDisponivel || 'Nao informado'}
+Nivel de dificuldade: ${dificuldade || 'Medio'}
 
 O plano deve incluir:
 1. Cronograma semanal organizado por dia
-2. Distribuição equilibrada das matérias
-3. Tempo para revisão
-4. Intervalos de descanso (técnica Pomodoro)
-5. Dicas de estudo para cada matéria
-6. Priorização por peso no ENEM
+2. Distribuicao equilibrada das materias
+3. Tempo para revisao
+4. Intervalos de descanso com tecnica Pomodoro
+5. Dicas de estudo para cada materia
+6. Priorizacao por peso no ENEM
 
-Formate o plano de forma clara usando markdown com tabelas quando possível.`;
+Formate o plano de forma clara usando markdown com tabelas quando possivel.`;
 
-    const systemPrompt = 'Você é um especialista em planejamento de estudos para o ENEM. Crie cronogramas realistas, motivadores e estratégicos. Use formatação markdown com tabelas, listas e destaques.';
-    const cronograma = await chatCompletion([{ role: 'user', content: prompt }], systemPrompt);
+    const cronograma = await chatCompletion([{ role: 'user', content: prompt }], getPrompt('studyPlan'), {
+      maxHistoryChars: 5000,
+      maxMessageChars: 3500,
+    });
 
     const plan = await Plan.create({
       usuarioId: req.userId,
       titulo: `Plano: ${materias.slice(0, 3).join(', ')}${materias.length > 3 ? '...' : ''}`,
       materias,
-      tempoDisponivel: tempoDisponivel || '',
-      dificuldade: dificuldade || 'medio',
+      tempoDisponivel,
+      dificuldade,
       cronograma,
     });
 
-    // Salvar também como chat para o histórico
     await Chat.create({
       usuarioId: req.userId,
       titulo: plan.titulo,
@@ -56,32 +68,39 @@ Formate o plano de forma clara usando markdown com tabelas quando possível.`;
   }
 };
 
-// GET /api/plan — Lista planos do usuário
 exports.list = async (req, res) => {
   try {
-    const plans = await Plan.find({ usuarioId: req.userId }).sort({ createdAt: -1 }).limit(20);
+    const plans = await Plan.find({ usuarioId: req.userId })
+      .sort({ createdAt: -1 })
+      .limit(20)
+      .select('titulo materias tempoDisponivel dificuldade createdAt updatedAt')
+      .lean();
     res.json(plans);
   } catch (error) {
     res.status(500).json({ error: 'Erro ao buscar planos.' });
   }
 };
 
-// GET /api/plan/:id
 exports.getById = async (req, res) => {
   try {
-    const plan = await Plan.findOne({ _id: req.params.id, usuarioId: req.userId });
-    if (!plan) return res.status(404).json({ error: 'Plano não encontrado.' });
+    if (!mongoose.isValidObjectId(req.params.id)) {
+      return res.status(400).json({ error: 'Plano invalido.' });
+    }
+    const plan = await Plan.findOne({ _id: req.params.id, usuarioId: req.userId }).lean();
+    if (!plan) return res.status(404).json({ error: 'Plano nao encontrado.' });
     res.json(plan);
   } catch (error) {
     res.status(500).json({ error: 'Erro ao buscar plano.' });
   }
 };
 
-// DELETE /api/plan/:id
 exports.remove = async (req, res) => {
   try {
+    if (!mongoose.isValidObjectId(req.params.id)) {
+      return res.status(400).json({ error: 'Plano invalido.' });
+    }
     await Plan.findOneAndDelete({ _id: req.params.id, usuarioId: req.userId });
-    res.json({ message: 'Plano excluído.' });
+    res.json({ message: 'Plano excluido.' });
   } catch (error) {
     res.status(500).json({ error: 'Erro ao excluir plano.' });
   }

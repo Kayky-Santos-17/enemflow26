@@ -2,47 +2,55 @@ const router = require('express').Router();
 const multer = require('multer');
 const path = require('path');
 const fs = require('fs');
+const mongoose = require('mongoose');
 const auth = require('../middlewares/auth');
 const { aiLimiter } = require('../middlewares/rateLimiter');
 const { chatCompletion } = require('../services/openrouter.service');
+const { getPrompt } = require('../services/prompt.service');
 
-// Certifique-se de que a pasta existe
 const uploadDir = path.join(__dirname, '../uploads');
 if (process.env.NODE_ENV !== 'production') {
-  if (!fs.existsSync(uploadDir)) {
-    fs.mkdirSync(uploadDir);
-  }
+  fs.mkdirSync(uploadDir, { recursive: true });
 }
 
 const storage = process.env.VERCEL
   ? multer.memoryStorage()
   : multer.diskStorage({
-      destination: function (req, file, cb) { cb(null, uploadDir); },
-      filename: function (req, file, cb) {
-        const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
+      destination(req, file, cb) {
+        cb(null, uploadDir);
+      },
+      filename(req, file, cb) {
+        const uniqueSuffix = `${Date.now()}-${Math.round(Math.random() * 1E9)}`;
         cb(null, uniqueSuffix + path.extname(file.originalname));
       }
     });
 
 const upload = multer({
   storage,
-  limits: { fileSize: 10 * 1024 * 1024 }, // 10MB
+  limits: { fileSize: Number(process.env.UPLOAD_MAX_BYTES) || 10 * 1024 * 1024 },
   fileFilter: (req, file, cb) => {
     const allowed = ['.pdf', '.png', '.jpg', '.jpeg', '.gif', '.txt'];
     const ext = path.extname(file.originalname).toLowerCase();
-    if (allowed.includes(ext)) {
-      cb(null, true);
-    } else {
-      cb(new Error('Tipo de arquivo não suportado. Use PDF, imagem ou TXT.'));
-    }
+    if (allowed.includes(ext)) return cb(null, true);
+    return cb(new Error('Tipo de arquivo nao suportado. Use PDF, imagem ou TXT.'));
   }
 });
 
-// POST /upload — Upload simples (foto de perfil, etc.)
+function capChatMessages(chat) {
+  if (chat.mensagens.length > 60) {
+    chat.mensagens = chat.mensagens.slice(-60);
+  }
+}
+
+function sanitizeText(value, maxChars = 1000) {
+  const text = String(value || '').replace(/\u0000/g, '').trim();
+  return text.length > maxChars ? text.slice(0, maxChars) : text;
+}
+
 router.post('/', auth, upload.single('file'), (req, res) => {
   if (process.env.VERCEL) {
     return res.status(400).json({
-      error: 'Upload de arquivo físico desativado na Vercel. Use a opção de link externo.'
+      error: 'Upload de arquivo fisico desativado na Vercel. Use a opcao de link externo.'
     });
   }
   if (!req.file) {
@@ -52,7 +60,6 @@ router.post('/', auth, upload.single('file'), (req, res) => {
   res.json({ url });
 });
 
-// POST /upload/analyze — Upload + extração de texto + envio para IA com contexto priorizado
 router.post('/analyze', auth, aiLimiter, upload.single('file'), async (req, res) => {
   try {
     if (!req.file) {
@@ -63,69 +70,66 @@ router.post('/analyze', auth, aiLimiter, upload.single('file'), async (req, res)
     const ext = path.extname(req.file.originalname).toLowerCase();
 
     if (ext === '.txt') {
-      // Texto direto
-      if (req.file.buffer) {
-        textoExtraido = req.file.buffer.toString('utf-8');
-      } else {
-        textoExtraido = fs.readFileSync(req.file.path, 'utf-8');
-      }
+      textoExtraido = req.file.buffer
+        ? req.file.buffer.toString('utf-8')
+        : await fs.promises.readFile(req.file.path, 'utf-8');
     } else if (ext === '.pdf') {
-      // Extração de PDF
       try {
         const pdfParse = require('pdf-parse');
-        const buffer = req.file.buffer || fs.readFileSync(req.file.path);
+        const buffer = req.file.buffer || await fs.promises.readFile(req.file.path);
         const data = await pdfParse(buffer);
         textoExtraido = data.text;
       } catch (pdfErr) {
         console.error('[upload.analyze] PDF parse error:', pdfErr.message);
-        return res.status(400).json({ error: 'Não foi possível extrair texto do PDF.' });
+        return res.status(400).json({ error: 'Nao foi possivel extrair texto do PDF.' });
       }
     } else if (['.png', '.jpg', '.jpeg', '.gif'].includes(ext)) {
-      // Para imagens, pedimos à IA para descrever
-      textoExtraido = `[Imagem enviada pelo aluno em formato ${ext}. Analise o conteúdo educacional desta imagem.]`;
+      textoExtraido = `[Imagem enviada pelo aluno em formato ${ext}. Analise o conteudo educacional desta imagem.]`;
     }
 
     if (!textoExtraido || textoExtraido.trim().length < 10) {
-      return res.status(400).json({ error: 'Não foi possível extrair texto suficiente do arquivo.' });
+      return res.status(400).json({ error: 'Nao foi possivel extrair texto suficiente do arquivo.' });
     }
 
-    const pergunta = req.body.pergunta || 'Analise e resuma este conteúdo para estudo do ENEM.';
+    const pergunta = sanitizeText(req.body.pergunta || 'Analise e resuma este conteudo para estudo do ENEM.', 1200);
     const chatId = req.body.chatId;
     const Chat = require('../models/Chat');
 
     let chat;
     if (chatId && chatId !== 'null') {
+      if (!mongoose.isValidObjectId(chatId)) {
+        return res.status(400).json({ error: 'Conversa invalida.' });
+      }
       chat = await Chat.findOne({ _id: chatId, usuarioId: req.userId });
     }
+
     if (!chat) {
       chat = await Chat.create({
         usuarioId: req.userId,
-        titulo: `Análise: ${req.file.originalname}`,
+        titulo: `Analise: ${req.file.originalname}`.slice(0, 120),
         tipo: 'chat',
         mensagens: []
       });
     }
 
-    // Adiciona o prompt do usuário com contexto anexado
-    const userMsgContent = `[Arquivo Anexado: ${req.file.originalname}]\n\nSolicitação: ${pergunta}`;
+    const userMsgContent = `[Arquivo anexado: ${req.file.originalname}]\n\nSolicitacao: ${pergunta}`;
     chat.mensagens.push({ role: 'user', content: userMsgContent });
+    capChatMessages(chat);
 
-    // Sistema de Prioridade no Prompt do Sistema: PDF enviado -> Material Plataforma -> ENEM Base
-    const systemOverride = `Você é o EnemFlow AI, tutor acadêmico especialista no ENEM.
-O aluno anexou um arquivo para esta aula. Responda à dúvida dele seguindo estritamente esta ordem de prioridades:
-1. Prioridade Máxima: Use as informações extraídas do arquivo PDF/Texto anexado pelo aluno (abaixo).
-2. Prioridade Secundária: Use os materiais e conteúdos teóricos da plataforma.
-3. Prioridade Geral: Use sua base de dados geral do ENEM.
+    const systemOverride = `${getPrompt('pdfAnalysis')}
 
-Nunca invente fatos e evite respostas aleatórias. Se o assunto do arquivo ou a solicitação do aluno for completamente fora de contexto educacional do ENEM, recuse-se a responder usando exatamente a frase:
-"Posso ajudar apenas com conteúdos educacionais e temas relacionados ao ENEM."
+O aluno anexou um arquivo para esta aula. Responda a duvida dele seguindo esta ordem de prioridades:
+1. Use as informacoes extraidas do arquivo PDF/texto anexado pelo aluno.
+2. Use materiais e conteudos teoricos da plataforma quando forem relevantes.
+3. Use conhecimento geral do ENEM apenas como complemento.
 
-Conteúdo extraído do arquivo enviado pelo aluno:
+Nunca invente fatos. Se o arquivo ou pedido for completamente fora do contexto educacional do ENEM, recuse de forma breve e redirecione para estudo.
+
+Conteudo extraido do arquivo enviado pelo aluno:
 ---
 ${textoExtraido.substring(0, 5000)}
 ---`;
 
-    // Envia o histórico mais recente para a IA
     const historySlice = chat.mensagens.slice(-8).map(m => ({ role: m.role, content: m.content }));
     const resposta = await chatCompletion(historySlice, systemOverride, {
       maxHistoryChars: 8000,
@@ -133,13 +137,12 @@ ${textoExtraido.substring(0, 5000)}
       skipDbContext: true,
     });
 
-    // Salva a resposta no histórico do banco
     chat.mensagens.push({ role: 'assistant', content: resposta });
+    capChatMessages(chat);
     await chat.save();
 
-    // Limpa arquivo do disco (se não for Vercel)
-    if (req.file.path && fs.existsSync(req.file.path)) {
-      fs.unlinkSync(req.file.path);
+    if (req.file.path) {
+      await fs.promises.unlink(req.file.path).catch(() => {});
     }
 
     res.json({ chatId: chat._id, resposta, textoExtraido: textoExtraido.substring(0, 500) });

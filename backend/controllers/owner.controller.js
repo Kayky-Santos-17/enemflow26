@@ -7,6 +7,18 @@ const QTable = require('../models/QTable');
 const bcrypt = require('bcryptjs');
 const fs = require('fs');
 const path = require('path');
+const mongoose = require('mongoose');
+
+const emailValido = (email) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(String(email || ''));
+const senhaValida = (senha) => typeof senha === 'string' && senha.length >= 8 && senha.length <= 128;
+
+function ensureObjectId(id, label = 'ID') {
+  if (!mongoose.isValidObjectId(id)) {
+    const error = new Error(`${label} invalido.`);
+    error.statusCode = 400;
+    throw error;
+  }
+}
 
 // Auxiliar: Calcula tamanho dos uploads
 // Auxiliar: Calcula tamanho dos uploads assincronamente para não bloquear o event loop
@@ -98,7 +110,12 @@ function handleOwnerActionError(res, error, fallbackMessage) {
 // Listar todos os estudantes
 exports.listStudents = async (req, res) => {
   try {
-    const students = await User.find({ role: 'user' }).select('-senha -__v');
+    const limit = Math.max(1, Math.min(parseInt(req.query.limit, 10) || 200, 500));
+    const students = await User.find({ role: 'user' })
+      .sort({ createdAt: -1 })
+      .limit(limit)
+      .select('nome email xp role blocked createdAt updatedAt')
+      .lean();
     res.json(students);
   } catch (error) {
     res.status(500).json({ error: 'Erro ao listar alunos.' });
@@ -111,6 +128,13 @@ exports.createStudent = async (req, res) => {
     const { nome, email, senha } = req.body;
     if (!nome || !email || !senha) {
       return res.status(400).json({ error: 'Nome, e-mail e senha são obrigatórios.' });
+    }
+
+    if (!emailValido(email)) {
+      return res.status(400).json({ error: 'E-mail invalido.' });
+    }
+    if (!senhaValida(senha)) {
+      return res.status(400).json({ error: 'A senha deve ter entre 8 e 128 caracteres.' });
     }
 
     const jaExiste = await User.findOne({ email: email.toLowerCase() });
@@ -126,7 +150,17 @@ exports.createStudent = async (req, res) => {
       role: 'user'
     });
 
-    res.status(201).json({ message: 'Estudante criado com sucesso.', student: newStudent });
+    res.status(201).json({
+      message: 'Estudante criado com sucesso.',
+      student: {
+        _id: newStudent._id,
+        nome: newStudent.nome,
+        email: newStudent.email,
+        role: newStudent.role,
+        xp: newStudent.xp,
+        blocked: newStudent.blocked,
+      }
+    });
   } catch (error) {
     res.status(500).json({ error: 'Erro ao criar estudante.' });
   }
@@ -137,6 +171,7 @@ exports.deleteStudent = async (req, res) => {
   try {
     await verifyOwnerAction(req, 'deleteStudent');
     const { id } = req.params;
+    ensureObjectId(id, 'Estudante');
     const deleted = await User.findOneAndDelete({ _id: id, role: 'user' });
     if (!deleted) return res.status(404).json({ error: 'Estudante nao encontrado.' });
     // Remove dados relacionados
@@ -154,6 +189,7 @@ exports.deleteStudent = async (req, res) => {
 exports.blockStudent = async (req, res) => {
   try {
     const { id } = req.params;
+    ensureObjectId(id, 'Estudante');
     const user = await User.findById(id);
     if (!user) return res.status(404).json({ error: 'Aluno não encontrado.' });
 
@@ -162,7 +198,7 @@ exports.blockStudent = async (req, res) => {
     await user.save();
     res.json({ message: 'Estudante bloqueado com sucesso.' });
   } catch (error) {
-    res.status(500).json({ error: 'Erro ao bloquear estudante.' });
+    handleOwnerActionError(res, error, 'Erro ao bloquear estudante.');
   }
 };
 
@@ -170,6 +206,7 @@ exports.blockStudent = async (req, res) => {
 exports.unblockStudent = async (req, res) => {
   try {
     const { id } = req.params;
+    ensureObjectId(id, 'Estudante');
     const user = await User.findById(id);
     if (!user) return res.status(404).json({ error: 'Aluno não encontrado.' });
 
@@ -177,7 +214,7 @@ exports.unblockStudent = async (req, res) => {
     await user.save();
     res.json({ message: 'Estudante desbloqueado com sucesso.' });
   } catch (error) {
-    res.status(500).json({ error: 'Erro ao desbloquear estudante.' });
+    handleOwnerActionError(res, error, 'Erro ao desbloquear estudante.');
   }
 };
 
@@ -187,8 +224,9 @@ exports.resetStudentPassword = async (req, res) => {
     await verifyOwnerAction(req, 'resetStudentPassword');
     const { id } = req.params;
     const { novaSenha } = req.body;
-    if (!novaSenha || novaSenha.length < 6) {
-      return res.status(400).json({ error: 'Nova senha deve ter pelo menos 6 caracteres.' });
+    ensureObjectId(id, 'Estudante');
+    if (!senhaValida(novaSenha)) {
+      return res.status(400).json({ error: 'A nova senha deve ter entre 8 e 128 caracteres.' });
     }
 
     const hash = await bcrypt.hash(novaSenha, 10);
@@ -206,6 +244,7 @@ exports.resetStudentProgress = async (req, res) => {
   try {
     await verifyOwnerAction(req, 'resetStudentProgress');
     const { id } = req.params;
+    ensureObjectId(id, 'Estudante');
     const user = await User.findById(id);
     if (!user) return res.status(404).json({ error: 'Estudante não encontrado.' });
 
@@ -226,6 +265,7 @@ exports.resetStudentXP = async (req, res) => {
   try {
     await verifyOwnerAction(req, 'resetStudentXP');
     const { id } = req.params;
+    ensureObjectId(id, 'Estudante');
     const user = await User.findByIdAndUpdate(id, { xp: 0 });
     if (!user) return res.status(404).json({ error: 'Estudante não encontrado.' });
 
@@ -242,6 +282,7 @@ exports.deleteSpecificChat = async (req, res) => {
   try {
     await verifyOwnerAction(req, 'deleteSpecificChat');
     const { id } = req.params;
+    ensureObjectId(id, 'Conversa');
     const chat = await Chat.findByIdAndDelete(id);
     if (!chat) return res.status(404).json({ error: 'Conversa não encontrada.' });
     res.json({ message: 'Conversa deletada com sucesso.' });
@@ -255,6 +296,7 @@ exports.deleteUserChats = async (req, res) => {
   try {
     await verifyOwnerAction(req, 'deleteUserChats');
     const { userId } = req.params;
+    ensureObjectId(userId, 'Estudante');
     await Chat.deleteMany({ usuarioId: userId });
     res.json({ message: 'Todas as conversas do estudante foram deletadas.' });
   } catch (error) {
@@ -278,7 +320,7 @@ exports.cleanupOldChats = async (req, res) => {
   try {
     await verifyOwnerAction(req, 'cleanupOldChats');
     const { days } = req.body;
-    const diasLimite = parseInt(days) || 30;
+    const diasLimite = Math.max(7, Math.min(parseInt(days, 10) || 30, 365));
     const limiteData = new Date();
     limiteData.setDate(limiteData.getDate() - diasLimite);
 
@@ -293,10 +335,10 @@ exports.cleanupOldChats = async (req, res) => {
 exports.truncateMessageHistory = async (req, res) => {
   try {
     await verifyOwnerAction(req, 'truncateMessageHistory');
-    const chats = await Chat.find({});
+    const chats = Chat.find({ 'mensagens.25': { $exists: true } }).select('mensagens').cursor();
     let totalTruncated = 0;
 
-    for (const chat of chats) {
+    for await (const chat of chats) {
       if (chat.mensagens && chat.mensagens.length > 25) {
         // Deixa apenas as últimas 20 mensagens para otimizar espaço
         chat.mensagens = chat.mensagens.slice(-20);
@@ -330,10 +372,18 @@ exports.getSystemMetrics = async (req, res) => {
     const espacoTotalBytes = uploadsSizeBytes + mongoEstimateBytes;
 
     // Lista os PDFs cadastrados no sistema
-    const pdfsList = await Content.find({ tipo: 'pdf' }).select('titulo materia url ativo');
+    const pdfsList = await Content.find({ tipo: 'pdf' })
+      .sort({ updatedAt: -1 })
+      .limit(100)
+      .select('titulo materia ativo updatedAt')
+      .lean();
     
     // Lista os Vídeos cadastrados
-    const videosList = await Content.find({ tipo: 'video' }).select('titulo materia url ativo');
+    const videosList = await Content.find({ tipo: 'video' })
+      .sort({ updatedAt: -1 })
+      .limit(100)
+      .select('titulo materia ativo updatedAt')
+      .lean();
 
     res.json({
       metrics: {

@@ -3,6 +3,7 @@ const pdfParse = require('pdf-parse');
 const fs = require('fs');
 const path = require('path');
 const axios = require('axios');
+const mongoose = require('mongoose');
 
 /**
  * Helper para extrair conteúdo textual de PDF ou de artigo.
@@ -19,9 +20,7 @@ async function extractTextFromContent(tipo, url, titulo, descricao) {
         // Arquivo local
         const filename = url.split('/uploads/')[1];
         const filepath = path.join(__dirname, '../uploads', filename);
-        if (fs.existsSync(filepath)) {
-          buffer = fs.readFileSync(filepath);
-        }
+        buffer = await fs.promises.readFile(filepath).catch(() => null);
       } else if (url.startsWith('data:application/pdf;base64,')) {
         // Arquivo Base64 (Comum em serverless como Vercel)
         const base64Data = url.split(',')[1];
@@ -30,7 +29,11 @@ async function extractTextFromContent(tipo, url, titulo, descricao) {
 
       if (!buffer && url.startsWith('http')) {
         // Se for link externo, tenta fazer download
-        const response = await axios.get(url, { responseType: 'arraybuffer' });
+        const response = await axios.get(url, {
+          responseType: 'arraybuffer',
+          timeout: Number(process.env.PDF_FETCH_TIMEOUT_MS) || 12000,
+          maxContentLength: Number(process.env.PDF_FETCH_MAX_BYTES) || 10 * 1024 * 1024,
+        });
         buffer = Buffer.from(response.data);
       }
 
@@ -55,6 +58,7 @@ async function extractTextFromContent(tipo, url, titulo, descricao) {
 exports.list = async (req, res) => {
   try {
     const { materia } = req.query;
+    const limit = Math.max(1, Math.min(parseInt(req.query.limit, 10) || 100, 200));
 
     const filter = { ativo: true };
     if (materia) filter.materia = materia;
@@ -62,7 +66,9 @@ exports.list = async (req, res) => {
     // Remove campos pesados (url com base64 e textoExtraido) para otimizar o carregamento
     const contents = await Content.find(filter)
       .sort({ materia: 1, ordem: 1 })
-      .select('-__v -textoExtraido -url');
+      .limit(limit)
+      .select('-__v -textoExtraido -url')
+      .lean();
 
     res.json(contents);
   } catch (error) {
@@ -74,7 +80,10 @@ exports.list = async (req, res) => {
 // GET /contents/:id — detalhe de um conteúdo
 exports.getById = async (req, res) => {
   try {
-    const content = await Content.findById(req.params.id).select('-__v');
+    if (!mongoose.isValidObjectId(req.params.id)) {
+      return res.status(400).json({ error: 'Conteudo invalido.' });
+    }
+    const content = await Content.findById(req.params.id).select('-__v').lean();
     if (!content) return res.status(404).json({ error: 'Conteúdo não encontrado.' });
 
     res.json(content);
@@ -118,6 +127,9 @@ exports.create = async (req, res) => {
 // PUT /contents/:id — atualiza conteúdo (admin)
 exports.update = async (req, res) => {
   try {
+    if (!mongoose.isValidObjectId(req.params.id)) {
+      return res.status(400).json({ error: 'Conteudo invalido.' });
+    }
     const { tipo, url, titulo, descricao } = req.body;
     
     // Se o tipo ou URL mudaram, atualiza o texto extraído
@@ -150,6 +162,9 @@ exports.update = async (req, res) => {
 // DELETE /contents/:id — desativa conteúdo (soft delete)
 exports.remove = async (req, res) => {
   try {
+    if (!mongoose.isValidObjectId(req.params.id)) {
+      return res.status(400).json({ error: 'Conteudo invalido.' });
+    }
     const content = await Content.findByIdAndUpdate(
       req.params.id,
       { ativo: false },
