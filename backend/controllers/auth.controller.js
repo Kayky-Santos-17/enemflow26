@@ -13,6 +13,9 @@ const gerarToken = (userId, role = 'user', sessionToken = '') => {
   if (!process.env.JWT_SECRET) {
     throw new Error('JWT_SECRET não configurado no servidor.');
   }
+  if (process.env.NODE_ENV === 'production' && process.env.JWT_SECRET.length < 32) {
+    throw new Error('JWT_SECRET fraco para producao. Use pelo menos 32 caracteres.');
+  }
 
   return jwt.sign({ id: userId, role, sessionToken }, process.env.JWT_SECRET, {
     expiresIn: process.env.JWT_EXPIRES_IN || '7d',
@@ -23,6 +26,7 @@ const gerarToken = (userId, role = 'user', sessionToken = '') => {
  * Validação básica de e-mail.
  */
 const emailValido = (email) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+const senhaValida = (senha) => typeof senha === 'string' && senha.length >= 8 && senha.length <= 128;
 const LOGIN_ERROR = 'Credenciais invalidas. Verifique e-mail e senha.';
 const RECOVERY_MESSAGE = 'Se o e-mail estiver cadastrado, enviaremos as instrucoes de recuperacao.';
 
@@ -45,8 +49,8 @@ exports.register = async (req, res) => {
     if (!emailValido(email)) {
       return res.status(400).json({ error: 'E-mail inválido.' });
     }
-    if (senha.length < 6) {
-      return res.status(400).json({ error: 'A senha deve ter no mínimo 6 caracteres.' });
+    if (!senhaValida(senha)) {
+      return res.status(400).json({ error: 'A senha deve ter entre 8 e 128 caracteres.' });
     }
 
     // Verifica duplicidade
@@ -151,7 +155,7 @@ exports.login = async (req, res) => {
     }
 
     // Se o e-mail for o oficial do admin, força o papel de admin!
-    if (email.toLowerCase().trim() === 'enemflow2026@gmail.com' && user.role !== 'admin') {
+    if (process.env.LEGACY_ADMIN_EMAIL && email.toLowerCase().trim() === process.env.LEGACY_ADMIN_EMAIL.toLowerCase().trim() && user.role !== 'admin') {
       user.role = 'admin';
       await user.save();
     }
@@ -225,6 +229,10 @@ exports.updateProfile = async (req, res) => {
 exports.updatePassword = async (req, res) => {
   try {
     const { senhaAtual, novaSenha } = req.body;
+    if (!senhaValida(novaSenha)) {
+      return res.status(400).json({ error: 'A nova senha deve ter entre 8 e 128 caracteres.' });
+    }
+
     const user = await User.findById(req.userId).select('+senha');
 
     if (!user) return res.status(404).json({ error: 'Usuário não encontrado.' });
@@ -303,6 +311,9 @@ exports.forgotPassword = async (req, res) => {
 exports.resetPassword = async (req, res) => {
   try {
     const { token, novaSenha } = req.body;
+    if (!senhaValida(novaSenha)) {
+      return res.status(400).json({ error: 'A nova senha deve ter entre 8 e 128 caracteres.' });
+    }
 
     const user = await User.findOne({
       resetPasswordToken: token,

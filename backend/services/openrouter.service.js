@@ -1,22 +1,7 @@
 const Content = require('../models/Content');
+const { getPrompt } = require('./prompt.service');
 
-const SYSTEM_PROMPT = `Você é o EnemFlow AI, um professor particular inteligente, didático e encorajador.
-
-Seu objetivo é ajudar estudantes a aprender e se preparar para o ENEM e para a vida acadêmica em geral.
-
-ESCOPO DE ATUAÇÃO:
-- Responda a qualquer dúvida de cunho educacional, pedagógico ou acadêmico: matemática, física, química, biologia, história, geografia, português, literatura, filosofia, sociologia, artes, inglês, redação, raciocínio lógico, atualidades e ciências.
-- Explique teoremas, fórmulas, conceitos, biografias históricas, fenômenos científicos, obras literárias, eventos históricos e tudo que um professor ensinaria em sala de aula.
-- Ajude com resumos, exercícios, simulados, redações, mapas mentais e técnicas de estudo.
-- Responda perguntas de cultura geral que tenham valor educacional.
-- Seja sempre claro, objetivo, encorajador e use formatação markdown quando útil.
-
-O QUE NÃO RESPONDER:
-- Instruções para atividades ilegais, armas, crimes, invasões, roubo de senha ou hacks maliciosos.
-- Conteúdo sexual ou violento explícito.
-- Conversas completamente alheias ao aprendizado, como receitas culinárias, fofocas de famosos, apostas ou entretenimento puro sem valor educacional.
-
-Quando precisar recusar, seja gentil e redirecione o aluno para um tema educacional relacionado.`;
+const SYSTEM_PROMPT = getPrompt('tutor');
 
 function isOffTopic(messageText) {
   const text = String(messageText || '').toLowerCase().trim();
@@ -24,7 +9,7 @@ function isOffTopic(messageText) {
     'fabricar bomba', 'bomba caseira', 'como fazer bomba',
     'hackear conta', 'invadir sistema', 'roubar senha',
     'como fazer drogas', 'fabricar drogas', 'como usar drogas',
-    'conteúdo sexual', 'conteudo sexual', 'me manda nude',
+    'conteudo sexual', 'me manda nude',
     'como se matar', 'metodo de suicidio', 'método de suicídio',
   ];
   return blockedPhrases.some(phrase => text.includes(phrase));
@@ -36,7 +21,10 @@ async function getRelevantContentContext(messages) {
     if (!lastUserMsg) return '';
 
     const text = String(lastUserMsg.content || '').toLowerCase();
-    const allContents = await Content.find({ ativo: true }).select('titulo materia assunto tipo textoExtraido url');
+    const allContents = await Content.find({ ativo: true })
+      .select('titulo materia assunto tipo textoExtraido url')
+      .limit(80)
+      .lean();
     if (!allContents || allContents.length === 0) return '';
 
     const relevant = allContents.filter(c => {
@@ -49,18 +37,18 @@ async function getRelevantContentContext(messages) {
 
     if (relevant.length === 0) return '';
 
-    let contextStr = '\n--- CONTEXTO DE MATERIAIS DE ESTUDO DA PLATAFORMA (PRIORIDADE MÁXIMA) ---\n';
-    contextStr += 'O EnemFlow possui materiais didáticos sobre o assunto em questão. Baseie sua resposta preferencialmente nas informações abaixo:\n\n';
+    let contextStr = '\n--- CONTEXTO DE MATERIAIS DE ESTUDO DA PLATAFORMA ---\n';
+    contextStr += 'Use estes materiais como apoio quando forem relevantes. Se o texto estiver incompleto, sinalize isso.\n\n';
 
     relevant.slice(0, 3).forEach(c => {
-      contextStr += `Material: "${c.titulo}" (${c.materia} - ${c.tipo})\n`;
-      if (c.url && !c.url.startsWith('data:')) contextStr += `URL de Referência: ${c.url}\n`;
+      contextStr += `Material: "${c.titulo}" (${c.materia || 'Geral'} - ${c.tipo || 'material'})\n`;
+      if (c.url && !c.url.startsWith('data:')) contextStr += `URL de referencia: ${c.url}\n`;
       if (c.textoExtraido) {
-        contextStr += `Conteúdo do PDF/Artigo:\n${c.textoExtraido.substring(0, 3500)}\n`;
+        contextStr += `Conteudo extraido:\n${c.textoExtraido.substring(0, 2800)}\n`;
       }
       contextStr += '\n';
     });
-    contextStr += '-------------------------------------------------------------------------\n';
+    contextStr += '-----------------------------------------------------\n';
     return contextStr;
   } catch (err) {
     console.error('[getRelevantContentContext] Erro ao recuperar contexto de materiais:', err);
@@ -91,16 +79,24 @@ function compactMessages(messages, maxTotalChars = 12000, maxMessageChars = 3500
   return compacted;
 }
 
+function sleep(ms) {
+  return new Promise(resolve => setTimeout(resolve, ms));
+}
+
+function shouldRetry(status) {
+  return [408, 409, 425, 429, 500, 502, 503, 504].includes(status);
+}
+
 async function chatCompletion(messages, systemOverride, options = {}) {
   const compactedMessages = compactMessages(messages, options.maxHistoryChars || 12000, options.maxMessageChars || 3500);
   const lastUserMsg = [...compactedMessages].reverse().find(m => m.role === 'user');
   if (lastUserMsg && isOffTopic(lastUserMsg.content)) {
-    return 'Posso ajudar apenas com conteúdos educacionais e temas relacionados ao ENEM.';
+    return 'Posso ajudar apenas com conteudos educacionais e temas relacionados ao ENEM.';
   }
 
   const apiKey = process.env.OPENROUTER_KEY;
   if (!apiKey) {
-    throw new Error('OPENROUTER_KEY não configurada no servidor.');
+    throw new Error('OPENROUTER_KEY nao configurada no servidor.');
   }
 
   let systemContent = systemOverride || SYSTEM_PROMPT;
@@ -109,40 +105,78 @@ async function chatCompletion(messages, systemOverride, options = {}) {
     if (dbContext) systemContent += `\n\n${dbContext}`;
   }
 
-  const controller = new AbortController();
   const timeoutMs = Number(process.env.OPENROUTER_TIMEOUT_MS) || 45000;
-  const timeout = setTimeout(() => controller.abort(), timeoutMs);
+  const retries = Math.max(0, Math.min(Number(options.retries ?? 2), 3));
+  const requestBody = {
+    model: process.env.OPENROUTER_MODEL || 'openai/gpt-4.1-nano',
+    messages: [{ role: 'system', content: systemContent }, ...compactedMessages],
+    max_tokens: options.maxTokens || 2048,
+    temperature: options.temperature ?? 0.7,
+  };
 
-  const response = await fetch('https://openrouter.ai/api/v1/chat/completions', {
-    method: 'POST',
-    signal: controller.signal,
-    headers: {
-      Authorization: `Bearer ${apiKey}`,
-      'Content-Type': 'application/json',
-      'HTTP-Referer': process.env.FRONTEND_URL || 'https://enemflow26.vercel.app',
-      'X-Title': 'EnemFlow AI',
-    },
-    body: JSON.stringify({
-      model: process.env.OPENROUTER_MODEL || 'openai/gpt-4.1-nano',
-      messages: [{ role: 'system', content: systemContent }, ...compactedMessages],
-      max_tokens: options.maxTokens || 2048,
-      temperature: options.temperature ?? 0.7,
-    }),
-  }).catch(error => {
-    if (error.name === 'AbortError') {
-      throw new Error('A IA demorou mais que o esperado. Tente novamente em alguns instantes.');
-    }
-    throw error;
-  }).finally(() => clearTimeout(timeout));
-
-  if (!response.ok) {
-    const err = await response.json().catch(() => ({}));
-    console.error('[OpenRouter Error]', err);
-    throw new Error(err?.error?.message || 'Erro ao comunicar com a IA.');
+  if (options.responseFormat === 'json') {
+    requestBody.response_format = { type: 'json_object' };
   }
 
-  const data = await response.json();
-  return data.choices?.[0]?.message?.content || 'Sem resposta da IA.';
+  let lastError;
+  for (let attempt = 0; attempt <= retries; attempt += 1) {
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), timeoutMs);
+
+    try {
+      const response = await fetch('https://openrouter.ai/api/v1/chat/completions', {
+        method: 'POST',
+        signal: controller.signal,
+        headers: {
+          Authorization: `Bearer ${apiKey}`,
+          'Content-Type': 'application/json',
+          'HTTP-Referer': process.env.FRONTEND_URL || 'https://enemflow26.vercel.app',
+          'X-Title': 'EnemFlow AI',
+        },
+        body: JSON.stringify(requestBody),
+      });
+
+      if (!response.ok) {
+        const err = await response.json().catch(() => ({}));
+        const message = err?.error?.message || 'Erro ao comunicar com a IA.';
+        lastError = new Error(message);
+        lastError.statusCode = response.status;
+        console.error('[OpenRouter Error]', { status: response.status, message });
+
+        if (attempt < retries && shouldRetry(response.status)) {
+          await sleep(650 * (attempt + 1));
+          continue;
+        }
+
+        throw lastError;
+      }
+
+      const data = await response.json();
+      const content = data.choices?.[0]?.message?.content;
+      if (!content || typeof content !== 'string') {
+        throw new Error('A IA retornou uma resposta vazia.');
+      }
+
+      return content;
+    } catch (error) {
+      if (error.name === 'AbortError') {
+        lastError = new Error('A IA demorou mais que o esperado. Tente novamente em alguns instantes.');
+      } else {
+        lastError = error;
+      }
+
+      if (attempt < retries) {
+        await sleep(650 * (attempt + 1));
+        continue;
+      }
+
+      throw lastError;
+    } finally {
+      clearTimeout(timeout);
+    }
+  }
+
+  throw lastError || new Error('Erro ao comunicar com a IA.');
 }
 
-module.exports = { chatCompletion, SYSTEM_PROMPT };
+module.exports = { chatCompletion, SYSTEM_PROMPT, compactMessages };

@@ -65,4 +65,14 @@ const userSchema = new mongoose.Schema(
   }
 );
 
+userSchema.index({ role: 1, blocked: 1 });
+userSchema.index({ resetPasswordToken: 1, resetPasswordExpires: 1 });
+
+userSchema.pre('save', function capProgress(next) {
+  if (this.progresso.length > 500) {
+    this.progresso = this.progresso.slice(-500);
+  }
+  next();
+});
+
 module.exports = mongoose.model('User', userSchema);

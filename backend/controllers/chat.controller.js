@@ -2,8 +2,12 @@
 const Content = require('../models/Content');
 const mongoose = require('mongoose');
 const { chatCompletion } = require('../services/openrouter.service');
+const { getPrompt } = require('../services/prompt.service');
+const { withRequestLock } = require('../utils/requestLock');
 
 const CHAT_LIMIT = 30;
+const MESSAGE_LIMIT = 60;
+const MAX_USER_MESSAGE_CHARS = 4000;
 const VALID_LETTERS = ['A', 'B', 'C', 'D', 'E'];
 const VALID_DIFFICULTIES = ['facil', 'media', 'dificil'];
 const STOPWORDS = new Set([
@@ -59,6 +63,24 @@ function extractJsonObject(text) {
     return JSON.parse(cleaned.slice(start, end + 1));
   } catch (error) {
     return null;
+  }
+}
+
+function buildHttpError(message, statusCode = 400, details) {
+  const err = new Error(message);
+  err.statusCode = statusCode;
+  if (details) err.details = details;
+  return err;
+}
+
+function sanitizeUserText(value, maxChars = MAX_USER_MESSAGE_CHARS) {
+  const text = String(value || '').replace(/\u0000/g, '').trim();
+  return text.length > maxChars ? text.slice(0, maxChars) : text;
+}
+
+function capChatMessages(chat) {
+  if (chat.mensagens.length > MESSAGE_LIMIT) {
+    chat.mensagens = chat.mensagens.slice(-MESSAGE_LIMIT);
   }
 }
 
@@ -287,7 +309,13 @@ Responda somente JSON valido. Gere exatamente ${missing} questoes completas, ade
   const raw = await chatCompletion(
     [{ role: 'user', content: prompt }],
     systemPrompt,
-    { maxTokens: Math.min(16000, Math.max(4096, missing * 1200)), temperature: 0.35, skipDbContext: true }
+    {
+      maxTokens: Math.min(16000, Math.max(4096, missing * 1200)),
+      temperature: 0.3,
+      skipDbContext: true,
+      responseFormat: 'json',
+      retries: 2,
+    }
   );
   const completionPayload = extractJsonObject(raw);
   const merged = mergeSimuladoPayloads(payload, completionPayload, quantidade);
@@ -301,41 +329,44 @@ Responda somente JSON valido. Gere exatamente ${missing} questoes completas, ade
 // POST /api/chat - Envia mensagem e recebe resposta da IA
 exports.sendMessage = async (req, res) => {
   try {
-    const { mensagem, chatId } = req.body;
+    const { chatId } = req.body;
+    const mensagem = sanitizeUserText(req.body.mensagem);
     if (!mensagem || typeof mensagem !== 'string') {
       return res.status(400).json({ error: 'Campo "mensagem" é obrigatório.' });
     }
 
-    let chat;
-    if (chatId) {
-      chat = await Chat.findOne({ _id: chatId, usuarioId: req.userId });
-      if (!chat) return res.status(404).json({ error: 'Conversa não encontrada.' });
-    } else {
-      // Nova conversa
-      const titulo = mensagem.substring(0, 60) + (mensagem.length > 60 ? '...' : '');
-      chat = await Chat.create({ usuarioId: req.userId, titulo, tipo: 'chat', mensagens: [] });
-      await enforceLimit(req.userId);
-    }
+    const result = await withRequestLock(`chat:${req.userId}:${chatId || 'new'}`, async () => {
+      let chat;
+      if (chatId) {
+        if (!mongoose.isValidObjectId(chatId)) throw buildHttpError('Conversa invalida.', 400);
+        chat = await Chat.findOne({ _id: chatId, usuarioId: req.userId });
+        if (!chat) throw buildHttpError('Conversa nao encontrada.', 404);
+      } else {
+        const titulo = mensagem.substring(0, 60) + (mensagem.length > 60 ? '...' : '');
+        chat = await Chat.create({ usuarioId: req.userId, titulo, tipo: 'chat', mensagens: [] });
+        await enforceLimit(req.userId);
+      }
 
-    // Adiciona mensagem do usuário
-    chat.mensagens.push({ role: 'user', content: mensagem });
+      chat.mensagens.push({ role: 'user', content: mensagem });
+      capChatMessages(chat);
 
-    const history = chat.mensagens.map(m => ({ role: m.role, content: m.content }));
+      const history = chat.mensagens.map(m => ({ role: m.role, content: m.content }));
+      const resposta = await chatCompletion(history, getPrompt('tutor'), {
+        maxHistoryChars: 9000,
+        maxMessageChars: 2200,
+      });
 
-    // Chama OpenRouter
-    const resposta = await chatCompletion(history, null, {
-      maxHistoryChars: 10000,
-      maxMessageChars: 2500,
+      chat.mensagens.push({ role: 'assistant', content: resposta });
+      capChatMessages(chat);
+      await chat.save();
+
+      return { chatId: chat._id, resposta, titulo: chat.titulo };
     });
 
-    // Adiciona resposta
-    chat.mensagens.push({ role: 'assistant', content: resposta });
-    await chat.save();
-
-    res.json({ chatId: chat._id, resposta, titulo: chat.titulo });
+    res.json(result);
   } catch (error) {
     console.error('[chat.sendMessage]', error.message);
-    res.status(500).json({ error: error.message || 'Erro ao processar mensagem.' });
+    res.status(error.statusCode || 500).json({ error: error.message || 'Erro ao processar mensagem.' });
   }
 };
 
@@ -345,7 +376,8 @@ exports.listChats = async (req, res) => {
     const chats = await Chat.find({ usuarioId: req.userId })
       .sort({ updatedAt: -1 })
       .select('titulo tipo createdAt updatedAt')
-      .limit(CHAT_LIMIT);
+      .limit(CHAT_LIMIT)
+      .lean();
     res.json(chats);
   } catch (error) {
     console.error('[chat.listChats]', error);
@@ -356,6 +388,9 @@ exports.listChats = async (req, res) => {
 // GET /api/chat/:id - Detalhes de uma conversa
 exports.getChat = async (req, res) => {
   try {
+    if (!mongoose.isValidObjectId(req.params.id)) {
+      return res.status(400).json({ error: 'Conversa invalida.' });
+    }
     const chat = await Chat.findOne({ _id: req.params.id, usuarioId: req.userId });
     if (!chat) return res.status(404).json({ error: 'Conversa não encontrada.' });
     res.json(chat);
@@ -368,6 +403,9 @@ exports.getChat = async (req, res) => {
 // DELETE /api/chat/:id - Deleta uma conversa
 exports.deleteChat = async (req, res) => {
   try {
+    if (!mongoose.isValidObjectId(req.params.id)) {
+      return res.status(400).json({ error: 'Conversa invalida.' });
+    }
     await Chat.findOneAndDelete({ _id: req.params.id, usuarioId: req.userId });
     res.json({ message: 'Conversa excluída.' });
   } catch (error) {
@@ -379,7 +417,8 @@ exports.deleteChat = async (req, res) => {
 // POST /api/chat/exercise - Gera questão estilo ENEM
 exports.generateExercise = async (req, res) => {
   try {
-    const { materia, assunto } = req.body;
+    const materia = sanitizeUserText(req.body.materia, 80);
+    const assunto = sanitizeUserText(req.body.assunto, 140);
     if (!materia) return res.status(400).json({ error: 'Campo "materia" é obrigatório.' });
 
     const prompt = `Gere uma questão no estilo ENEM sobre ${materia}${assunto ? ` (assunto: ${assunto})` : ''}.
@@ -403,7 +442,10 @@ A questão DEVE seguir este formato EXATO:
 **DICA ENEM:** [dica prática para o aluno]`;
 
     const systemPrompt = 'Você é um elaborador de questões do ENEM. Crie questões com contexto, 5 alternativas (A-E), resposta correta e explicação detalhada. Siga o formato solicitado com precisão.';
-    const resposta = await chatCompletion([{ role: 'user', content: prompt }], systemPrompt);
+    const resposta = await chatCompletion([{ role: 'user', content: prompt }], systemPrompt, {
+      maxHistoryChars: 4500,
+      maxMessageChars: 2500,
+    });
 
     // Salvar no histórico
     const titulo = `Exercício: ${materia}${assunto ? ' - ' + assunto : ''}`;
@@ -428,17 +470,22 @@ A questão DEVE seguir este formato EXATO:
 // POST /api/chat/simulado - Gera um simulado completo estruturado
 exports.generateSimulado = async (req, res) => {
   try {
-    const { materia, assunto, topico, descricao, quantidade } = req.body;
+    const materia = sanitizeUserText(req.body.materia, 80);
+    const assunto = sanitizeUserText(req.body.assunto, 140);
+    const topico = sanitizeUserText(req.body.topico, 140);
+    const descricao = sanitizeUserText(req.body.descricao, 800);
+    const { quantidade } = req.body;
     if (!materia) return res.status(400).json({ error: 'Campo "materia" é obrigatório.' });
     if (!assunto) return res.status(400).json({ error: 'Campo "assunto" é obrigatório. Tópico e breve descrição são opcionais.' });
 
-    const safeQuantidade = Math.max(1, Math.min(parseInt(quantidade, 10) || 10, 30));
-    const safeTopico = String(topico || '').trim();
-    const safeDescricao = String(descricao || '').trim();
-    const temaCentral = safeTopico || assunto;
-    const tema = [materia, assunto, safeTopico].filter(Boolean).join(' - ');
+    const result = await withRequestLock(`simulado:${req.userId}`, async () => {
+      const safeQuantidade = Math.max(1, Math.min(parseInt(quantidade, 10) || 10, 20));
+      const safeTopico = String(topico || '').trim();
+      const safeDescricao = String(descricao || '').trim();
+      const temaCentral = safeTopico || assunto;
+      const tema = [materia, assunto, safeTopico].filter(Boolean).join(' - ');
 
-    const prompt = `Crie um simulado completo do ENEM sobre: ${tema}.
+      const prompt = `Crie um simulado completo do ENEM sobre: ${tema}.
 
 Regras obrigatorias:
 - Gere exatamente ${safeQuantidade} questoes.
@@ -491,55 +538,55 @@ Retorne somente um JSON valido no formato:
   ]
 }`;
 
-    const systemPrompt = `Voce e um elaborador senior de simulados do ENEM e revisor pedagogico.
-Sua prioridade e precisao, coerencia, aderencia ao tema e formato estruturado.
-Antes de responder, faca uma revisao silenciosa:
-1. ha exatamente cinco alternativas por questao;
-2. so existe uma alternativa correta;
-3. a resposta correta bate com a resolucao;
-4. nao ha afirmacoes factuais duvidosas;
-5. o tema solicitado aparece de forma central em contexto, pergunta, resolucao ou metadata;
-6. o JSON e valido.
-Responda somente o JSON final.`;
+      const systemPrompt = getPrompt('simulado');
 
-    const raw = await chatCompletion(
-      [{ role: 'user', content: prompt }],
-      systemPrompt,
-      { maxTokens: Math.min(16000, Math.max(4096, safeQuantidade * 1200)), temperature: 0.38, skipDbContext: true }
-    );
-    let parsed = extractJsonObject(raw);
-    if (!parsed || !Array.isArray(parsed.questoes)) {
-      const err = new Error('A IA retornou um simulado em formato inválido. Tente gerar novamente.');
-      err.statusCode = 422;
-      err.details = { parseFailed: true };
-      throw err;
-    }
-    if (parsed.questoes.length !== safeQuantidade) {
-      parsed = await completeMissingSimuladoQuestions({
-        payload: parsed,
-        quantidade: safeQuantidade,
-        materia,
-        assunto,
-        topico: safeTopico,
-        descricao: safeDescricao,
-        temaCentral,
-        tema
+      const raw = await chatCompletion(
+        [{ role: 'user', content: prompt }],
+        systemPrompt,
+        {
+          maxTokens: Math.min(16000, Math.max(4096, safeQuantidade * 1250)),
+          temperature: 0.32,
+          skipDbContext: true,
+          responseFormat: 'json',
+          retries: 2,
+        }
+      );
+      let parsed = extractJsonObject(raw);
+      if (!parsed || !Array.isArray(parsed.questoes)) {
+        const err = new Error('A IA retornou um simulado em formato invalido. Tente gerar novamente.');
+        err.statusCode = 422;
+        err.details = { parseFailed: true };
+        throw err;
+      }
+      if (parsed.questoes.length !== safeQuantidade) {
+        parsed = await completeMissingSimuladoQuestions({
+          payload: parsed,
+          quantidade: safeQuantidade,
+          materia,
+          assunto,
+          topico: safeTopico,
+          descricao: safeDescricao,
+          temaCentral,
+          tema
+        });
+      }
+      const simulado = validateSimuladoPayload(parsed, safeQuantidade, materia, assunto, safeTopico, safeDescricao);
+
+      const chat = await Chat.create({
+        usuarioId: req.userId,
+        titulo: simulado.titulo,
+        tipo: 'exercicio',
+        mensagens: [
+          { role: 'user', content: `Gerar simulado ENEM: ${tema}` },
+          { role: 'assistant', content: JSON.stringify(simulado) },
+        ],
       });
-    }
-    const simulado = validateSimuladoPayload(parsed, safeQuantidade, materia, assunto, safeTopico, safeDescricao);
+      await enforceLimit(req.userId);
 
-    const chat = await Chat.create({
-      usuarioId: req.userId,
-      titulo: simulado.titulo,
-      tipo: 'exercicio',
-      mensagens: [
-        { role: 'user', content: `Gerar simulado ENEM: ${tema}` },
-        { role: 'assistant', content: JSON.stringify(simulado) },
-      ],
+      return { chatId: chat._id, simulado };
     });
-    await enforceLimit(req.userId);
 
-    res.json({ chatId: chat._id, simulado });
+    res.json(result);
   } catch (error) {
     console.error('[chat.generateSimulado]', error.message, error.details || '');
     res.status(error.statusCode || 500).json({
@@ -571,7 +618,7 @@ exports.startContentContextChat = async (req, res) => {
       });
     }
 
-    const safePergunta = String(pergunta || 'Analise este PDF e me ajude a estudar o conteúdo para o ENEM.').trim();
+    const safePergunta = sanitizeUserText(pergunta || 'Analise este PDF e me ajude a estudar o conteudo para o ENEM.', 1200);
     const titulo = `PDF: ${content.titulo}`.slice(0, 80);
     const chat = await Chat.create({
       usuarioId: req.userId,
@@ -586,7 +633,8 @@ exports.startContentContextChat = async (req, res) => {
     });
     await enforceLimit(req.userId);
 
-    const systemOverride = `Você é o EnemFlow AI, tutor acadêmico especialista no ENEM.
+    const systemOverride = `${getPrompt('pdfAnalysis')}
+
 O aluno abriu um material da plataforma e pediu ajuda sobre ele.
 
 Use o conteúdo extraído abaixo como fonte principal. Se o texto estiver incompleto, diga isso claramente e complemente apenas com explicações educacionais seguras.
@@ -611,6 +659,7 @@ ${textoExtraido.substring(0, 6000)}
     );
 
     chat.mensagens.push({ role: 'assistant', content: resposta });
+    capChatMessages(chat);
     await chat.save();
 
     res.json({ chatId: chat._id, resposta, titulo: chat.titulo });

@@ -12,7 +12,6 @@ const App = {
     window.location.href = 'login.html';
   },
 
-  // Toggle Dark/Light Mode
   toggleTheme: () => {
     const html = document.documentElement;
     if (html.classList.contains('dark')) {
@@ -25,7 +24,6 @@ const App = {
   },
 
   initTheme: () => {
-    // Dark mode é o padrão do EnemFlow
     if (localStorage.theme === 'light') {
       document.documentElement.classList.remove('dark');
     } else {
@@ -39,53 +37,74 @@ const App = {
       'Content-Type': 'application/json',
       ...options.headers,
     };
-    
-    // Se for FormData (Upload), removemos o Content-Type para o browser setar o multipart/form-data com o boundary
+
     if (options.body instanceof FormData) {
       delete headers['Content-Type'];
     }
-    
+
     if (token) {
-      headers['Authorization'] = `Bearer ${token}`;
+      headers.Authorization = `Bearer ${token}`;
     }
 
-    try {
-      const response = await fetch(`${App.apiUrl}${endpoint}`, {
-        ...options,
-        headers,
-      });
-      
-      let text = '';
-      try {
-        text = await response.text();
-      } catch (err) {
-        console.error('Falha ao ler o corpo da resposta do servidor:', err);
-        throw new Error('Servidor temporariamente indisponível.');
-      }
+    const timeoutMs = options.timeoutMs || 65000;
+    const retries = Math.max(0, Math.min(options.retries ?? 1, 2));
+    const fetchOptions = { ...options, headers };
+    delete fetchOptions.timeoutMs;
+    delete fetchOptions.retries;
 
-      let data;
+    for (let attempt = 0; attempt <= retries; attempt += 1) {
+      const controller = new AbortController();
+      const timeout = setTimeout(() => controller.abort(), timeoutMs);
+
       try {
-        data = JSON.parse(text);
-      } catch (err) {
-        console.error('Resposta do Servidor (Não-JSON - HTML de Erro):', text);
-        throw new Error('Servidor temporariamente indisponível. Por favor, tente novamente mais tarde.');
+        const response = await fetch(`${App.apiUrl}${endpoint}`, {
+          ...fetchOptions,
+          signal: controller.signal,
+        });
+
+        let text = '';
+        try {
+          text = await response.text();
+        } catch (err) {
+          console.error('Falha ao ler o corpo da resposta do servidor:', err);
+          throw new Error('Servidor temporariamente indisponivel.');
+        }
+
+        let data;
+        try {
+          data = text ? JSON.parse(text) : {};
+        } catch (err) {
+          console.error('Resposta do servidor nao JSON:', text);
+          throw new Error('Servidor temporariamente indisponivel. Tente novamente mais tarde.');
+        }
+
+        if (!response.ok) {
+          const detailText = data.details && data.details.expected
+            ? ` (${data.details.received || 0}/${data.details.expected} questoes recebidas)`
+            : '';
+          const apiError = new Error(`${data.error || 'Erro na requisicao.'}${detailText}`);
+          apiError.status = response.status;
+          apiError.details = data.details;
+          apiError.payload = data;
+          throw apiError;
+        }
+
+        return data;
+      } catch (error) {
+        const retryable = error.name === 'AbortError' || [409, 425, 429, 500, 502, 503, 504].includes(error.status);
+        if (attempt < retries && retryable) {
+          await new Promise(resolve => setTimeout(resolve, 600 * (attempt + 1)));
+          continue;
+        }
+
+        console.error('API Error:', error);
+        if (error.name === 'AbortError') {
+          throw new Error('A requisicao demorou mais que o esperado. Tente novamente.');
+        }
+        throw error;
+      } finally {
+        clearTimeout(timeout);
       }
-      
-      if (!response.ok) {
-        const detailText = data.details && data.details.expected
-          ? ` (${data.details.received || 0}/${data.details.expected} questões recebidas)`
-          : '';
-        const apiError = new Error(`${data.error || 'Erro na requisição.'}${detailText}`);
-        apiError.status = response.status;
-        apiError.details = data.details;
-        apiError.payload = data;
-        throw apiError;
-      }
-      
-      return data;
-    } catch (error) {
-      console.error('API Error:', error);
-      throw error;
     }
   },
 
@@ -96,26 +115,24 @@ const App = {
     const toast = document.createElement('div');
     toast.id = 'premium-toast';
     toast.className = `fixed bottom-4 right-4 md:bottom-10 md:right-10 flex items-center gap-3.5 px-6 py-4 rounded-2xl shadow-2xl z-[9999] transform translate-y-20 opacity-0 transition-all duration-500 backdrop-blur-xl border ${
-      isError 
-        ? 'bg-red-950/60 border-red-500/30 text-red-400 shadow-[0_8px_32px_0_rgba(239,68,68,0.15)]' 
+      isError
+        ? 'bg-red-950/60 border-red-500/30 text-red-400 shadow-[0_8px_32px_0_rgba(239,68,68,0.15)]'
         : 'bg-indigo-950/60 border-indigo-500/30 text-indigo-400 shadow-[0_8px_32px_0_rgba(99,102,241,0.15)]'
     }`;
-    
-    const icon = isError 
+
+    const icon = isError
       ? '<svg class="w-5 h-5 shrink-0 text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>'
       : '<svg class="w-5 h-5 shrink-0 text-indigo-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>';
-    
+
     toast.innerHTML = `${icon}<p class="font-bold text-sm text-slate-100 dark:text-slate-100"></p>`;
     toast.querySelector('p').textContent = msg;
-    
     document.body.appendChild(toast);
-    
-    // Animate In
+
     requestAnimationFrame(() => {
       toast.classList.remove('translate-y-20', 'opacity-0');
     });
-    
-    if(window.toastTimer) clearTimeout(window.toastTimer);
+
+    if (window.toastTimer) clearTimeout(window.toastTimer);
     window.toastTimer = setTimeout(() => {
       toast.classList.add('translate-y-20', 'opacity-0');
       setTimeout(() => toast.remove(), 500);
@@ -132,35 +149,32 @@ const App = {
           <div class="absolute inset-2 rounded-full border-t-2 border-pink-500 animate-spin-reverse"></div>
           <div class="absolute inset-4 rounded-full border-t-2 border-purple-500 animate-spin"></div>
         </div>
-        <p class="text-sm font-medium text-slate-400 animate-pulse">${text}</p>
+        <p class="text-sm font-medium text-slate-400 animate-pulse"></p>
       </div>
     `;
+    container.querySelector('p').textContent = text;
   }
 };
 
-// Inicializações PWA e Globais
 document.addEventListener('DOMContentLoaded', () => {
   App.initTheme();
 
-  // Desativar Service Worker para evitar cache de versão antiga
   if ('serviceWorker' in navigator) {
-    navigator.serviceWorker.getRegistrations().then(function(registrations) {
-      for(let registration of registrations) {
-        registration.unregister();
-      }
+    navigator.serviceWorker.getRegistrations().then((registrations) => {
+      for (const registration of registrations) registration.unregister();
     });
-    caches.keys().then(function(names) {
-      for (let name of names) caches.delete(name);
-    });
+    if ('caches' in window) {
+      caches.keys().then((names) => {
+        for (const name of names) caches.delete(name);
+      });
+    }
   }
 
-  // Trava de Sessão infinita
   const now = Date.now();
   if (App.getToken()) {
     localStorage.setItem('enemflow_last_access', now.toString());
   }
 
-  // Setup Mobile Nav Toggle
   const mobileMenuBtn = document.getElementById('mobileMenuBtn');
   const sidebar = document.getElementById('sidebar');
   if (mobileMenuBtn && sidebar) {
