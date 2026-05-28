@@ -79,6 +79,26 @@ Troque `<url>` pela URL final da Vercel:
 curl https://<url>/health
 ```
 
+URL verificada em 2026-05-27:
+
+```bash
+curl https://enemflow26.vercel.app/health
+```
+
+Resultado observado:
+
+```json
+{
+  "status": "ok",
+  "connected": false,
+  "env": "production"
+}
+```
+
+Interpretacao: o deploy existe e o backend responde em producao, mas o MongoDB nao esta conectado. Antes do ajuste de continuidade, um login de smoke com usuario inexistente retornava `500` com timeout em `users.findOne()`. O backend agora possui guarda de banco para retornar `503` rapidamente quando a conexao estiver indisponivel. Verifique se `MONGO_URI` foi cadastrada corretamente na Vercel, se a senha esta URL-encoded, se o banco/database existe e se o MongoDB Atlas permite conexoes vindas da Vercel.
+
+Depois do proximo deploy, o `/health` deve incluir `db.readyState`, `db.hasMongoUri` e `db.reason` para facilitar diagnostico sem expor a connection string.
+
 Fluxos manuais obrigatorios:
 
 - Login/registro.

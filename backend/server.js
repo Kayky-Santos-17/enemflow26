@@ -5,10 +5,32 @@ const helmet = require('helmet');
 const morgan = require('morgan');
 const mongoose = require('mongoose');
 const connectDB = require('./config/db');
+const { getDbStatus } = require('./config/db');
 const { apiLimiter, authLimiter } = require('./middlewares/rateLimiter');
 
 // ── Conexão com MongoDB ──────────────────────────────────────────────────────
 connectDB();
+
+async function requireDatabase(req, res, next) {
+  if (mongoose.connection.readyState !== 1) {
+    await connectDB();
+  }
+
+  const status = getDbStatus();
+  if (!status.connected) {
+    return res.status(503).json({
+      error: 'Banco de dados temporariamente indisponivel.',
+      details: {
+        connected: false,
+        readyState: status.readyState,
+        hasMongoUri: status.hasMongoUri,
+        reason: status.lastError,
+      },
+    });
+  }
+
+  return next();
+}
 
 // ── App Express ──────────────────────────────────────────────────────────────
 const app = express();
@@ -54,33 +76,39 @@ if (process.env.NODE_ENV !== 'production') {
 
 // Health check
 app.get('/health', (req, res) => {
+  const db = getDbStatus();
   res.json({
     status: 'ok',
-    connected: mongoose.connection.readyState === 1,
-    env: process.env.NODE_ENV
+    connected: db.connected,
+    env: process.env.NODE_ENV,
+    db: {
+      readyState: db.readyState,
+      hasMongoUri: db.hasMongoUri,
+      reason: db.lastError,
+    },
   });
 });
 
 // ── Rotas da API ─────────────────────────────────────────────────────────────
 
 // Auth (com rate limit mais restritivo para login/registro)
-app.use('/auth', authLimiter, require('./routes/auth.routes'));
+app.use('/auth', requireDatabase, authLimiter, require('./routes/auth.routes'));
 
 // Conteúdos e estudo (existentes)
-app.use('/contents', require('./routes/content.routes'));
-app.use('/study',    require('./routes/study.routes'));
-app.use('/upload',   require('./routes/upload.routes'));
+app.use('/contents', requireDatabase, require('./routes/content.routes'));
+app.use('/study',    requireDatabase, require('./routes/study.routes'));
+app.use('/upload',   requireDatabase, require('./routes/upload.routes'));
 
 // IA e novas funcionalidades
-app.use('/api/chat',    require('./routes/chat.routes'));
-app.use('/api/plan',    require('./routes/plan.routes'));
-app.use('/api/summary', require('./routes/summary.routes'));
-app.use('/api/owner',   require('./routes/owner.routes'));
-app.use('/api/ai-adaptation', require('./routes/ai-adaptation.routes'));
-app.use('/api/ia', require('./routes/qlearning.routes'));
+app.use('/api/chat',    requireDatabase, require('./routes/chat.routes'));
+app.use('/api/plan',    requireDatabase, require('./routes/plan.routes'));
+app.use('/api/summary', requireDatabase, require('./routes/summary.routes'));
+app.use('/api/owner',   requireDatabase, require('./routes/owner.routes'));
+app.use('/api/ai-adaptation', requireDatabase, require('./routes/ai-adaptation.routes'));
+app.use('/api/ia', requireDatabase, require('./routes/qlearning.routes'));
 
 // Rota legada (mantém compatibilidade com frontend antigo)
-app.use('/ai', require('./routes/ai.routes'));
+app.use('/ai', requireDatabase, require('./routes/ai.routes'));
 
 // ── Handler de rotas não encontradas ─────────────────────────────────────────
 app.use((req, res) => {

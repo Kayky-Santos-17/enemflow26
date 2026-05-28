@@ -231,3 +231,36 @@ Implantacao:
 - O push para `origin/main` foi concluido.
 - A Vercel ainda nao foi confirmada porque os dominios testados (`https://enemflow.vercel.app/health` e `https://enemflow-ai.vercel.app/health`) retornaram `DEPLOYMENT_NOT_FOUND`.
 - Proximo analista deve conectar/verificar o projeto na Vercel, apontar para o repo `Kayky-Santos-17/enemflow26`, branch `main`, configurar `MONGO_URI`, `JWT_SECRET`, `OPENROUTER_KEY`, `OPENROUTER_MODEL`, `FRONTEND_URL` e `NODE_ENV`, e entao rodar os smoke tests descritos em `IMPLANTACAO.md`.
+
+## Nota de Continuidade - 2026-05-27 (verificacao Vercel)
+
+Verificacao executada a partir da pasta local `enemflow26-main`:
+
+- `git fetch origin --prune` concluido; `main` local esta alinhada com `origin/main` no commit `00d18d1` (`Documenta ponto de continuidade no PRD`).
+- GitHub API confirma `main` em `00d18d16fe07c2430418b05b47a1b91e50a7637f`.
+- O dominio correto encontrado e funcional e `https://enemflow26.vercel.app`.
+- `https://enemflow26.vercel.app/health` respondeu `200` com `{"status":"ok","connected":false,"env":"production"}`.
+- Os dominios antigos `https://enemflow.vercel.app/health` e `https://enemflow-ai.vercel.app/health` continuam retornando `404`.
+- Login de smoke com usuario inexistente retornou `500` com `Operation users.findOne() buffering timed out after 10000ms`, confirmando que os fluxos com banco estao bloqueados enquanto `connected:false`.
+- `npx vercel whoami` nao retornou antes do timeout local, entao nao foi possivel confirmar login/link do projeto via CLI nesta maquina.
+- Validacao sintatica local com `node --check` passou para `backend/server.js`, `chat.controller.js`, `openrouter.service.js`, `ai-adaptation.service.js`, `qLearning.service.js` e `db.js`.
+- Smoke local de `http://localhost:3000/health` passou, mas tambem com `connected:false` quando `MONGO_URI` nao esta configurada.
+
+Proximo passo real: entrar no projeto Vercel que serve `enemflow26.vercel.app`, corrigir/confirmar `MONGO_URI` e rede do MongoDB Atlas, redeployar e repetir `curl https://enemflow26.vercel.app/health` ate `connected:true`. Depois disso, testar login/registro, Tutor IA, simulado de 5/10 questoes e progresso adaptativo.
+
+## Nota de Continuidade - 2026-05-27 (ajustes pos-verificacao)
+
+Alteracoes aplicadas apos confirmar o projeto Vercel `enemflow26`:
+
+- `backend/config/db.js`: conexao MongoDB agora reutiliza uma promise de conexao, desativa buffer de comandos e guarda erro sanitizado para diagnostico.
+- `backend/server.js`: rotas que dependem de banco agora passam por guarda `requireDatabase`; quando o Mongo estiver indisponivel, retornam `503` rapido em vez de esperar timeout do Mongoose.
+- `/health`: passou a expor `db.readyState`, `db.hasMongoUri` e `db.reason` sem expor segredos.
+- `backend/controllers/chat.controller.js`: Tutor usa historico compacto por limite de caracteres, sem depender apenas de `slice(-20)`.
+- `backend/routes/upload.routes.js`: analise de upload reduziu contexto enviado e desativou injecao automatica de materiais da plataforma nesse fluxo.
+- `backend/services/openrouter.service.js`: fallback do `HTTP-Referer` atualizado para `https://enemflow26.vercel.app`.
+- `backend/middlewares/auth.js`: ausencia de `JWT_SECRET` agora retorna erro claro de configuracao.
+
+Validacao local apos ajustes:
+
+- `node --check` passou para `backend/server.js`, `backend/config/db.js`, `backend/controllers/chat.controller.js`, `backend/routes/upload.routes.js`, `backend/services/openrouter.service.js` e `backend/middlewares/auth.js`.
+- Smoke local sem `MONGO_URI`: `/health` retornou `connected:false` com motivo claro; `/auth/login` retornou `503` imediato com `Banco de dados temporariamente indisponivel`.

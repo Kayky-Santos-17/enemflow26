@@ -119,7 +119,7 @@ async function chatCompletion(messages, systemOverride, options = {}) {
     headers: {
       Authorization: `Bearer ${apiKey}`,
       'Content-Type': 'application/json',
-      'HTTP-Referer': process.env.FRONTEND_URL || 'https://enemflow.vercel.app',
+      'HTTP-Referer': process.env.FRONTEND_URL || 'https://enemflow26.vercel.app',
       'X-Title': 'EnemFlow AI',
     },
     body: JSON.stringify({

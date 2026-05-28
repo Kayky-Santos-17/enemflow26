@@ -122,12 +122,16 @@ Nunca invente fatos e evite respostas aleatórias. Se o assunto do arquivo ou a 
 
 Conteúdo extraído do arquivo enviado pelo aluno:
 ---
-${textoExtraido.substring(0, 6000)}
+${textoExtraido.substring(0, 5000)}
 ---`;
 
     // Envia o histórico mais recente para a IA
-    const historySlice = chat.mensagens.slice(-10).map(m => ({ role: m.role, content: m.content }));
-    const resposta = await chatCompletion(historySlice, systemOverride);
+    const historySlice = chat.mensagens.slice(-8).map(m => ({ role: m.role, content: m.content }));
+    const resposta = await chatCompletion(historySlice, systemOverride, {
+      maxHistoryChars: 8000,
+      maxMessageChars: 2000,
+      skipDbContext: true,
+    });
 
     // Salva a resposta no histórico do banco
     chat.mensagens.push({ role: 'assistant', content: resposta });

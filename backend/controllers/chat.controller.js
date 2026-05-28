@@ -320,11 +320,13 @@ exports.sendMessage = async (req, res) => {
     // Adiciona mensagem do usuário
     chat.mensagens.push({ role: 'user', content: mensagem });
 
-    // Prepara histórico para a IA (últimas 20 mensagens para contexto)
-    const historySlice = chat.mensagens.slice(-20).map(m => ({ role: m.role, content: m.content }));
+    const history = chat.mensagens.map(m => ({ role: m.role, content: m.content }));
 
     // Chama OpenRouter
-    const resposta = await chatCompletion(historySlice);
+    const resposta = await chatCompletion(history, null, {
+      maxHistoryChars: 10000,
+      maxMessageChars: 2500,
+    });
 
     // Adiciona resposta
     chat.mensagens.push({ role: 'assistant', content: resposta });
@@ -595,12 +597,17 @@ Assunto: ${content.assunto || 'Geral'}
 
 Conteúdo extraído do PDF/material:
 ---
-${textoExtraido.substring(0, 9000)}
+${textoExtraido.substring(0, 6000)}
 ---`;
 
     const resposta = await chatCompletion(
       [{ role: 'user', content: chat.mensagens[0].content }],
-      systemOverride
+      systemOverride,
+      {
+        maxHistoryChars: 8000,
+        maxMessageChars: 2000,
+        skipDbContext: true,
+      }
     );
 
     chat.mensagens.push({ role: 'assistant', content: resposta });

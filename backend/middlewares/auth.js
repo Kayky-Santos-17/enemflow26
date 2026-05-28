@@ -18,6 +18,10 @@ module.exports = async (req, res, next) => {
   const token = authHeader.split(' ')[1];
 
   try {
+    if (!process.env.JWT_SECRET) {
+      return res.status(500).json({ error: 'JWT_SECRET nÃ£o configurado no servidor.' });
+    }
+
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
     
     // Consulta o usuário no banco para checar o sessionToken, blocked e confirmar se a conta ainda é válida

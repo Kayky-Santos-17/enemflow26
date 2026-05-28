@@ -1,52 +1,84 @@
 const mongoose = require('mongoose');
 
-// Força o Node.js a usar os DNS públicos do Google e Cloudflare APENAS localmente
-// Isso evita que a Vercel derrube o servidor devido às restrições de sandbox de rede dela.
+let connectionPromise = null;
+let lastConnectionError = null;
+
+// Local DNS override only. Vercel must use its own network sandbox.
 if (!process.env.VERCEL) {
   try {
     const dns = require('dns');
     dns.setServers(['8.8.8.8', '1.1.1.1']);
-    console.log('⚡ DNS Bypass local ativado (Google/Cloudflare)');
-  } catch (e) {
-    console.warn('⚠️ Não foi possível configurar servidores DNS personalizados:', e.message);
+    console.log('DNS local configurado para Google/Cloudflare');
+  } catch (error) {
+    console.warn('Nao foi possivel configurar DNS local:', error.message);
   }
 }
 
-/**
- * Conecta ao MongoDB usando a URI definida em .env
- * Exibe mensagens de status no console durante o desenvolvimento.
- */
+function sanitizeDbError(error) {
+  if (!error) return null;
+  const message = String(error.message || error);
+  if (message.includes('MONGO_URI')) return message;
+  if (message.includes('querySrv')) return 'Falha de DNS ao resolver o cluster MongoDB.';
+  if (message.includes('bad auth') || message.includes('Authentication failed')) {
+    return 'Falha de autenticacao no MongoDB. Confira usuario e senha da MONGO_URI.';
+  }
+  if (message.includes('timed out') || message.includes('ETIMEOUT')) {
+    return 'Timeout ao conectar no MongoDB. Confira MONGO_URI e liberacao de rede no Atlas.';
+  }
+  return 'Falha ao conectar no MongoDB. Confira variaveis de ambiente e rede do Atlas.';
+}
+
 const connectDB = async () => {
-  if (mongoose.connection.readyState >= 1) return;
+  if (mongoose.connection.readyState === 1) return mongoose.connection;
+  if (connectionPromise) return connectionPromise;
+
+  connectionPromise = (async () => {
+    let uri = process.env.MONGO_URI;
+
+    if (!uri) {
+      throw new Error('MONGO_URI nao configurada. Defina a connection string do MongoDB no .env ou no ambiente da Vercel.');
+    }
+
+    uri = uri.replace(/["']/g, '').trim();
+
+    const conn = await mongoose.connect(uri, {
+      serverSelectionTimeoutMS: 5000,
+      connectTimeoutMS: 5000,
+      bufferCommands: false,
+    });
+
+    lastConnectionError = null;
+    console.log(`MongoDB conectado: ${conn.connection.host}`);
+    return conn.connection;
+  })();
 
   try {
-    // 1. Tenta usar a variável de ambiente (Vercel Dashboard ou .env local)
-    let uri = process.env.MONGO_URI;
-    
-    if (uri) {
-      uri = uri.replace(/["']/g, "").trim();
-      // Corrige a senha caso a variável de ambiente (Vercel ou local) esteja com a antiga
-    } else {
-      throw new Error('MONGO_URI não configurada. Defina a connection string do MongoDB no .env ou no ambiente da Vercel.');
-    }
-    
-    const conn = await mongoose.connect(uri, {
-      serverSelectionTimeoutMS: 5000, // Timeout de 5s para evitar travar o Vercel Serverless
-      connectTimeoutMS: 5000,
-    });
-    console.log(`✅ MongoDB conectado com sucesso via Réplica Set: ${conn.connection.host}`);
+    return await connectionPromise;
   } catch (error) {
-    console.error(`❌ Erro catastrófico de conexão no Banco: ${error.message}`);
+    lastConnectionError = error;
+    console.error(`Erro de conexao MongoDB: ${sanitizeDbError(error)}`);
+    return null;
+  } finally {
+    if (mongoose.connection.readyState !== 1) connectionPromise = null;
   }
 };
 
-// Eventos de conexão para monitoramento
+function getDbStatus() {
+  return {
+    connected: mongoose.connection.readyState === 1,
+    readyState: mongoose.connection.readyState,
+    hasMongoUri: Boolean(process.env.MONGO_URI),
+    lastError: sanitizeDbError(lastConnectionError),
+  };
+}
+
 mongoose.connection.on('disconnected', () => {
-  console.warn('⚠️  MongoDB desconectado');
+  console.warn('MongoDB desconectado');
 });
 
 mongoose.connection.on('reconnected', () => {
-  console.log('🔄 MongoDB reconectado');
+  console.log('MongoDB reconectado');
 });
 
 module.exports = connectDB;
+module.exports.getDbStatus = getDbStatus;
