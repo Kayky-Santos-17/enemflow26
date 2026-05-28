@@ -392,3 +392,23 @@ Proxima parte recomendada:
 2. Padronizar erros sensiveis de login/recuperacao.
 3. Revisar rotas de historico/estudo para impedir acesso cruzado.
 4. Planejar migracao gradual de `localStorage` para cookie `HttpOnly`.
+
+## Nota de Execucao - Fase 1 / Parte 2
+
+Status: implementado parcialmente.
+
+Alteracoes feitas:
+
+- Login passou a usar mensagem generica para e-mail inexistente, senha incorreta e senha incorreta do OWNER.
+- Erro interno de login nao envia mais `error.message` para o cliente.
+- Recuperacao de senha passou a responder mensagem generica mesmo quando o e-mail nao existe ou e invalido.
+
+Validacao local:
+
+- `node --check backend/controllers/auth.controller.js`
+
+Proxima parte recomendada:
+
+1. Criar modal proprio para confirmacoes Owner no lugar de `prompt`.
+2. Revisar rotas de historico/estudo para impedir acesso cruzado.
+3. Planejar migracao gradual de `localStorage` para cookie `HttpOnly`.

@@ -23,6 +23,8 @@ const gerarToken = (userId, role = 'user', sessionToken = '') => {
  * Validação básica de e-mail.
  */
 const emailValido = (email) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+const LOGIN_ERROR = 'Credenciais invalidas. Verifique e-mail e senha.';
+const RECOVERY_MESSAGE = 'Se o e-mail estiver cadastrado, enviaremos as instrucoes de recuperacao.';
 
 // ─── Controllers ─────────────────────────────────────────────────────────────
 
@@ -105,7 +107,7 @@ exports.login = async (req, res) => {
     if (envAdminEmail && envAdminHash && email.toLowerCase().trim() === envAdminEmail.toLowerCase().trim()) {
       const senhaCorreta = await bcrypt.compare(senha, envAdminHash);
       if (!senhaCorreta) {
-        return res.status(401).json({ error: 'Senha incorreta para o administrador OWNER.' });
+        return res.status(401).json({ error: LOGIN_ERROR });
       }
 
       // Busca ou cria o usuário OWNER no banco para manter integridade com as tabelas do sistema
@@ -139,13 +141,13 @@ exports.login = async (req, res) => {
     // 2. Busca normal incluindo a senha (campo com select:false no model)
     const user = await User.findOne({ email: email.toLowerCase() }).select('+senha');
     if (!user) {
-      return res.status(401).json({ error: 'E-mail não cadastrado. Que tal criar uma conta gratuita no botão abaixo?' });
+      return res.status(401).json({ error: LOGIN_ERROR });
     }
 
     // Compara senha com o hash
     const senhaCorreta = await bcrypt.compare(senha, user.senha);
     if (!senhaCorreta) {
-      return res.status(401).json({ error: 'Senha incorreta. Verifique suas credenciais ou clique em "Esqueci minha senha".' });
+      return res.status(401).json({ error: LOGIN_ERROR });
     }
 
     // Se o e-mail for o oficial do admin, força o papel de admin!
@@ -175,7 +177,7 @@ exports.login = async (req, res) => {
     });
   } catch (error) {
     console.error('[auth.login]', error.message, error.stack);
-    res.status(500).json({ error: 'Erro ao fazer login. Detalhes: ' + error.message });
+    res.status(500).json({ error: 'Erro ao fazer login.' });
   }
 };
 
@@ -268,10 +270,14 @@ exports.deleteUser = async (req, res) => {
 exports.forgotPassword = async (req, res) => {
   try {
     const { email } = req.body;
-    const user = await User.findOne({ email: email.toLowerCase() });
+    if (!email || !emailValido(email)) {
+      return res.json({ message: RECOVERY_MESSAGE });
+    }
+
+    const user = await User.findOne({ email: email.toLowerCase().trim() });
 
     if (!user) {
-      return res.status(404).json({ error: 'E-mail não encontrado.' });
+      return res.json({ message: RECOVERY_MESSAGE });
     }
 
     const token = crypto.randomBytes(20).toString('hex');
@@ -287,9 +293,9 @@ exports.forgotPassword = async (req, res) => {
     console.log(`Para: ${user.email}`);
     console.log(`Link para resetar sua senha: ${resetUrl}\n`);
 
-    res.json({ message: 'E-mail de recuperação enviado! Verifique o console do servidor.' });
+    res.json({ message: RECOVERY_MESSAGE });
   } catch (error) {
-    res.status(500).json({ error: 'Erro ao processar recuperação de senha.' });
+    res.status(500).json({ error: 'Erro ao processar recuperacao de senha.' });
   }
 };
 
