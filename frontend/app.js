@@ -75,7 +75,11 @@ const App = {
         const detailText = data.details && data.details.expected
           ? ` (${data.details.received || 0}/${data.details.expected} questões recebidas)`
           : '';
-        throw new Error(`${data.error || 'Erro na requisição.'}${detailText}`);
+        const apiError = new Error(`${data.error || 'Erro na requisição.'}${detailText}`);
+        apiError.status = response.status;
+        apiError.details = data.details;
+        apiError.payload = data;
+        throw apiError;
       }
       
       return data;

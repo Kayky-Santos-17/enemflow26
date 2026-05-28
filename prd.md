@@ -264,3 +264,12 @@ Validacao local apos ajustes:
 
 - `node --check` passou para `backend/server.js`, `backend/config/db.js`, `backend/controllers/chat.controller.js`, `backend/routes/upload.routes.js`, `backend/services/openrouter.service.js` e `backend/middlewares/auth.js`.
 - Smoke local sem `MONGO_URI`: `/health` retornou `connected:false` com motivo claro; `/auth/login` retornou `503` imediato com `Banco de dados temporariamente indisponivel`.
+
+## Nota de Continuidade - 2026-05-27 (resiliencia frontend)
+
+Alteracoes adicionais aplicadas no frontend:
+
+- `frontend/app.js`: erros da API agora preservam `status`, `details` e `payload`, permitindo que telas reajam a falhas estruturadas do backend.
+- `frontend/exercises.html`: quando a geracao de simulado falha por quantidade insuficiente (`422` com `expected/received`), a tela tenta automaticamente uma nova geracao com quantidade menor e avisa o aluno.
+- `frontend/chat.html`: a correcao detalhada de simulado enviada ao Tutor IA agora limita e trunca questoes erradas, evitando contexto gigante em simulados longos.
+- `frontend/sidebar.js`: verificado em UTF-8; os acentos estao corretos no arquivo, o mojibake observado era renderizacao do terminal.
