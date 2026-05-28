@@ -75,7 +75,11 @@ if (process.env.NODE_ENV !== 'production') {
 }
 
 // Health check
-app.get('/health', (req, res) => {
+app.get('/health', async (req, res) => {
+  if (mongoose.connection.readyState !== 1) {
+    await connectDB();
+  }
+
   const db = getDbStatus();
   res.json({
     status: 'ok',
