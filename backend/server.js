@@ -34,13 +34,18 @@ async function requireDatabase(req, res, next) {
 
 // ── App Express ──────────────────────────────────────────────────────────────
 const app = express();
+const isProduction = process.env.NODE_ENV === 'production';
+const allowedOrigins = String(process.env.FRONTEND_URL || '')
+  .split(',')
+  .map(origin => origin.trim())
+  .filter(Boolean);
 
 // Confia nos cabeçalhos de proxy (essencial na Vercel para o express-rate-limit)
 app.set('trust proxy', 1);
 
 // Middlewares globais
-app.use(express.json({ limit: '20mb' }));
-app.use(express.urlencoded({ limit: '20mb', extended: false }));
+app.use(express.json({ limit: process.env.JSON_BODY_LIMIT || '5mb' }));
+app.use(express.urlencoded({ limit: process.env.FORM_BODY_LIMIT || '5mb', extended: false }));
 
 // ── Servir Uploads ──────────────────────────────────────────────────────────
 const path = require('path');
@@ -60,9 +65,14 @@ app.use(helmet({
 
 app.use(
   cors({
-    origin: process.env.NODE_ENV === 'production' ? (process.env.FRONTEND_URL || '*') : '*',
+    origin(origin, callback) {
+      if (!isProduction || !origin) return callback(null, true);
+      if (allowedOrigins.includes(origin)) return callback(null, true);
+      return callback(new Error('Origem nao permitida pelo CORS.'));
+    },
     methods: ['GET', 'POST', 'PUT', 'DELETE'],
     allowedHeaders: ['Content-Type', 'Authorization'],
+    credentials: false,
   })
 );
 
@@ -121,8 +131,16 @@ app.use((req, res) => {
 
 // ── Handler de erros globais ──────────────────────────────────────────────────
 app.use((err, req, res, next) => {
-  console.error('[GlobalError]', err.stack);
-  res.status(500).json({ error: 'Erro interno do servidor.' });
+  const statusCode = err.statusCode || err.status || 500;
+  const safeMessage = statusCode >= 500 ? 'Erro interno do servidor.' : err.message;
+  console.error('[GlobalError]', {
+    method: req.method,
+    path: req.path,
+    statusCode,
+    message: err.message,
+    stack: isProduction ? undefined : err.stack,
+  });
+  res.status(statusCode).json({ error: safeMessage });
 });
 
 // ── Start ─────────────────────────────────────────────────────────────────────
@@ -132,7 +150,7 @@ const PORT = process.env.PORT || 3000;
 module.exports = app;
 
 // Só inicia o servidor se não estiver na Vercel (localmente)
-if (process.env.NODE_ENV !== 'production') {
+if (!isProduction) {
   app.listen(PORT, () => {
     console.log(`🚀 EnemFlow API rodando → http://localhost:${PORT}`);
     console.log(`📋 Health check      → http://localhost:${PORT}/health`);
