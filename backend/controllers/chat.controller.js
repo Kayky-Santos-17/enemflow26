@@ -49,6 +49,14 @@ async function enforceLimit(usuarioId) {
   }
 }
 
+function scheduleChatLimitCleanup(usuarioId) {
+  setImmediate(() => {
+    enforceLimit(usuarioId).catch(error => {
+      console.error('[chat.enforceLimit]', error.message);
+    });
+  });
+}
+
 function extractJsonObject(text) {
   if (!text || typeof text !== 'string') return null;
   const cleaned = text
@@ -344,7 +352,7 @@ exports.sendMessage = async (req, res) => {
       } else {
         const titulo = mensagem.substring(0, 60) + (mensagem.length > 60 ? '...' : '');
         chat = await Chat.create({ usuarioId: req.userId, titulo, tipo: 'chat', mensagens: [] });
-        await enforceLimit(req.userId);
+        scheduleChatLimitCleanup(req.userId);
       }
 
       chat.mensagens.push({ role: 'user', content: mensagem });
@@ -414,6 +422,38 @@ exports.deleteChat = async (req, res) => {
   }
 };
 
+// DELETE /api/chat/:chatId/messages/:messageId - remove uma mensagem especifica
+exports.deleteMessage = async (req, res) => {
+  try {
+    const { chatId, messageId } = req.params;
+    if (!mongoose.isValidObjectId(chatId)) {
+      return res.status(400).json({ error: 'Conversa invalida.' });
+    }
+
+    const chat = await Chat.findOne({ _id: chatId, usuarioId: req.userId });
+    if (!chat) return res.status(404).json({ error: 'Conversa nao encontrada.' });
+
+    const originalLength = chat.mensagens.length;
+    const index = Number.isInteger(Number(messageId)) ? Number(messageId) : -1;
+
+    if (mongoose.isValidObjectId(messageId)) {
+      chat.mensagens = chat.mensagens.filter(message => String(message._id || '') !== messageId);
+    } else if (index >= 0 && index < chat.mensagens.length) {
+      chat.mensagens.splice(index, 1);
+    }
+
+    if (chat.mensagens.length === originalLength) {
+      return res.status(404).json({ error: 'Mensagem nao encontrada.' });
+    }
+
+    await chat.save();
+    res.json({ message: 'Mensagem excluida.' });
+  } catch (error) {
+    console.error('[chat.deleteMessage]', error);
+    res.status(500).json({ error: 'Erro ao excluir mensagem.' });
+  }
+};
+
 // POST /api/chat/exercise - Gera questão estilo ENEM
 exports.generateExercise = async (req, res) => {
   try {
@@ -458,7 +498,7 @@ A questão DEVE seguir este formato EXATO:
         { role: 'assistant', content: resposta },
       ],
     });
-    await enforceLimit(req.userId);
+    scheduleChatLimitCleanup(req.userId);
 
     res.json({ chatId: chat._id, resposta });
   } catch (error) {
@@ -581,7 +621,7 @@ Retorne somente um JSON valido no formato:
           { role: 'assistant', content: JSON.stringify(simulado) },
         ],
       });
-      await enforceLimit(req.userId);
+      scheduleChatLimitCleanup(req.userId);
 
       return { chatId: chat._id, simulado };
     });
@@ -631,7 +671,7 @@ exports.startContentContextChat = async (req, res) => {
         }
       ],
     });
-    await enforceLimit(req.userId);
+    scheduleChatLimitCleanup(req.userId);
 
     const systemOverride = `${getPrompt('pdfAnalysis')}
 

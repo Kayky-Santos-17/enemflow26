@@ -36,8 +36,8 @@ module.exports = async (req, res, next) => {
       return res.status(403).json({ error: 'Acesso recusado. Esta conta foi bloqueada pelo administrador OWNER.' });
     }
 
-    // Se não for admin ou owner, verifica se o login foi sobrescrito por outro aparelho
-    if (user.role !== 'admin' && user.role !== 'owner' && user.sessionToken !== decoded.sessionToken) {
+    // Verifica se o login foi sobrescrito, encerrado ou invalidado.
+    if (decoded.sessionToken && user.sessionToken !== decoded.sessionToken) {
       return res.status(401).json({ error: 'Sessão expirada. Alguém acessou esta conta em outro dispositivo.' });
     }
 

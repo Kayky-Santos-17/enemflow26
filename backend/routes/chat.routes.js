@@ -4,6 +4,7 @@ const {
   listChats,
   getChat,
   deleteChat,
+  deleteMessage,
   generateExercise,
   generateSimulado,
   startContentContextChat,
@@ -22,6 +23,7 @@ router.post('/exercise', aiLimiter, generateExercise);
 router.post('/simulado', aiLimiter, generateSimulado);
 router.post('/content-context', aiLimiter, startContentContextChat);
 router.delete('/', clearAllChats);
+router.delete('/:chatId/messages/:messageId', deleteMessage);
 router.delete('/:id', deleteChat);
 
 

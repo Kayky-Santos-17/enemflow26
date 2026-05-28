@@ -8,6 +8,32 @@ const mongoose = require('mongoose');
 /**
  * Helper para extrair conteúdo textual de PDF ou de artigo.
  */
+async function resolvePdfBuffer(url) {
+  if (!url) return null;
+
+  if (url.includes('/uploads/')) {
+    const filename = url.split('/uploads/')[1];
+    const filepath = path.join(__dirname, '../uploads', filename);
+    return fs.promises.readFile(filepath).catch(() => null);
+  }
+
+  if (url.startsWith('data:application/pdf;base64,')) {
+    const base64Data = url.split(',')[1];
+    return Buffer.from(base64Data, 'base64');
+  }
+
+  if (url.startsWith('http')) {
+    const response = await axios.get(url, {
+      responseType: 'arraybuffer',
+      timeout: Number(process.env.PDF_FETCH_TIMEOUT_MS) || 12000,
+      maxContentLength: Number(process.env.PDF_FETCH_MAX_BYTES) || 10 * 1024 * 1024,
+    });
+    return Buffer.from(response.data);
+  }
+
+  return null;
+}
+
 async function extractTextFromContent(tipo, url, titulo, descricao) {
   if (tipo === 'artigo') {
     return `${titulo}\n\n${descricao}`;
@@ -15,27 +41,7 @@ async function extractTextFromContent(tipo, url, titulo, descricao) {
 
   if (tipo === 'pdf' && url) {
     try {
-      let buffer;
-      if (url.includes('/uploads/')) {
-        // Arquivo local
-        const filename = url.split('/uploads/')[1];
-        const filepath = path.join(__dirname, '../uploads', filename);
-        buffer = await fs.promises.readFile(filepath).catch(() => null);
-      } else if (url.startsWith('data:application/pdf;base64,')) {
-        // Arquivo Base64 (Comum em serverless como Vercel)
-        const base64Data = url.split(',')[1];
-        buffer = Buffer.from(base64Data, 'base64');
-      }
-
-      if (!buffer && url.startsWith('http')) {
-        // Se for link externo, tenta fazer download
-        const response = await axios.get(url, {
-          responseType: 'arraybuffer',
-          timeout: Number(process.env.PDF_FETCH_TIMEOUT_MS) || 12000,
-          maxContentLength: Number(process.env.PDF_FETCH_MAX_BYTES) || 10 * 1024 * 1024,
-        });
-        buffer = Buffer.from(response.data);
-      }
+      const buffer = await resolvePdfBuffer(url);
 
       if (buffer) {
         const data = await pdfParse(buffer);
@@ -86,10 +92,55 @@ exports.getById = async (req, res) => {
     const content = await Content.findById(req.params.id).select('-__v').lean();
     if (!content) return res.status(404).json({ error: 'Conteúdo não encontrado.' });
 
-    res.json(content);
+    const payload = {
+      ...content,
+      hasTextoExtraido: Boolean(String(content.textoExtraido || '').trim()),
+    };
+
+    if (payload.tipo === 'pdf') {
+      payload.mediaUrl = `/contents/${payload._id}/media`;
+      if (String(payload.url || '').startsWith('data:application/pdf;base64,')) {
+        delete payload.url;
+      }
+    }
+
+    delete payload.textoExtraido;
+    res.json(payload);
   } catch (error) {
     console.error('[content.getById]', error);
     res.status(500).json({ error: 'Erro ao buscar conteúdo.' });
+  }
+};
+
+// GET /contents/:id/media - entrega PDFs sem expor base64 ao navegador
+exports.media = async (req, res) => {
+  try {
+    if (!mongoose.isValidObjectId(req.params.id)) {
+      return res.status(400).json({ error: 'Conteudo invalido.' });
+    }
+
+    const content = await Content.findById(req.params.id).select('tipo url titulo ativo').lean();
+    if (!content || !content.ativo) return res.status(404).json({ error: 'Conteudo nao encontrado.' });
+    if (content.tipo !== 'pdf' || !content.url) {
+      return res.status(400).json({ error: 'Este conteudo nao possui PDF para exibir.' });
+    }
+
+    const buffer = await resolvePdfBuffer(content.url);
+    if (!buffer) return res.status(404).json({ error: 'Arquivo PDF nao encontrado.' });
+
+    const safeTitle = String(content.titulo || 'enemflow')
+      .replace(/[^\w\s.-]/g, '')
+      .trim()
+      .replace(/\s+/g, '_') || 'enemflow';
+
+    res.setHeader('Content-Type', 'application/pdf');
+    res.setHeader('Content-Length', buffer.length);
+    res.setHeader('Content-Disposition', `inline; filename="${safeTitle}.pdf"`);
+    res.setHeader('Cache-Control', 'private, max-age=300');
+    res.send(buffer);
+  } catch (error) {
+    console.error('[content.media]', error.message);
+    res.status(500).json({ error: 'Erro ao carregar PDF.' });
   }
 };
 

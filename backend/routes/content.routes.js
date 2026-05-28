@@ -1,5 +1,5 @@
 const router = require('express').Router();
-const { list, getById, create, update, remove } = require('../controllers/content.controller');
+const { list, getById, media, create, update, remove } = require('../controllers/content.controller');
 const auth = require('../middlewares/auth');
 const admin = require('../middlewares/admin');
 
@@ -7,6 +7,7 @@ const admin = require('../middlewares/admin');
 router.get('/', list);
 
 // GET /contents/:id — público
+router.get('/:id/media', media);
 router.get('/:id', getById);
 
 // POST /contents — requer auth + admin

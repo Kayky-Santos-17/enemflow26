@@ -205,6 +205,20 @@ exports.me = async (req, res) => {
   }
 };
 
+// POST /auth/logout
+exports.logout = async (req, res) => {
+  try {
+    await User.updateOne(
+      { _id: req.userId },
+      { sessionToken: crypto.randomBytes(16).toString('hex') }
+    );
+    res.json({ message: 'Sessao encerrada com sucesso.' });
+  } catch (error) {
+    console.error('[auth.logout]', error);
+    res.status(500).json({ error: 'Erro ao encerrar sessao.' });
+  }
+};
+
 // PUT /auth/me
 exports.updateProfile = async (req, res) => {
   try {

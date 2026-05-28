@@ -6,7 +6,18 @@ const App = {
   apiUrl: isLocal ? `http://${host || 'localhost'}:3000` : '',
   getToken: () => localStorage.getItem('token'),
   setToken: (token) => localStorage.setItem('token', token),
-  logout: () => {
+  logout: async () => {
+    const token = App.getToken();
+    if (token) {
+      try {
+        await fetch(`${App.apiUrl}/auth/logout`, {
+          method: 'POST',
+          headers: { Authorization: `Bearer ${token}` },
+        });
+      } catch (error) {
+        console.warn('Falha ao invalidar sessao no servidor:', error.message);
+      }
+    }
     localStorage.removeItem('token');
     localStorage.removeItem('enemflow_last_access');
     window.location.href = 'login.html';

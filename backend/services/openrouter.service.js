@@ -12,7 +12,13 @@ function isOffTopic(messageText) {
     'conteudo sexual', 'me manda nude',
     'como se matar', 'metodo de suicidio', 'método de suicídio',
   ];
-  return blockedPhrases.some(phrase => text.includes(phrase));
+  const unrelatedRequests = [
+    'receita de bolo', 'receita de comida', 'palpite de aposta', 'aposta esportiva',
+    'fofoca', 'cantada', 'roteiro de filme', 'sinopse de filme',
+    'melhor time', 'previsao do jogo', 'previsão do jogo',
+  ];
+  return blockedPhrases.some(phrase => text.includes(phrase)) ||
+    unrelatedRequests.some(phrase => text.includes(phrase));
 }
 
 async function getRelevantContentContext(messages) {

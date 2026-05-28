@@ -209,24 +209,6 @@
 
     let resolvedMediaUrl = '';
 
-    function dataURLtoBlobURL(dataurl) {
-      try {
-        const arr = dataurl.split(',');
-        const mime = arr[0].match(/:(.*?);/)[1];
-        const bstr = atob(arr[1]);
-        let n = bstr.length;
-        const u8arr = new Uint8Array(n);
-        while (n--) {
-          u8arr[n] = bstr.charCodeAt(n);
-        }
-        const blob = new Blob([u8arr], { type: mime });
-        return URL.createObjectURL(blob);
-      } catch (e) {
-        console.error('Error converting base64 to blob url:', e);
-        return dataurl;
-      }
-    }
-
     function closePdf() {
       isTimerFocusMode = true;
       document.getElementById('immersiveLayout').classList.add('no-media');
@@ -268,27 +250,22 @@
         const content = await App.api(`/contents/${contentId}`);
         document.getElementById('contentTitle').innerText = content.titulo || 'Estudo Livre';
         document.getElementById('materiaBadge').innerText = content.materia || 'Geral';
-        currentContentUrl = content.url || '';
+        currentContentUrl = content.mediaUrl || content.url || '';
 
-        if (content.url && content.url.trim() !== '') {
+        if (currentContentUrl && currentContentUrl.trim() !== '') {
           document.getElementById('no-media-text').style.display = 'none';
-          const isPdf = content.url.startsWith('data:application/pdf') || content.url.toLowerCase().endsWith('.pdf');
+          const isPdf = content.tipo === 'pdf' || currentContentUrl.toLowerCase().endsWith('.pdf') || currentContentUrl.includes('/media');
           if (isPdf) {
             document.getElementById('downloadBtn').style.display = 'flex';
             document.getElementById('sendToAiBtn').style.display = 'flex';
           }
           const iframe = document.createElement('iframe');
-          let finalUrl = content.url;
-          if (content.url.startsWith('data:application/pdf')) {
-            resolvedMediaUrl = dataURLtoBlobURL(content.url);
-            finalUrl = resolvedMediaUrl + '#toolbar=0&navpanes=0';
-          } else {
-            resolvedMediaUrl = content.url;
-            if (content.url.includes('youtube.com/watch?v=')) {
-              finalUrl = content.url.replace('watch?v=', 'embed/');
-            } else if (content.url.toLowerCase().endsWith('.pdf')) {
-              finalUrl = content.url + '#toolbar=0&navpanes=0';
-            }
+          let finalUrl = currentContentUrl;
+          resolvedMediaUrl = currentContentUrl;
+          if (currentContentUrl.includes('youtube.com/watch?v=')) {
+            finalUrl = currentContentUrl.replace('watch?v=', 'embed/');
+          } else if (isPdf) {
+            finalUrl = currentContentUrl + '#toolbar=0&navpanes=0';
           }
           iframe.src = finalUrl;
           iframe.setAttribute('allowfullscreen', 'true'); iframe.id = 'contentIframe';
@@ -468,7 +445,6 @@
     function sendPdfToAI() {
       if (!currentContentUrl) return App.showToast('Nenhum PDF disponível.', true);
       localStorage.setItem('pdfContextContentId', contentId);
-      localStorage.setItem('pdfContextUrl', currentContentUrl);
       localStorage.setItem('pdfContextTitle', document.getElementById('contentTitle').textContent || 'PDF');
       window.location.href = 'chat.html?pdfContext=true';
       App.showToast('Enviando PDF para o Tutor IA...');

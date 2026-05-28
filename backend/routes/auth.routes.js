@@ -2,6 +2,7 @@ const router = require('express').Router();
 const { 
   register, 
   login, 
+  logout,
   me, 
   updateProfile, 
   getAllUsers, 
@@ -23,6 +24,7 @@ router.post('/reset-password', resetPassword);
 
 // --- Privadas (Requer Auth) ---
 router.get('/me', auth, me);
+router.post('/logout', auth, logout);
 router.put('/me', auth, updateProfile);
 router.put('/password', auth, updatePassword);
 

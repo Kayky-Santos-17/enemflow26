@@ -273,3 +273,24 @@ Alteracoes adicionais aplicadas no frontend:
 - `frontend/exercises.html`: quando a geracao de simulado falha por quantidade insuficiente (`422` com `expected/received`), a tela tenta automaticamente uma nova geracao com quantidade menor e avisa o aluno.
 - `frontend/chat.html`: a correcao detalhada de simulado enviada ao Tutor IA agora limita e trunca questoes erradas, evitando contexto gigante em simulados longos.
 - `frontend/sidebar.js`: verificado em UTF-8; os acentos estao corretos no arquivo, o mojibake observado era renderizacao do terminal.
+
+## Nota de Continuidade - 2026-05-28 (pendencias de arquivos)
+
+Alteracoes aplicadas nesta rodada:
+
+- `backend/controllers/content.controller.js` e `backend/routes/content.routes.js`: adicionada rota `GET /contents/:id/media` para servir PDFs pelo backend, inclusive quando a origem esta salva como base64, sem expor o payload pesado ao DOM.
+- `frontend/study.html`: removida conversao `data:application/pdf;base64` para BlobURL no navegador; o visualizador usa `mediaUrl` e o envio ao Tutor IA usa `contentId` para acionar o parser/texto extraido no backend.
+- `backend/services/prompt.service.js` e `backend/services/openrouter.service.js`: escopo do Tutor reforcado para ENEM, vestibulares, escola e estudo, com recusas para pedidos perigosos ou claramente sem valor educacional.
+- `frontend/sidebar.js`: padding mobile passa a considerar `env(safe-area-inset-bottom)` e o bottom sheet ganhou limite de altura/scroll para reduzir colisao com telas criticas.
+- `frontend/dashboard.html`: link do historico recente ajustado para "Ver todos" apontando para `history.html`.
+- `backend/controllers/chat.controller.js`: limpeza do limite de conversas passou a ser agendada de forma nao-bloqueante apos criacao de chat/exercicio/simulado.
+- `backend/models/Chat.js`, `backend/controllers/chat.controller.js` e `backend/routes/chat.routes.js`: mensagens novas passam a ter `_id` e existe rota para remover mensagem especifica do banco.
+- `backend/controllers/auth.controller.js`, `backend/routes/auth.routes.js`, `backend/middlewares/auth.js` e `frontend/app.js`: logout agora invalida o `sessionToken` no servidor e tokens antigos passam a ser recusados.
+- `TASKS.md`: checklist atualizado para refletir pendencias ja resolvidas no codigo.
+
+Validacao esperada: rodar `node --check` nos arquivos alterados e testar manualmente uma aula PDF, o botao "Enviar para Tutor IA" e o historico recente.
+
+Pendencias arquiteturais preservadas para uma etapa propria:
+
+- Converter a aplicacao estatica atual em SPA real com History API exige um roteador e carregamento parcial de telas; trocar links pontuais nao entregaria SPA de verdade.
+- Migrar `Chat.mensagens` para collection separada exige script de migracao e ajuste de todos os fluxos de leitura/escrita; nesta rodada foi habilitada remocao individual para novas mensagens via `_id`.

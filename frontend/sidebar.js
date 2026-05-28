@@ -129,6 +129,9 @@ document.addEventListener('DOMContentLoaded', () => {
         }
       }
       @media (max-width: 1023px) {
+        body:has(#ef-bottom-nav) main {
+          padding-bottom: calc(6rem + env(safe-area-inset-bottom)) !important;
+        }
         #ef-sidebar {
           transform: translateX(-100%);
           position: fixed;
@@ -136,6 +139,11 @@ document.addEventListener('DOMContentLoaded', () => {
         }
         #ef-sidebar.mobile-open {
           transform: translateX(0);
+        }
+        #ef-mobile-sheet {
+          max-height: min(78vh, 620px);
+          overflow-y: auto;
+          overscroll-behavior: contain;
         }
       }
     `;
@@ -397,7 +405,7 @@ document.addEventListener('DOMContentLoaded', () => {
   // 10. Adjust main content offset
   const main = document.querySelector('main');
   if (main) {
-    main.classList.add('pt-16', 'lg:pt-0', 'pb-24', 'lg:pb-0'); // Added pb-24 for bottom nav
+    main.classList.add('pt-16', 'lg:pt-0', 'pb-24', 'lg:pb-0'); // Mobile bottom nav spacing is refined in injected CSS.
     if (window.innerWidth >= 1024) {
       main.style.marginLeft = isCollapsed ? 'var(--sb-collapsed)' : 'var(--sb-width)';
       main.style.transition = 'margin-left 0.4s cubic-bezier(0.25, 0.8, 0.25, 1)';
