@@ -132,15 +132,22 @@ app.use((req, res) => {
 // ── Handler de erros globais ──────────────────────────────────────────────────
 app.use((err, req, res, next) => {
   const statusCode = err.statusCode || err.status || 500;
-  const safeMessage = statusCode >= 500 ? 'Erro interno do servidor.' : err.message;
+  const isApiRequest = req.path.startsWith('/api/') || req.path.startsWith('/auth') || req.path.startsWith('/contents') || req.path.startsWith('/study') || req.path.startsWith('/upload') || req.path.startsWith('/ai');
+  const safeMessage = statusCode >= 500 && !isApiRequest ? 'Erro interno do servidor.' : err.message;
   console.error('[GlobalError]', {
     method: req.method,
     path: req.path,
     statusCode,
     message: err.message,
+    details: err.details || null,
     stack: isProduction ? undefined : err.stack,
   });
-  res.status(statusCode).json({ error: safeMessage });
+  res.status(statusCode).json({
+    success: false,
+    error: safeMessage || 'Erro interno do servidor.',
+    details: err.details || null,
+    code: err.code || null,
+  });
 });
 
 // ── Start ─────────────────────────────────────────────────────────────────────

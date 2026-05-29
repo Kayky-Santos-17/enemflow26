@@ -57,6 +57,8 @@ Frontend -> API -> OpenRouter -> JSON valido -> MongoDB -> exibicao no frontend
 - [x] Rodar `node --check` nos arquivos alterados.
 - [x] Validar scripts inline de `frontend/exercises.html`.
 - [x] Rodar `git diff --check`.
+- [x] Ajustar `maxDuration` da funcao Vercel para evitar timeout serverless no simulado.
+- [x] Fazer handler global retornar detalhes de erro para endpoints de API.
 - [ ] Testar chamada real com OpenRouter e MongoDB configurados. Bloqueado nesta copia local porque `backend/.env` nao existe.
 - [x] Commit e push final.
 
