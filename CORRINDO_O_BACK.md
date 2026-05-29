@@ -59,6 +59,7 @@ Frontend -> API -> OpenRouter -> JSON valido -> MongoDB -> exibicao no frontend
 - [x] Rodar `git diff --check`.
 - [x] Ajustar `maxDuration` da funcao Vercel para evitar timeout serverless no simulado.
 - [x] Fazer handler global retornar detalhes de erro para endpoints de API.
+- [x] Corrigir CORS em producao para aceitar `FRONTEND_URL`, `enemflow26.vercel.app` e previews `.vercel.app`.
 - [ ] Testar chamada real com OpenRouter e MongoDB configurados. Bloqueado nesta copia local porque `backend/.env` nao existe.
 - [x] Commit e push final.
 

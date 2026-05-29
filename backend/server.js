@@ -40,6 +40,21 @@ const allowedOrigins = String(process.env.FRONTEND_URL || '')
   .map(origin => origin.trim())
   .filter(Boolean);
 
+function isAllowedCorsOrigin(origin) {
+  if (!isProduction || !origin) return true;
+  if (allowedOrigins.includes(origin)) return true;
+
+  try {
+    const { hostname } = new URL(origin);
+    if (hostname === 'enemflow26.vercel.app') return true;
+    if (hostname.endsWith('.vercel.app')) return true;
+  } catch (error) {
+    console.warn('[cors] Origem invalida recebida:', origin);
+  }
+
+  return false;
+}
+
 // Confia nos cabeçalhos de proxy (essencial na Vercel para o express-rate-limit)
 app.set('trust proxy', 1);
 
@@ -66,9 +81,14 @@ app.use(helmet({
 app.use(
   cors({
     origin(origin, callback) {
-      if (!isProduction || !origin) return callback(null, true);
-      if (allowedOrigins.includes(origin)) return callback(null, true);
-      return callback(new Error('Origem nao permitida pelo CORS.'));
+      if (isAllowedCorsOrigin(origin)) return callback(null, true);
+      return callback(Object.assign(new Error('Origem nao permitida pelo CORS.'), {
+        statusCode: 403,
+        details: {
+          origin,
+          allowedOrigins,
+        },
+      }));
     },
     methods: ['GET', 'POST', 'PUT', 'DELETE'],
     allowedHeaders: ['Content-Type', 'Authorization'],
