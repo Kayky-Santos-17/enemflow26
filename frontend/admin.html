@@ -353,21 +353,22 @@
           const file = fileInput.files[0];
           
           if (file.type === 'application/pdf') {
-            submitBtn.innerHTML = '<i data-feather="loader" class="w-4 h-4 animate-spin"></i> Compactando PDF para nuvem...';
+            submitBtn.innerHTML = '<i data-feather="loader" class="w-4 h-4 animate-spin"></i> Enviando PDF...';
             feather.replace();
 
-            finalUrl = await new Promise((resolve, reject) => {
-              const reader = new FileReader();
-              reader.onload = () => {
-                if (reader.result.length > 15.5 * 1024 * 1024) {
-                  reject(new Error('PDF muito grande (limite da nuvem é 12MB). Por favor use um arquivo menor ou envie via Link do Drive.'));
-                } else {
-                  resolve(reader.result);
-                }
-              };
-              reader.onerror = () => reject(new Error('Falha na compactação.'));
-              reader.readAsDataURL(file);
+            const formData = new FormData();
+            formData.append('file', file);
+
+            const uploadRes = await fetch(`${App.apiUrl}/upload`, {
+              method: 'POST',
+              headers: { 'Authorization': 'Bearer ' + App.getToken() },
+              body: formData
             });
+            const uploadData = await uploadRes.json();
+            if (!uploadRes.ok) {
+              throw new Error(uploadData.error || 'Falha no upload do PDF. Em produção, use uma URL externa segura ou storage cloud.');
+            }
+            finalUrl = uploadData.url;
           } else {
             submitBtn.innerHTML = '<i data-feather="loader" class="w-4 h-4 animate-spin"></i> Subindo vídeo aula pesada...';
             feather.replace();

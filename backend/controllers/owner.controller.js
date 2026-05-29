@@ -4,6 +4,12 @@ const Content = require('../models/Content');
 const StudySession = require('../models/StudySession');
 const SkillProgress = require('../models/SkillProgress');
 const QTable = require('../models/QTable');
+const {
+  deleteMessagesForChats,
+  deleteMessagesForUser,
+  deleteAllMessages,
+  countMessages,
+} = require('../services/chatMessage.service');
 const bcrypt = require('bcryptjs');
 const fs = require('fs');
 const path = require('path');
@@ -176,6 +182,7 @@ exports.deleteStudent = async (req, res) => {
     if (!deleted) return res.status(404).json({ error: 'Estudante nao encontrado.' });
     // Remove dados relacionados
     await Chat.deleteMany({ usuarioId: id });
+    await deleteMessagesForUser(id);
     await StudySession.deleteMany({ $or: [{ userId: id }, { usuarioId: id }] });
     await SkillProgress.deleteMany({ userId: id });
     await QTable.deleteMany({ userId: id });
@@ -285,6 +292,7 @@ exports.deleteSpecificChat = async (req, res) => {
     ensureObjectId(id, 'Conversa');
     const chat = await Chat.findByIdAndDelete(id);
     if (!chat) return res.status(404).json({ error: 'Conversa não encontrada.' });
+    await deleteMessagesForChats(id);
     res.json({ message: 'Conversa deletada com sucesso.' });
   } catch (error) {
     handleOwnerActionError(res, error, 'Erro ao deletar conversa.');
@@ -298,6 +306,7 @@ exports.deleteUserChats = async (req, res) => {
     const { userId } = req.params;
     ensureObjectId(userId, 'Estudante');
     await Chat.deleteMany({ usuarioId: userId });
+    await deleteMessagesForUser(userId);
     res.json({ message: 'Todas as conversas do estudante foram deletadas.' });
   } catch (error) {
     handleOwnerActionError(res, error, 'Erro ao deletar conversas do aluno.');
@@ -309,6 +318,7 @@ exports.deleteAllChats = async (req, res) => {
   try {
     await verifyOwnerAction(req, 'deleteAllChats');
     await Chat.deleteMany({});
+    await deleteAllMessages();
     res.json({ message: 'Histórico completo de chats da plataforma foi deletado.' });
   } catch (error) {
     handleOwnerActionError(res, error, 'Erro ao limpar banco de chats.');
@@ -324,7 +334,9 @@ exports.cleanupOldChats = async (req, res) => {
     const limiteData = new Date();
     limiteData.setDate(limiteData.getDate() - diasLimite);
 
-    const result = await Chat.deleteMany({ updatedAt: { $lt: limiteData } });
+    const oldChats = await Chat.find({ updatedAt: { $lt: limiteData } }).select('_id').lean();
+    const result = await Chat.deleteMany({ _id: { $in: oldChats.map(chat => chat._id) } });
+    await deleteMessagesForChats(oldChats.map(chat => chat._id));
     res.json({ message: `Limpeza concluída. ${result.deletedCount} conversas inativas há mais de ${diasLimite} dias foram excluídas.` });
   } catch (error) {
     handleOwnerActionError(res, error, 'Erro ao limpar conversas antigas.');

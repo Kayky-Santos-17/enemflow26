@@ -371,7 +371,7 @@
       topicos.forEach(t => {
         const card = document.createElement('div');
         
-        const isPdf = t.tipo === 'pdf' || (t.url && t.url.startsWith('data:application/pdf')) || (t.url && t.url.toLowerCase().endsWith('.pdf'));
+        const isPdf = t.tipo === 'pdf' || (t.url && t.url.toLowerCase().endsWith('.pdf'));
         const isVideo = t.tipo === 'video' || (t.url && (t.url.includes('youtube.com') || t.url.includes('youtu.be') || t.url.toLowerCase().endsWith('.mp4')));
         
         let type = 'artigo';

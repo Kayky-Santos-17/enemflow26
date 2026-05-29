@@ -7,6 +7,8 @@ const auth = require('../middlewares/auth');
 const { aiLimiter } = require('../middlewares/rateLimiter');
 const { chatCompletion } = require('../services/openrouter.service');
 const { getPrompt } = require('../services/prompt.service');
+const { appendMessagesToChat, getMessagesForChat } = require('../services/chatMessage.service');
+const { buildPdfContext, extractTextFromPdfBuffer } = require('../services/pdfProcessing.service');
 
 const uploadDir = path.join(__dirname, '../uploads');
 if (process.env.NODE_ENV !== 'production') {
@@ -35,12 +37,6 @@ const upload = multer({
     return cb(new Error('Tipo de arquivo nao suportado. Use PDF, imagem ou TXT.'));
   }
 });
-
-function capChatMessages(chat) {
-  if (chat.mensagens.length > 60) {
-    chat.mensagens = chat.mensagens.slice(-60);
-  }
-}
 
 function sanitizeText(value, maxChars = 1000) {
   const text = String(value || '').replace(/\u0000/g, '').trim();
@@ -75,12 +71,24 @@ router.post('/analyze', auth, aiLimiter, upload.single('file'), async (req, res)
         : await fs.promises.readFile(req.file.path, 'utf-8');
     } else if (ext === '.pdf') {
       try {
-        const pdfParse = require('pdf-parse');
         const buffer = req.file.buffer || await fs.promises.readFile(req.file.path);
-        const data = await pdfParse(buffer);
-        textoExtraido = data.text;
+        const extraction = await extractTextFromPdfBuffer(buffer, { filename: req.file.originalname });
+        textoExtraido = extraction.text;
+        if (extraction.extractionStatus === 'needs_ocr') {
+          if (req.file.path) await fs.promises.unlink(req.file.path).catch(() => {});
+          return res.status(422).json({
+            error: extraction.extractionWarning || 'Este PDF parece escaneado e precisa de OCR antes de ser analisado.',
+            code: 'PDF_OCR_REQUIRED',
+            details: {
+              pages: extraction.pageCount,
+              textLength: extraction.textLength,
+              charsPerPage: Math.round(extraction.charsPerPage || 0),
+            },
+          });
+        }
       } catch (pdfErr) {
         console.error('[upload.analyze] PDF parse error:', pdfErr.message);
+        if (req.file.path) await fs.promises.unlink(req.file.path).catch(() => {});
         return res.status(400).json({ error: 'Nao foi possivel extrair texto do PDF.' });
       }
     } else if (['.png', '.jpg', '.jpeg', '.gif'].includes(ext)) {
@@ -88,10 +96,12 @@ router.post('/analyze', auth, aiLimiter, upload.single('file'), async (req, res)
     }
 
     if (!textoExtraido || textoExtraido.trim().length < 10) {
+      if (req.file.path) await fs.promises.unlink(req.file.path).catch(() => {});
       return res.status(400).json({ error: 'Nao foi possivel extrair texto suficiente do arquivo.' });
     }
 
     const pergunta = sanitizeText(req.body.pergunta || 'Analise e resuma este conteudo para estudo do ENEM.', 1200);
+    const pdfContext = buildPdfContext(textoExtraido, pergunta, { maxChunks: 4 });
     const chatId = req.body.chatId;
     const Chat = require('../models/Chat');
 
@@ -113,8 +123,7 @@ router.post('/analyze', auth, aiLimiter, upload.single('file'), async (req, res)
     }
 
     const userMsgContent = `[Arquivo anexado: ${req.file.originalname}]\n\nSolicitacao: ${pergunta}`;
-    chat.mensagens.push({ role: 'user', content: userMsgContent });
-    capChatMessages(chat);
+    await appendMessagesToChat(chat, { role: 'user', content: userMsgContent });
 
     const systemOverride = `${getPrompt('pdfAnalysis')}
 
@@ -127,19 +136,17 @@ Nunca invente fatos. Se o arquivo ou pedido for completamente fora do contexto e
 
 Conteudo extraido do arquivo enviado pelo aluno:
 ---
-${textoExtraido.substring(0, 5000)}
+${pdfContext || textoExtraido.substring(0, 5000)}
 ---`;
 
-    const historySlice = chat.mensagens.slice(-8).map(m => ({ role: m.role, content: m.content }));
+    const historySlice = (await getMessagesForChat(chat, 8)).map(m => ({ role: m.role, content: m.content }));
     const resposta = await chatCompletion(historySlice, systemOverride, {
       maxHistoryChars: 8000,
       maxMessageChars: 2000,
       skipDbContext: true,
     });
 
-    chat.mensagens.push({ role: 'assistant', content: resposta });
-    capChatMessages(chat);
-    await chat.save();
+    await appendMessagesToChat(chat, { role: 'assistant', content: resposta });
 
     if (req.file.path) {
       await fs.promises.unlink(req.file.path).catch(() => {});

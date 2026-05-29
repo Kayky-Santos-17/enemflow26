@@ -1,58 +1,86 @@
 const Content = require('../models/Content');
-const pdfParse = require('pdf-parse');
-const fs = require('fs');
-const path = require('path');
-const axios = require('axios');
 const mongoose = require('mongoose');
+const {
+  assertNoBase64PdfUrl,
+  extractTextFromPdfBuffer,
+  isBase64PdfUrl,
+  resolvePdfBuffer,
+} = require('../services/pdfProcessing.service');
+const {
+  deleteChunksForContent,
+  replaceChunksForContent,
+} = require('../services/contentChunk.service');
+
+async function persistContentChunks(content, text) {
+  const sourceText = String(text || '').trim();
+  if (!content) return { count: 0 };
+
+  if (sourceText.length < 40) {
+    await deleteChunksForContent(content._id);
+    content.chunkCount = 0;
+    content.chunkedAt = undefined;
+    await content.save();
+    return { count: 0 };
+  }
+
+  const result = await replaceChunksForContent(content._id, sourceText, {
+    skipEmbeddings: !process.env.EMBEDDINGS_ENDPOINT,
+  });
+  content.chunkCount = result.count;
+  content.chunkedAt = new Date();
+  await content.save();
+  return result;
+}
 
 /**
  * Helper para extrair conteúdo textual de PDF ou de artigo.
  */
-async function resolvePdfBuffer(url) {
-  if (!url) return null;
-
-  if (url.includes('/uploads/')) {
-    const filename = url.split('/uploads/')[1];
-    const filepath = path.join(__dirname, '../uploads', filename);
-    return fs.promises.readFile(filepath).catch(() => null);
-  }
-
-  if (url.startsWith('data:application/pdf;base64,')) {
-    const base64Data = url.split(',')[1];
-    return Buffer.from(base64Data, 'base64');
-  }
-
-  if (url.startsWith('http')) {
-    const response = await axios.get(url, {
-      responseType: 'arraybuffer',
-      timeout: Number(process.env.PDF_FETCH_TIMEOUT_MS) || 12000,
-      maxContentLength: Number(process.env.PDF_FETCH_MAX_BYTES) || 10 * 1024 * 1024,
-    });
-    return Buffer.from(response.data);
-  }
-
-  return null;
-}
-
 async function extractTextFromContent(tipo, url, titulo, descricao) {
   if (tipo === 'artigo') {
-    return `${titulo}\n\n${descricao}`;
+    const textoExtraido = `${titulo || ''}\n\n${descricao || ''}`.trim();
+    return {
+      textoExtraido,
+      extractionStatus: 'ok',
+      extractionWarning: '',
+      pdfPageCount: 0,
+      pdfTextLength: textoExtraido.length,
+    };
   }
 
   if (tipo === 'pdf' && url) {
     try {
+      assertNoBase64PdfUrl(url);
       const buffer = await resolvePdfBuffer(url);
 
       if (buffer) {
-        const data = await pdfParse(buffer);
-        return data.text;
+        const result = await extractTextFromPdfBuffer(buffer, { filename: titulo });
+        return {
+          textoExtraido: result.text,
+          extractionStatus: result.extractionStatus,
+          extractionWarning: result.extractionWarning,
+          pdfPageCount: result.pageCount,
+          pdfTextLength: result.textLength,
+        };
       }
     } catch (err) {
       console.error('[extractTextFromContent] Erro ao extrair PDF:', err.message);
+      return {
+        textoExtraido: '',
+        extractionStatus: 'error',
+        extractionWarning: err.message,
+        pdfPageCount: 0,
+        pdfTextLength: 0,
+      };
     }
   }
 
-  return '';
+  return {
+    textoExtraido: '',
+    extractionStatus: tipo === 'pdf' ? 'empty' : 'pending',
+    extractionWarning: tipo === 'pdf' ? 'Nao foi possivel localizar o PDF para extracao.' : '',
+    pdfPageCount: 0,
+    pdfTextLength: 0,
+  };
 }
 
 /**
@@ -95,11 +123,15 @@ exports.getById = async (req, res) => {
     const payload = {
       ...content,
       hasTextoExtraido: Boolean(String(content.textoExtraido || '').trim()),
+      extractionStatus: content.extractionStatus,
+      extractionWarning: content.extractionWarning,
+      pdfPageCount: content.pdfPageCount,
+      pdfTextLength: content.pdfTextLength,
     };
 
     if (payload.tipo === 'pdf') {
       payload.mediaUrl = `/contents/${payload._id}/media`;
-      if (String(payload.url || '').startsWith('data:application/pdf;base64,')) {
+      if (isBase64PdfUrl(payload.url)) {
         delete payload.url;
       }
     }
@@ -123,6 +155,12 @@ exports.media = async (req, res) => {
     if (!content || !content.ativo) return res.status(404).json({ error: 'Conteudo nao encontrado.' });
     if (content.tipo !== 'pdf' || !content.url) {
       return res.status(400).json({ error: 'Este conteudo nao possui PDF para exibir.' });
+    }
+    if (isBase64PdfUrl(content.url)) {
+      return res.status(410).json({
+        error: 'Este PDF antigo esta salvo em Base64 e precisa ser reenviado pelo painel admin.',
+        code: 'PDF_BASE64_DISABLED',
+      });
     }
 
     const buffer = await resolvePdfBuffer(content.url);
@@ -149,7 +187,8 @@ exports.create = async (req, res) => {
   try {
     const { titulo, descricao, materia, assunto, subassunto, tipo, url, tempoMedio, ordem } = req.body;
 
-    const textoExtraido = await extractTextFromContent(tipo, url, titulo, descricao);
+    if (tipo === 'pdf') assertNoBase64PdfUrl(url);
+    const extraction = await extractTextFromContent(tipo, url, titulo, descricao);
 
     const content = await Content.create({
       titulo,
@@ -161,13 +200,19 @@ exports.create = async (req, res) => {
       url,
       tempoMedio,
       ordem,
-      textoExtraido,
+      ...extraction,
       criadoPor: req.userId,
+    });
+    await persistContentChunks(content, extraction.textoExtraido).catch(error => {
+      console.error('[content.create.chunks]', error.message);
     });
 
     res.status(201).json(content);
   } catch (error) {
     console.error('[content.create]', error);
+    if (error.statusCode) {
+      return res.status(error.statusCode).json({ error: error.message, code: error.code });
+    }
     if (error.name === 'ValidationError') {
       return res.status(400).json({ error: error.message });
     }
@@ -182,17 +227,21 @@ exports.update = async (req, res) => {
       return res.status(400).json({ error: 'Conteudo invalido.' });
     }
     const { tipo, url, titulo, descricao } = req.body;
+    if ((tipo === 'pdf' || url !== undefined) && isBase64PdfUrl(url)) {
+      assertNoBase64PdfUrl(url);
+    }
     
     // Se o tipo ou URL mudaram, atualiza o texto extraído
-    if (tipo !== undefined || url !== undefined || titulo !== undefined || descricao !== undefined) {
+    const shouldReprocess = tipo !== undefined || url !== undefined || titulo !== undefined || descricao !== undefined;
+    if (shouldReprocess) {
       const current = await Content.findById(req.params.id);
       if (current) {
-        req.body.textoExtraido = await extractTextFromContent(
+        Object.assign(req.body, await extractTextFromContent(
           tipo !== undefined ? tipo : current.tipo,
           url !== undefined ? url : current.url,
           titulo !== undefined ? titulo : current.titulo,
           descricao !== undefined ? descricao : current.descricao
-        );
+        ));
       }
     }
 
@@ -202,11 +251,56 @@ exports.update = async (req, res) => {
       { new: true, runValidators: true }
     );
     if (!content) return res.status(404).json({ error: 'Conteúdo não encontrado.' });
+    if (shouldReprocess) {
+      await persistContentChunks(content, content.textoExtraido).catch(error => {
+        console.error('[content.update.chunks]', error.message);
+      });
+    }
 
     res.json(content);
   } catch (error) {
     console.error('[content.update]', error);
+    if (error.statusCode) {
+      return res.status(error.statusCode).json({ error: error.message, code: error.code });
+    }
     res.status(500).json({ error: 'Erro ao atualizar conteúdo.' });
+  }
+};
+
+// POST /contents/:id/reindex - reprocessa texto e chunks de um conteudo (admin)
+exports.reindex = async (req, res) => {
+  try {
+    if (!mongoose.isValidObjectId(req.params.id)) {
+      return res.status(400).json({ error: 'Conteudo invalido.' });
+    }
+
+    const content = await Content.findById(req.params.id);
+    if (!content) return res.status(404).json({ error: 'Conteudo nao encontrado.' });
+
+    const extraction = await extractTextFromContent(
+      content.tipo,
+      content.url,
+      content.titulo,
+      content.descricao
+    );
+
+    Object.assign(content, extraction);
+    await content.save();
+
+    const chunks = await persistContentChunks(content, extraction.textoExtraido);
+    res.json({
+      message: 'Conteudo reindexado com sucesso.',
+      contentId: content._id,
+      extractionStatus: content.extractionStatus,
+      extractionWarning: content.extractionWarning,
+      chunkCount: chunks.count,
+    });
+  } catch (error) {
+    console.error('[content.reindex]', error);
+    if (error.statusCode) {
+      return res.status(error.statusCode).json({ error: error.message, code: error.code });
+    }
+    res.status(500).json({ error: 'Erro ao reindexar conteudo.' });
   }
 };
 
@@ -222,6 +316,7 @@ exports.remove = async (req, res) => {
       { new: true }
     );
     if (!content) return res.status(404).json({ error: 'Conteúdo não encontrado.' });
+    await deleteChunksForContent(content._id);
 
     res.json({ message: 'Conteúdo desativado com sucesso.' });
   } catch (error) {

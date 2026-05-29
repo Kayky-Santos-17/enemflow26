@@ -1,8 +1,8 @@
 ﻿(function () {
   const DB_NAME = 'enemflow-device-files';
   const STORE = 'pdfs';
-  const LS_KEY = 'enemflow_device_pdfs_fallback';
   const MAX_LOCAL_BYTES = 18 * 1024 * 1024;
+  const MAX_LOCAL_RECORDS = 12;
 
   const escapeHtml = value => String(value || '')
     .replaceAll('&', '&amp;').replaceAll('<', '&lt;').replaceAll('>', '&gt;')
@@ -70,25 +70,10 @@
     });
   }
 
-  function blobToDataUrl(blob) {
-    return new Promise((resolve, reject) => {
-      const reader = new FileReader();
-      reader.onload = () => resolve(reader.result);
-      reader.onerror = () => reject(reader.error);
-      reader.readAsDataURL(blob);
-    });
-  }
-
-  async function dataUrlToBlob(dataUrl) {
-    return (await fetch(dataUrl)).blob();
-  }
-
-  async function saveFallback(record) {
-    if (record.size > 4 * 1024 * 1024) throw new Error('Arquivo muito grande para fallback localStorage.');
-    const saved = JSON.parse(localStorage.getItem(LS_KEY) || '[]');
-    const dataUrl = await blobToDataUrl(record.blob);
-    const cleanRecord = { ...record, blob: undefined, dataUrl };
-    localStorage.setItem(LS_KEY, JSON.stringify([cleanRecord, ...saved.filter(item => item.id !== record.id)].slice(0, 16)));
+  async function cleanupPdfRecords() {
+    const records = await listPdfRecords();
+    const stale = records.slice(MAX_LOCAL_RECORDS);
+    await Promise.all(stale.map(record => deletePdfRecord(record.id).catch(() => {})));
   }
 
   async function savePdfRecord(record) {
@@ -101,12 +86,8 @@
       createdAt: new Date().toISOString(),
       ...record
     };
-    try {
-      await withStore('readwrite', store => store.put(normalized));
-    } catch (error) {
-      console.warn('[EnemFlowPdfTools] IndexedDB indisponivel, usando localStorage:', error);
-      await saveFallback(normalized);
-    }
+    await withStore('readwrite', store => store.put(normalized));
+    await cleanupPdfRecords().catch(() => {});
     return normalized;
   }
 
@@ -119,8 +100,9 @@
         request.onsuccess = () => resolve(request.result.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt)));
         request.onerror = () => reject(request.error);
       });
-    } catch {
-      return JSON.parse(localStorage.getItem(LS_KEY) || '[]').sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+    } catch (error) {
+      console.warn('[EnemFlowPdfTools] IndexedDB indisponivel:', error);
+      return [];
     }
   }
 
@@ -133,18 +115,17 @@
         request.onsuccess = () => resolve(request.result);
         request.onerror = () => reject(request.error);
       });
-    } catch {
-      const item = JSON.parse(localStorage.getItem(LS_KEY) || '[]').find(record => record.id === id);
-      if (item?.dataUrl) item.blob = await dataUrlToBlob(item.dataUrl);
-      return item || null;
+    } catch (error) {
+      console.warn('[EnemFlowPdfTools] IndexedDB indisponivel:', error);
+      return null;
     }
   }
 
   async function deletePdfRecord(id) {
     try {
       await withStore('readwrite', store => store.delete(id));
-    } catch {
-      localStorage.setItem(LS_KEY, JSON.stringify(JSON.parse(localStorage.getItem(LS_KEY) || '[]').filter(item => item.id !== id)));
+    } catch (error) {
+      console.warn('[EnemFlowPdfTools] Falha ao remover PDF local:', error);
     }
   }
 

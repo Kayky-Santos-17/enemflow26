@@ -4,6 +4,16 @@ const mongoose = require('mongoose');
 const { chatCompletion } = require('../services/openrouter.service');
 const { getPrompt } = require('../services/prompt.service');
 const { withRequestLock } = require('../utils/requestLock');
+const { buildPdfContext } = require('../services/pdfProcessing.service');
+const { buildContentContext } = require('../services/contentChunk.service');
+const {
+  appendMessagesToChat,
+  createChatWithMessages,
+  getMessagesForChat,
+  deleteMessageFromChat,
+  deleteMessagesForChats,
+  deleteMessagesForUser,
+} = require('../services/chatMessage.service');
 
 const CHAT_LIMIT = 30;
 const MESSAGE_LIMIT = 60;
@@ -355,18 +365,16 @@ exports.sendMessage = async (req, res) => {
         scheduleChatLimitCleanup(req.userId);
       }
 
-      chat.mensagens.push({ role: 'user', content: mensagem });
-      capChatMessages(chat);
+      await appendMessagesToChat(chat, { role: 'user', content: mensagem });
 
-      const history = chat.mensagens.map(m => ({ role: m.role, content: m.content }));
+      const history = (await getMessagesForChat(chat, MESSAGE_LIMIT))
+        .map(m => ({ role: m.role, content: m.content }));
       const resposta = await chatCompletion(history, getPrompt('tutor'), {
         maxHistoryChars: 9000,
         maxMessageChars: 2200,
       });
 
-      chat.mensagens.push({ role: 'assistant', content: resposta });
-      capChatMessages(chat);
-      await chat.save();
+      await appendMessagesToChat(chat, { role: 'assistant', content: resposta });
 
       return { chatId: chat._id, resposta, titulo: chat.titulo };
     });
@@ -401,7 +409,9 @@ exports.getChat = async (req, res) => {
     }
     const chat = await Chat.findOne({ _id: req.params.id, usuarioId: req.userId });
     if (!chat) return res.status(404).json({ error: 'Conversa não encontrada.' });
-    res.json(chat);
+    const payload = chat.toObject();
+    payload.mensagens = await getMessagesForChat(chat);
+    res.json(payload);
   } catch (error) {
     console.error('[chat.getChat]', error);
     res.status(500).json({ error: 'Erro ao buscar conversa.' });
@@ -414,7 +424,8 @@ exports.deleteChat = async (req, res) => {
     if (!mongoose.isValidObjectId(req.params.id)) {
       return res.status(400).json({ error: 'Conversa invalida.' });
     }
-    await Chat.findOneAndDelete({ _id: req.params.id, usuarioId: req.userId });
+    const chat = await Chat.findOneAndDelete({ _id: req.params.id, usuarioId: req.userId });
+    if (chat) await deleteMessagesForChats(chat._id);
     res.json({ message: 'Conversa excluída.' });
   } catch (error) {
     console.error('[chat.deleteChat]', error);
@@ -433,20 +444,10 @@ exports.deleteMessage = async (req, res) => {
     const chat = await Chat.findOne({ _id: chatId, usuarioId: req.userId });
     if (!chat) return res.status(404).json({ error: 'Conversa nao encontrada.' });
 
-    const originalLength = chat.mensagens.length;
-    const index = Number.isInteger(Number(messageId)) ? Number(messageId) : -1;
-
-    if (mongoose.isValidObjectId(messageId)) {
-      chat.mensagens = chat.mensagens.filter(message => String(message._id || '') !== messageId);
-    } else if (index >= 0 && index < chat.mensagens.length) {
-      chat.mensagens.splice(index, 1);
-    }
-
-    if (chat.mensagens.length === originalLength) {
+    const deleted = await deleteMessageFromChat(chat, messageId);
+    if (!deleted) {
       return res.status(404).json({ error: 'Mensagem nao encontrada.' });
     }
-
-    await chat.save();
     res.json({ message: 'Mensagem excluida.' });
   } catch (error) {
     console.error('[chat.deleteMessage]', error);
@@ -489,7 +490,7 @@ A questão DEVE seguir este formato EXATO:
 
     // Salvar no histórico
     const titulo = `Exercício: ${materia}${assunto ? ' - ' + assunto : ''}`;
-    const chat = await Chat.create({
+    const chat = await createChatWithMessages({
       usuarioId: req.userId,
       titulo,
       tipo: 'exercicio',
@@ -612,7 +613,7 @@ Retorne somente um JSON valido no formato:
       }
       const simulado = validateSimuladoPayload(parsed, safeQuantidade, materia, assunto, safeTopico, safeDescricao);
 
-      const chat = await Chat.create({
+      const chat = await createChatWithMessages({
         usuarioId: req.userId,
         titulo: simulado.titulo,
         tipo: 'exercicio',
@@ -646,33 +647,45 @@ exports.startContentContextChat = async (req, res) => {
       return res.status(400).json({ error: 'Material inválido.' });
     }
 
-    const content = await Content.findById(contentId).select('titulo materia assunto tipo textoExtraido descricao ativo');
+    const content = await Content.findById(contentId).select('titulo materia assunto tipo textoExtraido descricao ativo extractionStatus extractionWarning');
     if (!content || !content.ativo) {
       return res.status(404).json({ error: 'Material não encontrado.' });
     }
 
     const textoExtraido = String(content.textoExtraido || '').trim();
     if (!textoExtraido || textoExtraido.length < 40) {
-      return res.status(400).json({
-        error: 'Este material ainda não possui texto extraído suficiente para análise pela IA.'
+      return res.status(422).json({
+        error: content.extractionStatus === 'needs_ocr'
+          ? 'Este PDF parece escaneado e precisa de OCR antes de ir para o Tutor IA.'
+          : 'Este material ainda não possui texto extraído suficiente para análise pela IA.',
+        code: content.extractionStatus === 'needs_ocr' ? 'PDF_OCR_REQUIRED' : 'PDF_TEXT_UNAVAILABLE',
+        details: {
+          extractionStatus: content.extractionStatus,
+          extractionWarning: content.extractionWarning,
+        },
       });
     }
 
     const safePergunta = sanitizeUserText(pergunta || 'Analise este PDF e me ajude a estudar o conteudo para o ENEM.', 1200);
+    const userMsgContent = `[Material: ${content.titulo}]\n\n${safePergunta}`;
     const titulo = `PDF: ${content.titulo}`.slice(0, 80);
-    const chat = await Chat.create({
+    const chat = await createChatWithMessages({
       usuarioId: req.userId,
       titulo,
       tipo: 'chat',
       mensagens: [
         {
           role: 'user',
-          content: `[Material: ${content.titulo}]\n\n${safePergunta}`
+          content: userMsgContent
         }
       ],
     });
     scheduleChatLimitCleanup(req.userId);
 
+    const pdfContext = await buildContentContext(content._id, safePergunta, textoExtraido, {
+      maxChunks: 4,
+      fallbackChars: 6000,
+    }) || buildPdfContext(textoExtraido, safePergunta, { maxChunks: 4 });
     const systemOverride = `${getPrompt('pdfAnalysis')}
 
 O aluno abriu um material da plataforma e pediu ajuda sobre ele.
@@ -685,11 +698,11 @@ Assunto: ${content.assunto || 'Geral'}
 
 Conteúdo extraído do PDF/material:
 ---
-${textoExtraido.substring(0, 6000)}
+${pdfContext || textoExtraido.substring(0, 6000)}
 ---`;
 
     const resposta = await chatCompletion(
-      [{ role: 'user', content: chat.mensagens[0].content }],
+      [{ role: 'user', content: userMsgContent }],
       systemOverride,
       {
         maxHistoryChars: 8000,
@@ -698,9 +711,7 @@ ${textoExtraido.substring(0, 6000)}
       }
     );
 
-    chat.mensagens.push({ role: 'assistant', content: resposta });
-    capChatMessages(chat);
-    await chat.save();
+    await appendMessagesToChat(chat, { role: 'assistant', content: resposta });
 
     res.json({ chatId: chat._id, resposta, titulo: chat.titulo });
   } catch (error) {
@@ -713,6 +724,7 @@ ${textoExtraido.substring(0, 6000)}
 exports.clearAllChats = async (req, res) => {
   try {
     await Chat.deleteMany({ usuarioId: req.userId });
+    await deleteMessagesForUser(req.userId);
     res.json({ message: 'Todas as suas conversas foram excluídas com sucesso.' });
   } catch (error) {
     console.error('[chat.clearAllChats]', error);

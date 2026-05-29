@@ -66,6 +66,30 @@ const contentSchema = new mongoose.Schema(
       type: String,
       default: '',
     },
+    extractionStatus: {
+      type: String,
+      enum: ['pending', 'ok', 'ocr', 'needs_ocr', 'empty', 'error'],
+      default: 'pending',
+    },
+    extractionWarning: {
+      type: String,
+      default: '',
+    },
+    pdfPageCount: {
+      type: Number,
+      default: 0,
+    },
+    pdfTextLength: {
+      type: Number,
+      default: 0,
+    },
+    chunkCount: {
+      type: Number,
+      default: 0,
+    },
+    chunkedAt: {
+      type: Date,
+    },
     criadoPor: {
       type: mongoose.Schema.Types.ObjectId,
       ref: 'User',

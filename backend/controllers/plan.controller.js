@@ -1,6 +1,6 @@
 const mongoose = require('mongoose');
 const Plan = require('../models/Plan');
-const Chat = require('../models/Chat');
+const { createChatWithMessages } = require('../services/chatMessage.service');
 const { chatCompletion } = require('../services/openrouter.service');
 const { getPrompt } = require('../services/prompt.service');
 
@@ -51,7 +51,7 @@ Formate o plano de forma clara usando markdown com tabelas quando possivel.`;
       cronograma,
     });
 
-    await Chat.create({
+    await createChatWithMessages({
       usuarioId: req.userId,
       titulo: plan.titulo,
       tipo: 'plano',

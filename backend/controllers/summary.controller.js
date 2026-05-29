@@ -1,6 +1,6 @@
 const mongoose = require('mongoose');
 const Summary = require('../models/Summary');
-const Chat = require('../models/Chat');
+const { createChatWithMessages } = require('../services/chatMessage.service');
 const { chatCompletion } = require('../services/openrouter.service');
 const { getPrompt } = require('../services/prompt.service');
 
@@ -39,7 +39,7 @@ O resumo deve:
       fonte: fonte || 'texto',
     });
 
-    await Chat.create({
+    await createChatWithMessages({
       usuarioId: req.userId,
       titulo: summary.titulo,
       tipo: 'resumo',

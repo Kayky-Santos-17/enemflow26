@@ -1,5 +1,6 @@
 const Content = require('../models/Content');
 const { getPrompt } = require('./prompt.service');
+const { buildContentContext } = require('./contentChunk.service');
 
 const SYSTEM_PROMPT = getPrompt('tutor');
 
@@ -46,14 +47,18 @@ async function getRelevantContentContext(messages) {
     let contextStr = '\n--- CONTEXTO DE MATERIAIS DE ESTUDO DA PLATAFORMA ---\n';
     contextStr += 'Use estes materiais como apoio quando forem relevantes. Se o texto estiver incompleto, sinalize isso.\n\n';
 
-    relevant.slice(0, 3).forEach(c => {
+    for (const c of relevant.slice(0, 3)) {
       contextStr += `Material: "${c.titulo}" (${c.materia || 'Geral'} - ${c.tipo || 'material'})\n`;
       if (c.url && !c.url.startsWith('data:')) contextStr += `URL de referencia: ${c.url}\n`;
-      if (c.textoExtraido) {
-        contextStr += `Conteudo extraido:\n${c.textoExtraido.substring(0, 2800)}\n`;
+      const chunkContext = await buildContentContext(c._id, text, c.textoExtraido || '', {
+        maxChunks: 2,
+        fallbackChars: 2800,
+      });
+      if (chunkContext) {
+        contextStr += `Conteudo extraido:\n${chunkContext}\n`;
       }
       contextStr += '\n';
-    });
+    }
     contextStr += '-----------------------------------------------------\n';
     return contextStr;
   } catch (err) {
