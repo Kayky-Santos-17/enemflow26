@@ -18,7 +18,21 @@ const studySessionSchema = new mongoose.Schema(
     contentId: {
       type: mongoose.Schema.Types.ObjectId,
       ref: 'Content',
-      required: true,
+      required: false,
+    },
+    isExterno: {
+      type: Boolean,
+      default: false,
+    },
+    materia: {
+      type: String,
+      default: 'Geral',
+      trim: true,
+    },
+    tipoExterno: {
+      type: String,
+      default: '',
+      trim: true,
     },
     iniciadaEm: {
       type: Date,

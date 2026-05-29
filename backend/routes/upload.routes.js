@@ -87,9 +87,21 @@ router.post('/analyze', auth, aiLimiter, upload.single('file'), async (req, res)
           });
         }
       } catch (pdfErr) {
-        console.error('[upload.analyze] PDF parse error:', pdfErr.message);
+        console.error('[upload.analyze] PDF parse error:', {
+          filename: req.file.originalname,
+          size: req.file.size,
+          code: pdfErr.code,
+          message: pdfErr.message,
+        });
         if (req.file.path) await fs.promises.unlink(req.file.path).catch(() => {});
-        return res.status(400).json({ error: 'Nao foi possivel extrair texto do PDF.' });
+        if (['PDF_TOO_LARGE', 'PDF_CORRUPTED', 'PDF_OCR_REQUIRED'].includes(pdfErr.code)) {
+          return res.status(pdfErr.statusCode || 400).json({
+            error: pdfErr.message,
+            code: pdfErr.code,
+            details: pdfErr.details || pdfErr.extraction || null,
+          });
+        }
+        return res.status(400).json({ error: 'Nao foi possivel extrair texto do PDF.', code: 'PDF_CORRUPTED' });
       }
     } else if (['.png', '.jpg', '.jpeg', '.gif'].includes(ext)) {
       textoExtraido = `[Imagem enviada pelo aluno em formato ${ext}. Analise o conteudo educacional desta imagem.]`;

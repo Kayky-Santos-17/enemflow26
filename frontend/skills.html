@@ -601,6 +601,22 @@
       });
     }
 
+    function buildHybridAreaStats(hybridMap) {
+      return (hybridMap || []).map(item => ({
+        area: item.area,
+        percent: item.acertoPercent || 0,
+        acertos: item.acertos || 0,
+        erros: Math.max(0, (item.total || 0) - (item.acertos || 0)),
+        weak: item.status || 'Em desenvolvimento',
+        strong: `${item.horasEstudadas || 0}h estudadas`,
+        lastStudy: formatLastStudy(item.ultimaSessao),
+        suggestion: item.sugestao,
+        horasEstudadas: item.horasEstudadas || 0,
+        sessoes: item.sessoes || 0,
+        status: item.status || 'Em desenvolvimento'
+      }));
+    }
+
     function getAreaSuggestion(area, percent) {
       if (percent < 50) return `Revise a base de ${area} antes de avançar para questões mais difíceis.`;
       if (percent < 70) return 'Continue exercícios intermediários e revise os erros mais recentes.';
@@ -652,6 +668,11 @@
               <span class="font-extrabold truncate" style="font-family:'Sora',sans-serif;color:#e4dff0;">${item.area}</span>
             </div>
             <span class="font-black" style="font-family:'Sora',sans-serif;color:#c4b5fd;">${item.percent}%</span>
+          </div>
+          <div class="flex flex-wrap gap-2 mb-3">
+            <span class="meta-pill">${item.horasEstudadas || 0}h estudadas</span>
+            <span class="meta-pill">${item.acertos}/${item.acertos + item.erros} acertos</span>
+            <span class="meta-pill">${item.status || 'Diagnóstico'}</span>
           </div>
           <div class="progress-track">
             <div class="progress-fill" data-width="${item.percent}" style="transition-delay:${index * 70}ms;"></div>
@@ -743,7 +764,7 @@
 
     async function loadSkillsDashboard() {
       try {
-        const skills = await App.api('/api/ai-adaptation/skills');
+        const hybrid = await App.api('/api/ai-adaptation/hybrid-map');
         let rec = null;
         try {
           const recResponse = await App.api('/api/ia/recomendacao');
@@ -752,7 +773,7 @@
           console.warn('Recomendação principal indisponível, usando métricas locais.', err.message);
         }
 
-        areaStats = buildAreaStats(skills || []);
+        areaStats = buildHybridAreaStats(hybrid.mapa || []);
         updateMetricCards(areaStats);
         renderAreaList(areaStats);
         updateSuggestion(areaStats, rec);

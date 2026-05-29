@@ -9,6 +9,9 @@ router.use(authMiddleware);
 // GET /api/ai-adaptation/skills
 router.get('/skills', aiAdaptationController.getSkills);
 
+// GET /api/ai-adaptation/hybrid-map
+router.get('/hybrid-map', aiAdaptationController.getHybridMap);
+
 // GET /api/ai-adaptation/recommendations
 router.get('/recommendations', aiAdaptationController.getRecommendations);
 

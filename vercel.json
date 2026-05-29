@@ -15,7 +15,7 @@
     { "source": "/upload", "destination": "/backend/server.js" },
     { "source": "/upload/(.*)", "destination": "/backend/server.js" },
     { "source": "/health", "destination": "/backend/server.js" },
-    { "source": "/", "destination": "/frontend/login.html" },
+    { "source": "/", "destination": "/frontend/index.html" },
     { "source": "/(.*)", "destination": "/frontend/$1" }
   ]
 }

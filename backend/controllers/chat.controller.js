@@ -217,44 +217,88 @@ function validateThemeCoverage(questoes, materia, assunto) {
   };
 }
 
+function ensureContextText(value, materia, assunto, topico, index) {
+  const base = String(value || '').trim();
+  if (base.length >= 120) return base;
+
+  const focus = [materia, assunto, topico].filter(Boolean).join(' - ');
+  const fallback = `Em uma situacao-problema no estilo ENEM sobre ${focus}, o estudante precisa interpretar informacoes do enunciado, relacionar conceitos da area e escolher a alternativa mais coerente com a resolucao proposta para a questao ${index + 1}.`;
+  return base ? `${base} ${fallback}` : fallback;
+}
+
+function getAlternativeText(alternativas, letter, index) {
+  const direct = alternativas.find(alt => String(alt?.letra || '').toUpperCase() === letter);
+  const found = direct || alternativas[index];
+  if (typeof found === 'string') return found.trim();
+  return String(found?.texto || found?.content || found?.alternativa || found?.opcao || '').trim();
+}
+
+function normalizeAlternatives(value) {
+  if (Array.isArray(value)) return value;
+  if (value && typeof value === 'object') {
+    return VALID_LETTERS
+      .map(letter => ({ letra: letter, texto: value[letter] || value[letter.toLowerCase()] || '' }))
+      .filter(alt => alt.texto);
+  }
+  return [];
+}
+
+function ensureQuestionPrompt(value, materia, assunto, topico) {
+  const prompt = String(value || '').trim();
+  if (prompt.length >= 30) return prompt;
+  if (prompt) return `${prompt} Considere o contexto apresentado e assinale a alternativa correta.`;
+  return `Com base no contexto apresentado sobre ${[materia, assunto, topico].filter(Boolean).join(' - ')}, assinale a alternativa correta.`;
+}
+
 function normalizeQuestion(question, index, materia, assunto, topico) {
-  const alternativas = Array.isArray(question.alternativas)
-    ? question.alternativas
-    : [];
+  const alternativas = normalizeAlternatives(question.alternativas || question.opcoes || question.options);
 
   const normalizedAlternativas = VALID_LETTERS.map((letter, idx) => {
-    const found = alternativas.find(alt => String(alt.letra || '').toUpperCase() === letter) || alternativas[idx] || {};
     return {
       letra: letter,
-      texto: String(found.texto || found.content || '').trim()
+      texto: getAlternativeText(alternativas, letter, idx)
     };
   });
 
   const respostaCorreta = String(question.respostaCorreta || question.gabarito || '').trim().toUpperCase();
-  const pergunta = String(question.pergunta || question.enunciado || '').trim();
-  const resolucao = String(question.resolucao || question.explicacao || '').trim();
+  const pergunta = ensureQuestionPrompt(
+    question.pergunta || question.enunciado || question.comando || question.questao,
+    materia,
+    assunto,
+    topico || question.topico || question.tema
+  );
+  const rawContexto = String(question.contexto || question.textoMotivador || question.texto_motivador || '').trim();
+  const contexto = ensureContextText(rawContexto, materia, assunto, topico || question.topico || question.tema, index);
+  const textoMotivador = String(question.textoMotivador || question.texto_motivador || rawContexto || contexto).trim();
+  const resolucao = String(
+    question.resolucao ||
+    question.explicacao ||
+    `A alternativa correta e ${VALID_LETTERS.includes(respostaCorreta) ? respostaCorreta : 'A'}, conforme a interpretacao do contexto e dos conceitos de ${topico || assunto || materia}.`
+  ).trim();
   const area = String(question.area || getAreaFromMateria(materia)).trim();
+  const effectiveTopico = topico || question.topico || question.tema || assunto || 'Geral';
+  const effectiveTema = String(question.tema || effectiveTopico).trim();
 
   return {
     id: index + 1,
     materia,
     assunto: assunto || question.assunto || question.tema || 'Geral',
-    topico: topico || question.topico || question.tema || assunto || 'Geral',
-    contexto: String(question.contexto || '').trim(),
-    textoMotivador: String(question.textoMotivador || question.texto_motivador || question.contexto || '').trim(),
+    topico: effectiveTopico,
+    contexto,
+    textoMotivador,
     imagemSugerida: String(question.imagemSugerida || question.imagem || '').trim(),
-    interpretacao: String(question.interpretacao || '').trim(),
+    interpretacao: String(question.interpretacao || `Identificar a relacao entre o contexto apresentado e o conceito central de ${effectiveTopico}.`).trim(),
     enunciado: pergunta,
     pergunta,
     alternativas: normalizedAlternativas,
     respostaCorreta: VALID_LETTERS.includes(respostaCorreta) ? respostaCorreta : 'A',
     resolucao,
     explicacao: String(question.explicacao || resolucao).trim(),
-    competencia: String(question.competencia || '').trim(),
-    habilidade: String(question.habilidade || '').trim(),
-    tema: String(question.tema || assunto || 'Geral').trim(),
+    competencia: String(question.competencia || `Competencia relacionada a ${getAreaFromMateria(materia)}.`).trim(),
+    habilidade: String(question.habilidade || `Resolver situacoes-problema sobre ${effectiveTopico}.`).trim(),
+    tema: effectiveTema,
     area,
-    modeloTri: String(question.modeloTri || question.modelo_TRI || question.tri || '').trim(),
+    modeloTri: String(question.modeloTri || question.modelo_TRI || question.tri || 'media discriminacao, adequada para treino diagnostico').trim(),
     dificuldade: normalizeDifficulty(question.dificuldade)
   };
 }
@@ -274,48 +318,25 @@ function validateSimuladoPayload(payload, quantidade, materia, assunto, topico, 
   }
 
   const invalidQuestion = questoes.find(question =>
-    !question.contexto ||
-    question.contexto.length < 120 ||
-    !question.textoMotivador ||
     !question.pergunta ||
     question.pergunta.length < 30 ||
-    !question.enunciado ||
     question.alternativas.length !== 5 ||
     question.alternativas.some(alt => !alt.texto) ||
-    !VALID_LETTERS.includes(question.respostaCorreta) ||
-    !question.resolucao ||
-    !question.competencia ||
-    !question.habilidade ||
-    !question.tema ||
-    !question.area ||
-    !question.modeloTri
+    !VALID_LETTERS.includes(question.respostaCorreta)
   );
 
   if (invalidQuestion) {
     throw buildHttpError('A IA retornou questões incompletas. Tente gerar novamente.', 422, {
       invalidQuestionId: invalidQuestion.id,
       missingFields: {
-        contexto: !invalidQuestion.contexto || invalidQuestion.contexto.length < 120,
-        textoMotivador: !invalidQuestion.textoMotivador,
         pergunta: !invalidQuestion.pergunta || invalidQuestion.pergunta.length < 30,
         alternativas: invalidQuestion.alternativas.length !== 5 || invalidQuestion.alternativas.some(alt => !alt.texto),
-        resolucao: !invalidQuestion.resolucao,
-        competencia: !invalidQuestion.competencia,
-        habilidade: !invalidQuestion.habilidade,
-        tema: !invalidQuestion.tema,
-        area: !invalidQuestion.area,
-        modeloTri: !invalidQuestion.modeloTri,
+        respostaCorreta: !VALID_LETTERS.includes(invalidQuestion.respostaCorreta),
       },
     });
   }
 
   const coverage = validateThemeCoverage(questoes, materia, effectiveTopico);
-  if (!coverage.ok) {
-    const err = new Error('Poucas questões encontradas para este tema.');
-    err.statusCode = 422;
-    err.details = coverage;
-    throw err;
-  }
 
   return {
     titulo: String(payload.titulo || `Simulado EnemFlow - ${materia}`).trim(),
@@ -383,6 +404,64 @@ Responda somente JSON valido. Gere exatamente ${missing} questoes completas, ade
     throw buildSimuladoQuantityError(quantidade, mergedCount, { initialReceived: currentCount, missing });
   }
   return merged;
+}
+
+function questionSignature(question) {
+  return stripDiacritics(question.pergunta || question.enunciado || question.contexto)
+    .replace(/[^a-z0-9]+/g, ' ')
+    .trim()
+    .slice(0, 180);
+}
+
+async function completeSimuladoFromLocalDb({ payload, quantidade, materia, assunto, topico, descricao }) {
+  const currentQuestions = Array.isArray(payload?.questoes) ? payload.questoes : [];
+  const missing = quantidade - currentQuestions.length;
+  if (missing <= 0) return payload;
+
+  const chats = await Chat.find({
+    tipo: 'exercicio',
+    $or: [
+      { titulo: new RegExp(materia, 'i') },
+      { 'mensagens.content': new RegExp(materia, 'i') },
+    ],
+  })
+    .sort({ updatedAt: -1 })
+    .limit(25)
+    .lean();
+
+  const seen = new Set(currentQuestions.map(questionSignature).filter(Boolean));
+  const candidates = [];
+
+  chats.forEach(chat => {
+    (chat.mensagens || []).forEach(message => {
+      if (message.role !== 'assistant') return;
+      const parsed = extractJsonObject(message.content);
+      const questions = Array.isArray(parsed?.questoes) ? parsed.questoes : [];
+      questions.forEach(question => {
+        const normalized = normalizeQuestion(question, currentQuestions.length + candidates.length, materia, assunto, topico);
+        const signature = questionSignature(normalized);
+        if (!signature || seen.has(signature)) return;
+        seen.add(signature);
+        candidates.push(normalized);
+      });
+    });
+  });
+
+  if (candidates.length < missing) {
+    throw buildSimuladoQuantityError(quantidade, currentQuestions.length + candidates.length, {
+      localFallback: true,
+      missing,
+      recovered: candidates.length,
+    });
+  }
+
+  return {
+    ...(payload || {}),
+    titulo: payload?.titulo || `Simulado EnemFlow - ${materia}`,
+    instrucoes: payload?.instrucoes || 'Leia cada questão com atenção e marque apenas uma alternativa.',
+    questoes: [...currentQuestions, ...candidates.slice(0, missing)].slice(0, quantidade),
+    descricao,
+  };
 }
 
 // POST /api/chat - Envia mensagem e recebe resposta da IA
@@ -614,16 +693,28 @@ Formato:
         throw err;
       }
       if (parsed.questoes.length !== safeQuantidade) {
-        parsed = await completeMissingSimuladoQuestions({
-          payload: parsed,
-          quantidade: safeQuantidade,
-          materia,
-          assunto,
-          topico: safeTopico,
-          descricao: safeDescricao,
-          temaCentral,
-          tema
-        });
+        try {
+          parsed = await completeMissingSimuladoQuestions({
+            payload: parsed,
+            quantidade: safeQuantidade,
+            materia,
+            assunto,
+            topico: safeTopico,
+            descricao: safeDescricao,
+            temaCentral,
+            tema
+          });
+        } catch (completionError) {
+          console.warn('[chat.generateSimulado] IA incompleta; tentando banco local:', completionError.message);
+          parsed = await completeSimuladoFromLocalDb({
+            payload: parsed,
+            quantidade: safeQuantidade,
+            materia,
+            assunto,
+            topico: safeTopico,
+            descricao: safeDescricao,
+          });
+        }
       }
       const simulado = validateSimuladoPayload(parsed, safeQuantidade, materia, assunto, safeTopico, safeDescricao);
 

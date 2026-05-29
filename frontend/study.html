@@ -133,6 +133,10 @@
             <i data-feather="pause" class="w-5 h-5"></i>
           </button>
         </div>
+        <button id="externalStudyBtn" onclick="openExternalStudyQuickStart()" style="margin-top:12px;display:flex;align-items:center;justify-content:center;gap:8px;width:100%;max-width:280px;padding:10px 12px;border-radius:12px;border:1px solid rgba(16,185,129,0.18);background:rgba(16,185,129,0.07);color:#6ee7b7;font-weight:800;font-family:'Sora',sans-serif;cursor:pointer;">
+          <i data-feather="plus" class="w-4 h-4"></i>
+          Estudar material externo
+        </button>
         <div class="xp-gain-bubble" id="xpBubble">
           <svg viewBox="0 0 24 24" width="14" height="14" fill="currentColor"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon></svg>
           <span id="sessionXpCounter">Acumulando +0 XP</span>
@@ -165,18 +169,39 @@
     </div>
   </div>
 
+  <div class="ef-modal-overlay show" id="studyStartGate">
+    <div class="ef-modal">
+      <div style="width:64px;height:64px;border-radius:18px;background:linear-gradient(135deg,#7c5cfc,#ec4899);display:flex;align-items:center;justify-content:center;margin:0 auto 1.5rem;box-shadow:0 0 35px rgba(124,92,252,0.32);">
+        <i data-feather="play" class="w-8 h-8" style="color:white;"></i>
+      </div>
+      <p style="font-size:0.75rem;font-weight:800;letter-spacing:0.18em;text-transform:uppercase;color:rgba(167,139,250,0.62);font-family:'Sora',sans-serif;margin:0 0 0.5rem;">Preparação</p>
+      <h2 id="gateTitle" style="font-family:'Sora',sans-serif;font-size:1.35rem;font-weight:800;color:#e4dff0;margin:0 0 0.75rem;">Carregando material</h2>
+      <p id="gateDescription" style="color:rgba(196,188,220,0.58);font-size:0.9rem;margin:0 0 1.5rem;">A mídia será liberada depois da contagem regressiva.</p>
+      <div id="countdownNumber" style="display:none;font-family:'Sora',sans-serif;font-size:4rem;font-weight:900;color:#c4b5fd;margin-bottom:1rem;">5</div>
+      <button id="gateStartBtn" onclick="beginStudyPreparation()" style="width:100%;padding:13px;border-radius:12px;border:none;background:linear-gradient(135deg,#7c5cfc,#a855f7);color:white;font-weight:800;font-family:'Sora',sans-serif;cursor:pointer;font-size:0.95rem;">
+        Iniciar Estudo
+      </button>
+    </div>
+  </div>
+
   <script src="app.js"></script>
   <script>
     feather.replace();
     if (!App.getToken()) window.location.href = 'login.html';
 
-    const contentId = localStorage.getItem('currentContentId');
-    if (!contentId) window.location.href = 'dashboard.html';
+    let contentId = localStorage.getItem('currentContentId');
+    let externalStudyConfig = null;
+    try { externalStudyConfig = JSON.parse(localStorage.getItem('externalStudyConfig') || 'null'); } catch(e) {}
+    const isExternalStudy = Boolean(externalStudyConfig);
+    if (!contentId && !isExternalStudy) window.location.href = 'dashboard.html';
+    if (isExternalStudy) contentId = null;
 
     let timerInterval, localStartTime = 0, serverStartTime = null;
     let isTimerRunning = false, isTimerFocusMode = false, isPdfFullscreen = false;
     let isPaused = false, totalPausedMs = 0, pauseStartTime = 0;
     let currentContentUrl = '';
+    let mediaMounted = false;
+    let pendingMedia = null;
 
     const quotes = [
       "\"A persistência é o caminho do êxito.\"",
@@ -236,8 +261,9 @@
           focusBtn.disabled = true;
         }
         try {
-          await App.api('/study/end', { method: 'POST', body: JSON.stringify({ startTime: serverStartTime, contentId, clientDuration: finalDuration }) });
+          await App.api('/study/end', { method: 'POST', body: JSON.stringify(buildStudyEndPayload(finalDuration)) });
           localStorage.removeItem('currentContentId');
+          localStorage.removeItem('externalStudyConfig');
         } catch (err) {
           console.error('Erro ao salvar no fechamento:', err);
         }
@@ -247,9 +273,19 @@
 
     async function loadContentDetails() {
       try {
+        if (isExternalStudy) {
+          document.getElementById('contentTitle').innerText = externalStudyConfig.titulo || 'Estudo externo';
+          document.getElementById('materiaBadge').innerText = externalStudyConfig.materia || 'Geral';
+          document.getElementById('gateTitle').innerText = externalStudyConfig.titulo || 'Estudo externo';
+          document.getElementById('gateDescription').innerText = `${externalStudyConfig.tipoExterno || 'Material externo'} · ${externalStudyConfig.materia || 'Geral'}`;
+          document.getElementById('immersiveLayout').classList.add('no-media');
+          document.getElementById('timerExpandBtn').style.display = 'none';
+          return;
+        }
         const content = await App.api(`/contents/${contentId}`);
         document.getElementById('contentTitle').innerText = content.titulo || 'Estudo Livre';
         document.getElementById('materiaBadge').innerText = content.materia || 'Geral';
+        document.getElementById('gateTitle').innerText = content.titulo || 'Estudo Livre';
         currentContentUrl = content.mediaUrl || content.url || '';
 
         if (currentContentUrl && currentContentUrl.trim() !== '') {
@@ -267,12 +303,7 @@
           } else if (isPdf) {
             finalUrl = currentContentUrl + '#toolbar=0&navpanes=0';
           }
-          iframe.src = finalUrl;
-          iframe.setAttribute('allowfullscreen', 'true'); iframe.id = 'contentIframe';
-          iframe.setAttribute('tabindex', '0');
-          iframe.addEventListener('mouseenter', () => iframe.focus());
-          document.getElementById('mediaViewport').addEventListener('wheel', () => iframe.focus(), { passive: true });
-          document.getElementById('mediaViewport').appendChild(iframe);
+          pendingMedia = { finalUrl };
         } else {
           document.getElementById('immersiveLayout').classList.add('no-media');
           document.getElementById('timerExpandBtn').style.display = 'none';
@@ -288,7 +319,37 @@
     }
 
     async function handleFocusToggle() {
-      if (!isTimerRunning) await startStudySession(); else await stopStudySession();
+      if (!isTimerRunning) await beginStudyPreparation(); else await stopStudySession();
+    }
+
+    function mountMediaAfterCountdown() {
+      if (mediaMounted || !pendingMedia) return;
+      const iframe = document.createElement('iframe');
+      iframe.src = pendingMedia.finalUrl;
+      iframe.setAttribute('allowfullscreen', 'true'); iframe.id = 'contentIframe';
+      iframe.setAttribute('tabindex', '0');
+      iframe.addEventListener('mouseenter', () => iframe.focus());
+      document.getElementById('mediaViewport').addEventListener('wheel', () => iframe.focus(), { passive: true });
+      document.getElementById('mediaViewport').appendChild(iframe);
+      mediaMounted = true;
+    }
+
+    async function beginStudyPreparation() {
+      if (isTimerRunning) return;
+      const gate = document.getElementById('studyStartGate');
+      const button = document.getElementById('gateStartBtn');
+      const counter = document.getElementById('countdownNumber');
+      gate.classList.add('show');
+      button.disabled = true;
+      button.style.display = 'none';
+      counter.style.display = 'block';
+      for (let value = 5; value >= 1; value -= 1) {
+        counter.textContent = value;
+        await new Promise(resolve => setTimeout(resolve, 1000));
+      }
+      gate.classList.remove('show');
+      mountMediaAfterCountdown();
+      await startStudySession();
     }
 
     async function startStudySession() {
@@ -342,9 +403,10 @@
       playChime('stop');
       try {
         const data = await App.api('/study/end', {
-          method: 'POST', body: JSON.stringify({ startTime: serverStartTime, contentId, clientDuration: finalDuration })
+          method: 'POST', body: JSON.stringify(buildStudyEndPayload(finalDuration))
         });
         localStorage.removeItem('currentContentId');
+        localStorage.removeItem('externalStudyConfig');
         // Show post-timer modal with "Possui dúvidas?" and "Abrir Tutor IA"
         document.getElementById('modalXpText').textContent = `Você ganhou +${data.xpGanho} XP nessa sessão!`;
         document.getElementById('postTimerModal').classList.add('show');
@@ -399,6 +461,19 @@
       if (sec > 0 && sec % 120 === 0) changeQuote();
     }
 
+    function buildStudyEndPayload(finalDuration) {
+      if (isExternalStudy) {
+        return {
+          startTime: serverStartTime,
+          clientDuration: finalDuration,
+          isExterno: true,
+          materia: externalStudyConfig.materia,
+          tipoExterno: externalStudyConfig.tipoExterno,
+        };
+      }
+      return { startTime: serverStartTime, contentId, clientDuration: finalDuration };
+    }
+
     function changeQuote() {
       const q = document.getElementById('quoteText');
       q.style.opacity = 0;
@@ -448,6 +523,15 @@
       localStorage.setItem('pdfContextTitle', document.getElementById('contentTitle').textContent || 'PDF');
       window.location.href = 'chat.html?pdfContext=true';
       App.showToast('Enviando PDF para o Tutor IA...');
+    }
+
+    function openExternalStudyQuickStart() {
+      const materia = prompt('Matéria do estudo externo:', document.getElementById('materiaBadge').textContent || 'Matemática');
+      if (!materia) return;
+      const tipoExterno = prompt('Tipo de material:', 'Videoaula externa') || 'Material externo';
+      localStorage.removeItem('currentContentId');
+      localStorage.setItem('externalStudyConfig', JSON.stringify({ materia, tipoExterno, titulo: `${materia} · ${tipoExterno}` }));
+      window.location.href = 'study.html';
     }
 
     loadContentDetails();

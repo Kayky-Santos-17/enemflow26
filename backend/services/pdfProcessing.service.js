@@ -8,6 +8,14 @@ const MIN_TEXT_CHARS_PER_PAGE = 80;
 const CHUNK_SIZE = 1800;
 const CHUNK_OVERLAP = 220;
 
+function createPdfError(code, message, statusCode, details = {}) {
+  const error = new Error(message);
+  error.code = code;
+  error.statusCode = statusCode;
+  error.details = details;
+  return error;
+}
+
 function normalizePdfText(value) {
   return String(value || '')
     .replace(/\u0000/g, '')
@@ -81,13 +89,34 @@ async function runOcrFallback(buffer, metadata = {}) {
 
 async function extractTextFromPdfBuffer(buffer, metadata = {}) {
   if (!buffer || !Buffer.isBuffer(buffer)) {
-    const error = new Error('Arquivo PDF invalido.');
-    error.statusCode = 400;
-    error.code = 'PDF_INVALID_BUFFER';
-    throw error;
+    throw createPdfError('PDF_CORRUPTED', 'Arquivo PDF invalido.', 400);
   }
 
-  const parsed = await pdfParse(buffer);
+  const maxBytes = Number(process.env.PDF_PROCESS_MAX_BYTES) || DEFAULT_MAX_BYTES;
+  if (buffer.length > maxBytes) {
+    throw createPdfError('PDF_TOO_LARGE', 'Este arquivo e muito grande para processar.', 413, {
+      size: buffer.length,
+      maxBytes,
+      filename: metadata.filename || 'documento.pdf',
+    });
+  }
+
+  let parsed;
+  try {
+    parsed = await pdfParse(buffer);
+  } catch (error) {
+    console.error('[pdf.extract] Falha no parse', {
+      filename: metadata.filename || 'documento.pdf',
+      size: buffer.length,
+      reason: error.message,
+    });
+    throw createPdfError('PDF_CORRUPTED', 'Este PDF parece corrompido ou protegido e nao pode ser lido.', 400, {
+      filename: metadata.filename || 'documento.pdf',
+      size: buffer.length,
+      reason: error.message,
+    });
+  }
+
   let text = normalizePdfText(parsed.text);
   const pageCount = parsed.numpages || 0;
   const textLength = text.length;
@@ -121,6 +150,15 @@ async function extractTextFromPdfBuffer(buffer, metadata = {}) {
 
     result.extractionStatus = 'needs_ocr';
     result.extractionWarning = ocr.warning;
+    const error = createPdfError('PDF_OCR_REQUIRED', result.extractionWarning || 'PDF sem texto identificavel. Use OCR antes de enviar.', 422, {
+      filename: metadata.filename || 'documento.pdf',
+      size: buffer.length,
+      pages: result.pageCount,
+      textLength: result.textLength,
+      charsPerPage: Math.round(result.charsPerPage || 0),
+    });
+    error.extraction = result;
+    throw error;
   }
 
   return result;
@@ -189,6 +227,7 @@ module.exports = {
   assertNoBase64PdfUrl,
   buildPdfContext,
   chunkText,
+  createPdfError,
   extractTextFromPdfBuffer,
   isBase64PdfUrl,
   resolvePdfBuffer,

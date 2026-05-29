@@ -20,10 +20,15 @@ exports.start = (req, res) => {
 // POST /study/end
 exports.end = async (req, res) => {
   try {
-    const { startTime, contentId, clientDuration } = req.body;
+    const { startTime, contentId, clientDuration, isExterno, materia, tipoExterno } = req.body;
+    const externalStudy = Boolean(isExterno);
 
-    if (!startTime || !contentId) {
-      return res.status(400).json({ error: 'startTime e contentId são obrigatórios.' });
+    if (!startTime || (!contentId && !externalStudy)) {
+      return res.status(400).json({ error: 'startTime e contentId são obrigatórios para estudos da plataforma.' });
+    }
+
+    if (externalStudy && !String(materia || '').trim()) {
+      return res.status(400).json({ error: 'Informe a matéria do estudo externo.' });
     }
 
     const duracaoServidor = Math.max(0, Math.floor((Date.now() - startTime) / 1000)); // em segundos
@@ -43,7 +48,10 @@ exports.end = async (req, res) => {
       // Salva a sessão no histórico
       await StudySession.create({ 
         userId, 
-        contentId, 
+        contentId: externalStudy ? undefined : contentId,
+        isExterno: externalStudy,
+        materia: externalStudy ? String(materia || 'Geral').trim() : undefined,
+        tipoExterno: externalStudy ? String(tipoExterno || 'Material externo').trim() : '',
         duracao, 
         xpGanho, 
         iniciadaEm: new Date(startTime),
@@ -53,11 +61,13 @@ exports.end = async (req, res) => {
       // Atualiza progresso e XP no User
       const user = await User.findById(userId);
       if (user) {
-        let prog = user.progresso.find((p) => p.contentId?.toString() === contentId);
-        if (!prog) {
-          user.progresso.push({ contentId, tempoEstudado: duracao, concluido: false });
-        } else {
-          prog.tempoEstudado += duracao;
+        if (!externalStudy && contentId) {
+          let prog = user.progresso.find((p) => p.contentId?.toString() === contentId);
+          if (!prog) {
+            user.progresso.push({ contentId, tempoEstudado: duracao, concluido: false });
+          } else {
+            prog.tempoEstudado += duracao;
+          }
         }
         user.xp += xpGanho;
         await user.save();
