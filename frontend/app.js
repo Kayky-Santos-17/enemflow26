@@ -89,7 +89,7 @@ const App = {
           throw new Error('Servidor temporariamente indisponivel. Tente novamente mais tarde.');
         }
 
-        if (!response.ok) {
+        if (!response.ok || data.success === false) {
           const detailText = data.details && data.details.expected
             ? ` (${data.details.received || 0}/${data.details.expected} questoes recebidas)`
             : '';

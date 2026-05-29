@@ -42,6 +42,10 @@ module.exports = async (req, res, next) => {
     }
 
     req.userId = decoded.id; // disponível em todos os controllers seguintes
+    req.user = {
+      id: user._id,
+      role: user.role,
+    };
     next();
   } catch (err) {
     if (err.name === 'TokenExpiredError') {

@@ -1,3 +1,5 @@
+require('dotenv').config({ path: require('path').join(__dirname, '../.env') });
+
 const Content = require('../models/Content');
 const { getPrompt } = require('./prompt.service');
 const { buildContentContext } = require('./contentChunk.service');
@@ -98,6 +100,20 @@ function shouldRetry(status) {
   return [408, 409, 425, 429, 500, 502, 503, 504].includes(status);
 }
 
+function buildAiError(message, statusCode = 502, details = {}) {
+  const error = new Error(message);
+  error.statusCode = statusCode;
+  error.details = details;
+  return error;
+}
+
+function normalizeResponseFormat(responseFormat) {
+  if (!responseFormat) return null;
+  if (responseFormat === 'json') return { type: 'json_object' };
+  if (typeof responseFormat === 'object') return responseFormat;
+  return null;
+}
+
 async function chatCompletion(messages, systemOverride, options = {}) {
   const compactedMessages = compactMessages(messages, options.maxHistoryChars || 12000, options.maxMessageChars || 3500);
   const lastUserMsg = [...compactedMessages].reverse().find(m => m.role === 'user');
@@ -107,7 +123,10 @@ async function chatCompletion(messages, systemOverride, options = {}) {
 
   const apiKey = process.env.OPENROUTER_KEY;
   if (!apiKey) {
-    throw new Error('OPENROUTER_KEY nao configurada no servidor.');
+    throw buildAiError('OPENROUTER_KEY nao configurada no servidor.', 503, {
+      code: 'OPENROUTER_KEY_MISSING',
+      hint: 'Configure OPENROUTER_KEY no backend/.env ou nas variaveis do ambiente de producao.',
+    });
   }
 
   let systemContent = systemOverride || SYSTEM_PROMPT;
@@ -116,17 +135,19 @@ async function chatCompletion(messages, systemOverride, options = {}) {
     if (dbContext) systemContent += `\n\n${dbContext}`;
   }
 
-  const timeoutMs = Number(process.env.OPENROUTER_TIMEOUT_MS) || 45000;
+  const timeoutMs = Number(process.env.OPENROUTER_TIMEOUT_MS) || 60000;
   const retries = Math.max(0, Math.min(Number(options.retries ?? 2), 3));
+  const model = process.env.OPENROUTER_MODEL || 'openai/gpt-4.1-nano';
   const requestBody = {
-    model: process.env.OPENROUTER_MODEL || 'openai/gpt-4.1-nano',
+    model,
     messages: [{ role: 'system', content: systemContent }, ...compactedMessages],
     max_tokens: options.maxTokens || 2048,
     temperature: options.temperature ?? 0.7,
   };
 
-  if (options.responseFormat === 'json') {
-    requestBody.response_format = { type: 'json_object' };
+  const responseFormat = normalizeResponseFormat(options.responseFormat);
+  if (responseFormat) {
+    requestBody.response_format = responseFormat;
   }
 
   let lastError;
@@ -148,11 +169,30 @@ async function chatCompletion(messages, systemOverride, options = {}) {
       });
 
       if (!response.ok) {
-        const err = await response.json().catch(() => ({}));
+        const rawText = await response.text().catch(() => '');
+        let err = {};
+        try {
+          err = rawText ? JSON.parse(rawText) : {};
+        } catch {
+          err = { error: { message: rawText.slice(0, 1000) } };
+        }
         const message = err?.error?.message || 'Erro ao comunicar com a IA.';
-        lastError = new Error(message);
-        lastError.statusCode = response.status;
-        console.error('[OpenRouter Error]', { status: response.status, message });
+        lastError = buildAiError(message, response.status, {
+          provider: 'openrouter',
+          status: response.status,
+          model,
+          attempt: attempt + 1,
+          maxTokens: requestBody.max_tokens,
+          responseFormat: requestBody.response_format || null,
+          raw: err,
+        });
+        console.error('[OpenRouter Error]', {
+          status: response.status,
+          model,
+          attempt: attempt + 1,
+          maxTokens: requestBody.max_tokens,
+          message,
+        });
 
         if (attempt < retries && shouldRetry(response.status)) {
           await sleep(650 * (attempt + 1));
@@ -165,13 +205,23 @@ async function chatCompletion(messages, systemOverride, options = {}) {
       const data = await response.json();
       const content = data.choices?.[0]?.message?.content;
       if (!content || typeof content !== 'string') {
-        throw new Error('A IA retornou uma resposta vazia.');
+        throw buildAiError('A IA retornou uma resposta vazia.', 502, {
+          provider: 'openrouter',
+          model,
+          finishReason: data.choices?.[0]?.finish_reason,
+          usage: data.usage || null,
+        });
       }
 
       return content;
     } catch (error) {
       if (error.name === 'AbortError') {
-        lastError = new Error('A IA demorou mais que o esperado. Tente novamente em alguns instantes.');
+        lastError = buildAiError('A IA demorou mais que o esperado. Tente novamente em alguns instantes.', 504, {
+          provider: 'openrouter',
+          model,
+          timeoutMs,
+          attempt: attempt + 1,
+        });
       } else {
         lastError = error;
       }

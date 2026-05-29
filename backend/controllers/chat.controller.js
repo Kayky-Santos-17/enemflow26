@@ -84,6 +84,33 @@ function extractJsonObject(text) {
   }
 }
 
+function safeJsonParse(text) {
+  const raw = String(text || '').trim();
+  if (!raw) throw buildHttpError('A IA retornou uma resposta vazia.', 422, { parseFailed: true });
+
+  try {
+    return JSON.parse(raw);
+  } catch (firstError) {
+    const cleaned = raw
+      .replace(/```json/gi, '')
+      .replace(/```/g, '')
+      .trim();
+
+    try {
+      return JSON.parse(cleaned);
+    } catch (secondError) {
+      const extracted = extractJsonObject(cleaned);
+      if (extracted) return extracted;
+      throw buildHttpError('A IA retornou um JSON invalido.', 422, {
+        parseFailed: true,
+        firstError: firstError.message,
+        secondError: secondError.message,
+        rawPreview: raw.slice(0, 900),
+      });
+    }
+  }
+}
+
 function buildHttpError(message, statusCode = 400, details) {
   const err = new Error(message);
   err.statusCode = statusCode;
@@ -235,7 +262,7 @@ function normalizeQuestion(question, index, materia, assunto, topico) {
 function validateSimuladoPayload(payload, quantidade, materia, assunto, topico, descricao) {
   const effectiveTopico = topico || assunto || 'Geral';
   if (!payload || !Array.isArray(payload.questoes)) {
-    throw new Error('A IA retornou um simulado em formato inválido.');
+    throw buildHttpError('A IA retornou um simulado em formato inválido.', 422, { invalidPayload: true });
   }
 
   const questoes = payload.questoes
@@ -265,7 +292,21 @@ function validateSimuladoPayload(payload, quantidade, materia, assunto, topico, 
   );
 
   if (invalidQuestion) {
-    throw new Error('A IA retornou questões incompletas. Tente gerar novamente.');
+    throw buildHttpError('A IA retornou questões incompletas. Tente gerar novamente.', 422, {
+      invalidQuestionId: invalidQuestion.id,
+      missingFields: {
+        contexto: !invalidQuestion.contexto || invalidQuestion.contexto.length < 120,
+        textoMotivador: !invalidQuestion.textoMotivador,
+        pergunta: !invalidQuestion.pergunta || invalidQuestion.pergunta.length < 30,
+        alternativas: invalidQuestion.alternativas.length !== 5 || invalidQuestion.alternativas.some(alt => !alt.texto),
+        resolucao: !invalidQuestion.resolucao,
+        competencia: !invalidQuestion.competencia,
+        habilidade: !invalidQuestion.habilidade,
+        tema: !invalidQuestion.tema,
+        area: !invalidQuestion.area,
+        modeloTri: !invalidQuestion.modeloTri,
+      },
+    });
   }
 
   const coverage = validateThemeCoverage(questoes, materia, effectiveTopico);
@@ -328,14 +369,14 @@ Responda somente JSON valido. Gere exatamente ${missing} questoes completas, ade
     [{ role: 'user', content: prompt }],
     systemPrompt,
     {
-      maxTokens: Math.min(16000, Math.max(4096, missing * 1200)),
+      maxTokens: Math.min(3500, Math.max(1200, missing * 450)),
       temperature: 0.3,
       skipDbContext: true,
-      responseFormat: 'json',
+      responseFormat: { type: 'json_object' },
       retries: 2,
     }
   );
-  const completionPayload = extractJsonObject(raw);
+  const completionPayload = safeJsonParse(raw);
   const merged = mergeSimuladoPayloads(payload, completionPayload, quantidade);
   const mergedCount = Array.isArray(merged.questoes) ? merged.questoes.length : 0;
   if (mergedCount !== quantidade) {
@@ -511,10 +552,15 @@ A questão DEVE seguir este formato EXATO:
 // POST /api/chat/simulado - Gera um simulado completo estruturado
 exports.generateSimulado = async (req, res) => {
   try {
+    if (!req.userId) {
+      console.warn('[chat.generateSimulado] Usuario nao autenticado no controller.');
+      return res.status(401).json({ success: false, error: 'Usuario nao autenticado.' });
+    }
+
     const materia = sanitizeUserText(req.body.materia, 80);
     const assunto = sanitizeUserText(req.body.assunto, 140);
     const topico = sanitizeUserText(req.body.topico, 140);
-    const descricao = sanitizeUserText(req.body.descricao, 800);
+    const descricao = sanitizeUserText(req.body.descricao, 420);
     const { quantidade } = req.body;
     if (!materia) return res.status(400).json({ error: 'Campo "materia" é obrigatório.' });
     if (!assunto) return res.status(400).json({ error: 'Campo "assunto" é obrigatório. Tópico e breve descrição são opcionais.' });
@@ -526,58 +572,24 @@ exports.generateSimulado = async (req, res) => {
       const temaCentral = safeTopico || assunto;
       const tema = [materia, assunto, safeTopico].filter(Boolean).join(' - ');
 
-      const prompt = `Crie um simulado completo do ENEM sobre: ${tema}.
+      const prompt = `Gere um simulado ENEM em JSON.
+Tema: ${tema}
+Materia: ${materia}
+Assunto: ${assunto}
+Topico/foco: ${temaCentral}
+Descricao do aluno: ${safeDescricao || 'sem descricao adicional'}
+Quantidade exata: ${safeQuantidade}
 
-Regras obrigatorias:
-- Gere exatamente ${safeQuantidade} questoes.
-- Siga exatamente a hierarquia: Materia "${materia}", Assunto "${assunto}", Topico "${temaCentral}".
-- O campo Topico e opcional; quando ele vier vazio, use o assunto como foco principal.
-- A descricao opcional do aluno e: "${safeDescricao || 'sem descricao adicional'}".
-- O foco principal de TODAS as questoes deve ser "${temaCentral}". Nao use questoes genericas que apenas citam a materia.
-- Cada questao deve parecer uma questao real do ENEM: situacao-problema, texto motivador, interpretacao, comando claro e alternativas plausiveis.
-- O contexto/texto motivador deve ter pelo menos 120 caracteres e nunca ser uma frase curta.
-- Cada pergunta deve exigir interpretacao, leitura, raciocinio ou aplicacao. Nao use perguntas diretas como "quanto e 2+2".
-- Cada questao deve ter contexto, textoMotivador, interpretacao, pergunta, cinco alternativas plausiveis e apenas uma resposta correta.
-- Evite fatos inventados, datas duvidosas, numeros sem necessidade e fontes inexistentes.
-- Quando houver calculo, confira a conta antes de responder.
-- As alternativas incorretas devem ser plausiveis, mas claramente refutaveis pela resolucao.
-- Classifique dificuldade apenas como: facil, media ou dificil.
-- Preencha metadata pedagogica: competencia, habilidade, tema, area e modeloTri.
-- Use linguagem de prova, sem mencionar IA, modelo, prompt ou algoritmo.
-- Nao inclua markdown. Nao inclua comentarios fora do JSON.
+Regras:
+- Retorne SOMENTE JSON valido, sem markdown.
+- Gere exatamente ${safeQuantidade} questoes aderentes ao foco "${temaCentral}".
+- Cada questao deve ter contexto ENEM com no minimo 120 caracteres, textoMotivador, interpretacao, pergunta/enunciado, 5 alternativas A-E, respostaCorreta, resolucao, competencia, habilidade, tema, topico, area, modeloTri e dificuldade.
+- Dificuldade: facil, media ou dificil.
+- Uma unica alternativa correta. Resolucao deve bater com o gabarito.
+- Nao invente fontes ou dados especificos duvidosos.
 
-Retorne somente um JSON valido no formato:
-{
-  "titulo": "Simulado EnemFlow - ${tema}",
-  "instrucoes": "texto curto",
-  "questoes": [
-    {
-      "contexto": "texto motivador com situacao-problema em estilo ENEM",
-      "textoMotivador": "texto de apoio da questao",
-      "imagemSugerida": "descricao curta de imagem/tabela/grafico se necessario, ou string vazia",
-      "interpretacao": "o que o aluno precisa interpretar para resolver",
-      "pergunta": "comando da questao",
-      "enunciado": "mesmo texto de pergunta",
-      "alternativas": [
-        { "letra": "A", "texto": "alternativa" },
-        { "letra": "B", "texto": "alternativa" },
-        { "letra": "C", "texto": "alternativa" },
-        { "letra": "D", "texto": "alternativa" },
-        { "letra": "E", "texto": "alternativa" }
-      ],
-      "respostaCorreta": "A",
-      "resolucao": "explicacao objetiva e conferida",
-      "explicacao": "explicacao opcional para estudo",
-      "competencia": "competencia do ENEM em linguagem simples",
-      "habilidade": "habilidade do ENEM em linguagem simples",
-      "tema": "${temaCentral}",
-      "topico": "${temaCentral}",
-      "area": "${getAreaFromMateria(materia)}",
-      "modeloTri": "baixa | media | alta discriminacao, com justificativa curta",
-      "dificuldade": "facil | media | dificil"
-    }
-  ]
-}`;
+Formato:
+{"titulo":"Simulado EnemFlow - ${tema}","instrucoes":"Leia com atencao.","questoes":[{"contexto":"","textoMotivador":"","imagemSugerida":"","interpretacao":"","pergunta":"","enunciado":"","alternativas":[{"letra":"A","texto":""},{"letra":"B","texto":""},{"letra":"C","texto":""},{"letra":"D","texto":""},{"letra":"E","texto":""}],"respostaCorreta":"A","resolucao":"","explicacao":"","competencia":"","habilidade":"","tema":"${temaCentral}","topico":"${temaCentral}","area":"${getAreaFromMateria(materia)}","modeloTri":"","dificuldade":"media"}]}`;
 
       const systemPrompt = getPrompt('simulado');
 
@@ -585,18 +597,20 @@ Retorne somente um JSON valido no formato:
         [{ role: 'user', content: prompt }],
         systemPrompt,
         {
-          maxTokens: Math.min(16000, Math.max(4096, safeQuantidade * 1250)),
+          maxTokens: Math.min(6000, Math.max(2500, safeQuantidade * 450)),
           temperature: 0.32,
           skipDbContext: true,
-          responseFormat: 'json',
+          responseFormat: { type: 'json_object' },
           retries: 2,
+          maxHistoryChars: 7000,
+          maxMessageChars: 7000,
         }
       );
-      let parsed = extractJsonObject(raw);
+      let parsed = safeJsonParse(raw);
       if (!parsed || !Array.isArray(parsed.questoes)) {
         const err = new Error('A IA retornou um simulado em formato invalido. Tente gerar novamente.');
         err.statusCode = 422;
-        err.details = { parseFailed: true };
+        err.details = { parseFailed: true, rawPreview: String(raw || '').slice(0, 900) };
         throw err;
       }
       if (parsed.questoes.length !== safeQuantidade) {
@@ -619,20 +633,22 @@ Retorne somente um JSON valido no formato:
         tipo: 'exercicio',
         mensagens: [
           { role: 'user', content: `Gerar simulado ENEM: ${tema}` },
-          { role: 'assistant', content: JSON.stringify(simulado) },
+          { role: 'assistant', content: JSON.stringify(simulado).slice(0, 50000) },
         ],
       });
       scheduleChatLimitCleanup(req.userId);
 
-      return { chatId: chat._id, simulado };
+      return { success: true, chatId: chat._id, simulado };
     });
 
     res.json(result);
   } catch (error) {
-    console.error('[chat.generateSimulado]', error.message, error.details || '');
+    console.error('ERRO COMPLETO:', error);
     res.status(error.statusCode || 500).json({
+      success: false,
       error: error.message || 'Erro ao gerar simulado.',
-      details: error.details
+      stack: error.stack,
+      details: error.details || null
     });
   }
 };
